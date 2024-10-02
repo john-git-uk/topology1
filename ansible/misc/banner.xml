@@ -1,0 +1,6 @@
+
+<banner xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native"  xmlns:ios="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <login>
+    <banner>this was configured with ansible via netconf</banner>
+  </login>
+</banner>

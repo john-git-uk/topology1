@@ -1,0 +1,19 @@
+---
+- name: play1
+  hosts: testssh
+  gather_facts: no
+  tasks:
+    - name: Print connection details
+      debug:
+        msg: "Connecting to {{ ansible_host }} with user {{ ansible_user }} and password {{ ansible_password }}"
+
+    - name: Add Banner using ios_banner via SSH
+      cisco.ios.ios_banner:
+        banner: login
+        text: this was configured with ansible via ssh
+        state: present
+    - name: Add Banner using ios_banner via SSH
+      cisco.ios.ios_banner:
+        banner: login
+        text: this was configured with ansible via ssh
+        state: present

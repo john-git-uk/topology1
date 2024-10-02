@@ -1,0 +1,65 @@
+---
+- name: test_convert
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Convert CIDR to Netmask
+      convert_module:
+        what: cidr_to_netmask
+        cidr: 24
+      register: netmask_result
+    - debug:
+        var: netmask_result
+
+    - name: Convert CIDR to Wildcard Mask
+      convert_module:
+        what: cidr_to_wildmask
+        cidr: 24
+      register: wildmask_result
+    - debug:
+        var: wildmask_result
+
+    - name: Convert Netmask to CIDR
+      convert_module:
+        what: netmask_to_cidr
+        netmask: "255.255.255.0"
+      register: cidr_result
+    - debug:
+        var: cidr_result
+
+    - name: Calculate Network ID
+      convert_module:
+        what: ipv4_netid
+        addr: "192.168.1.10"
+        cidr: 24
+      register: netid_result
+    - debug:
+        var: netid_result
+
+    - name: Calculate Broadcast Address
+      convert_module:
+        what: ipv4_broadcast
+        addr: "192.168.1.10"
+        cidr: 24
+      register: broadcast_result
+    - debug:
+        var: broadcast_result
+
+    - name: Test Invalid CIDR
+      convert_module:
+        what: cidr_to_netmask
+        cidr: 33
+      register: invalid_cidr_result
+      ignore_errors: yes
+    - debug:
+        var: invalid_cidr_result
+
+    - name: Test Invalid IP Address
+      convert_module:
+        what: ipv4_netid
+        addr: "256.256.256.256"
+        cidr: 24
+      register: invalid_ip_result
+      ignore_errors: yes
+    - debug:
+        var: invalid_ip_result

@@ -1,0 +1,734 @@
+---
+all:
+  children:
+    testnetconf:
+      hosts:
+        2001:db8:0:3::ff1:
+          ansible_host: 2001:db8:0:3::ff1
+          ansible_user: auto
+          ansible_password: otua
+          ansible_connection: netconf
+          ansible_network_os: ios
+          netconf_port: 830
+          ansible_become: yes
+          ansible_become_method: enable
+          ansible_become_password: otua
+    testssh:
+      hosts:
+        2001:db8:0:3::ff2:
+          ansible_host: 2001:db8:0:3::ff1
+          ansible_user: auto
+          ansible_password: otua
+          ansible_connection: network_cli
+          ansible_network_os: ios
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o KexAlgorithms=+diffie-hellman-group14-sha1 -o MACs=hmac-sha1 -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa'
+          ansible_become: yes
+          ansible_become_method: enable
+          ansible_become_password: otua
+    testrestconf:
+      hosts:
+        2001:db8:0:3::ff1:
+          ansible_host: 2001:db8:0:3::ff1
+          ansible_user: auto
+          ansible_password: otua
+          ansible_connection: local
+    nodes:
+      hosts:
+        ISP:
+          ansible_host: 10.131.2.245
+          ansible_user: auto
+          ansible_password: otua
+          ansible_network_os: ios
+          interfaces:
+            e0/0:
+              description: "Connected to R1"
+              ipv4:
+                address: "10.111.10.11"
+                cidr: 31
+              ipv6_address: "2001:db8:0:00ff::ffff/127"
+            e0/1:
+              description: "Connected to R2"
+              ipv4:
+                address: "10.111.10.21"
+                cidr: 31
+              ipv6_address: "2001:db8:0:00ff::fffd/127"
+            e0/2:
+              description: "Connected to R3"
+              ipv4:
+                address: "10.111.10.31"
+                cidr: 31
+              ipv6_address: "2001:db8:0:00ff::fffb/127"
+            e0/3:
+              description: "Connected to metal"
+              ipv4:
+                address: "10.131.2.245"
+                cidr: 24
+              ipv6_address: "2001:db8:0:00ff::fff9/127"
+            e1/0:
+              description: "Connected to alprouter"
+              ipv6_address: "2001:db8:0:00ff::fff7/127"
+          static_routes:
+            ipv4:
+              - { dest: "0.0.0.0 0.0.0.0", next_hop: "10.131.2.241" }
+            ipv6:
+              - { dest: "0::/0", interface: "e1/0", next_hop: "2001:db8:0:00ff::fff6" }
+              - { dest: "2001:db8:0:0000::/60", interface: "e0/0", next_hop: "2001:db8:0:00ff::fffe" }
+              - { dest: "2001:db8:0:0000::/60", interface: "e0/1", next_hop: "2001:db8:0:00ff::fffa", metric: 5 }
+              - { dest: "2001:db8:0:0020::/60", interface: "e0/2", next_hop: "2001:db8:0:00ff::fffc" }
+        R1:
+          interfaces:
+            g1:
+              description: "Connected to SW3"
+              ipv4:
+                address: "10.131.2.64"
+                cidr: 31
+              ipv6_address: ""
+            g2:
+              description: "Connected to ISP"
+              ipv4:
+                address: "10.111.10.10"
+                cidr: 31
+              ipv6_address: "2001:db8:0:00ff::ffff/127"
+            g3:
+              description: "Connected to SW4"
+              ipv4:
+                address: "10.131.2.72"
+                cidr: 31
+              ipv6_address: ""
+            l0:
+              description: "l0"
+              ipv4:
+                address: "10.131.2.1"
+                cidr: 32
+              ipv6_address: ""
+        R2:
+          interfaces:
+            e0/0:
+              description: "Connected to SW4"
+              ipv4:
+                address: "10.131.2.66"
+                cidr: 31
+              ipv6_address: ""
+            e0/1:
+              description: "Connected to ISP"
+              ipv4:
+                address: "10.111.10.20"
+                cidr: 31
+              ipv6_address: ""
+            e0/2:
+              description: "Connected to SW3"
+              ipv4:
+                address: "10.131.2.74"
+                cidr: 31
+              ipv6_address: ""
+            l0:
+              description: "l0"
+              ipv4:
+                address: "10.131.2.2"
+                cidr: 32
+              ipv6_address: ""
+        R3:
+          type: router
+          ansible_host: 192.168.250.3
+          ansible_user: auto
+          ansible_password: otua
+          ansible_network_os: ios
+          ansible_connection: network_cli
+          ansible_ssh_common_args: >
+            -o KexAlgorithms=+diffie-hellman-group14-sha1
+            -o MACs=hmac-sha1
+            -o HostKeyAlgorithms=+ssh-rsa
+            -o PubkeyAcceptedKeyTypes=+ssh-rsa
+          interfaces:
+            e0/0:
+              description: "Connected to SW4"
+              ipv4:
+                address: "10.111.10.30"
+                cidr: 31
+              ipv6_address: ""
+            e0/1:
+              description: "Connected to SW7 via Subinterfaces"
+              ipv4:
+                address: ""
+                cidr: 31
+              ipv6_address: ""
+            e0/1.10:
+              description: ""
+              ipv4:
+                address: "10.131.10.254"
+                cidr: 25
+            e0/1.20:
+              description: ""
+              ipv4:
+                address: "10.131.22.254"
+                cidr: 24
+            e0/1.30:
+              description: ""
+              ipv4:
+                address: "10.131.30.254"
+                cidr: 25
+            e0/1.40:
+              description: ""
+              ipv4:
+                address: "10.131.40.254"
+                cidr: 25
+            l0:
+              description: "l0"
+              ipv4:
+                address: "10.131.2.3"
+                cidr: 32
+              ipv6_address: ""
+        SW1:
+          default-gateway: 10.131.30.126
+          interfaces:
+            e0/0:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e0/1:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e0/2:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e0/3:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e1/0:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e1/1:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e1/2:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e1/3:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e2/0:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/1:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/2:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/3:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e3/0:
+              layer: 2
+              trunk: false
+              negotiate: false
+            "vlan 30":
+              ipv4:
+                address: "10.131.30.2"
+                cidr: 25
+            e3/3:
+              description: "out of band"
+              layer: 3
+              ipv4:
+                address: "192.168.250.51"
+                cidr: 24
+        SW2:
+          interfaces:
+            e0/0:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e0/1:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e0/2:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e0/3:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e1/0:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e1/1:
+              layer: 2
+              trunk: false
+              vlans: 40
+              negotiate: false
+            e1/2:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e1/3:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/0:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/1:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/2:
+              layer: 2
+              trunk: false
+              vlans: 80
+              negotiate: false
+            e2/3:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e3/3:
+              description: "out of band"
+              layer: 3
+              ipv4:
+                address: "192.168.250.52"
+                cidr: 24
+        SW3:
+          interfaces:
+            e0/3:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40"
+              negotiate: false
+            e2/0:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30"
+              negotiate: false
+            e3/0:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,80"
+              negotiate: false
+            port 1:
+              interfaces: "e1/0, e1/1"
+              layer: 2
+              trunk: true
+              vlans: "30,60,70"
+              negotiate: false
+            port 2:
+              interfaces: "e0/0, e0/1, e0/2"
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50,60,70,80"
+              negotiate: false
+            "vlan 10":
+              ipv4:
+                address: "10.131.10.124"
+                cidr: 25
+            "vlan 20":
+              ipv4:
+                address: "10.131.21.252"
+                cidr: 23
+            "vlan 30":
+              ipv4:
+                address: "10.131.30.3"
+                cidr: 25
+            "vlan 40":
+              ipv4:
+                address: "10.131.40.124"
+                cidr: 25
+            "vlan 60":
+              ipv4:
+                address: "10.131.60.252"
+                cidr: 24
+            "vlan 70":
+              ipv4:
+                address: "10.131.70.252"
+                cidr: 24
+            "vlan 80":
+              ipv4:
+                address: "10.131.80.252"
+                cidr: 24
+            e4/0:
+              layer: 3
+              ipv4:
+                address: 10.131.2.65 255.255.255.254
+                cidr: 31
+            e1/2:
+              layer: 3
+              ipv4:
+                address: 10.131.2.75 255.255.255.254
+                cidr: 31
+            e5/3:
+              description: "out of band"
+              layer: 3
+              ipv4:
+                address: "192.168.250.53"
+                cidr: 24
+            lo0:
+              ipv4:
+                address: 10.131.2.13 255.255.255.255
+                cidr: 32
+        SW4:
+          interfaces:
+            e1/0:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,80"
+              negotiate: false
+            e1/1:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30"
+              negotiate: false
+            e1/2:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40"
+              negotiate: false
+            port 1:
+              interfaces: "e2/0, e0/3"
+              layer: 2
+              trunk: true
+              vlans: "30,60,70"
+              negotiate: false
+            port 2:
+              interfaces: "e0/0, e0/1, e0/2"
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50,60,70,80"
+              negotiate: false
+            "vlan 10":
+              ipv4:
+                address: 10.131.10.125 255.255.255.128
+                cidr: 25
+            "vlan 20":
+              ipv4:
+                address: 10.131.21.253 255.255.254.0
+                cidr: 23
+            "vlan 30":
+              ipv4:
+                address: 10.131.30.4 255.255.255.128
+                cidr: 25
+            "vlan 40":
+              ipv4:
+                address: 10.131.40.125 255.255.255.128
+                cidr: 25
+            "vlan 60":
+              ipv4:
+                address: 10.131.60.253 255.255.255.0
+                cidr: 24
+            "vlan 70":
+              ipv4:
+                address: 10.131.70.253 255.255.255.0
+                cidr: 24
+            "vlan 80":
+              ipv4:
+                address: 10.131.80.253 255.255.255.0
+                cidr: 24
+            e1/3:
+              layer: 3
+              ipv4:
+                address: 10.131.2.67 255.255.255.254
+                cidr: 31
+            e2/1:
+              layer: 3
+              ipv4:
+                address: 10.131.2.73 255.255.255.254
+                cidr: 31
+            e5/3:
+              description: "out of band"
+              layer: 3
+              ipv4:
+                address: "192.168.250.54"
+                cidr: 24
+            lo0:
+              ipv4:
+                address: 10.131.2.14 255.255.255.255
+                cidr: 32
+        SW5:
+          interfaces:
+            e0/0:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e0/1:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40,50"
+              negotiate: false
+            e0/2:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e0/3:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e1/0:
+              layer: 2
+              trunk: false
+              vlans: 40
+              negotiate: false
+            e1/1:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e1/2:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e1/3:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/0:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e3/3:
+              description: "out of band"
+              layer: 3
+              ipv4:
+                address: "192.168.250.55"
+                cidr: 24
+        SW6:
+          interfaces:
+            e0/2:
+              layer: 2
+              trunk: false
+              vlans: 30
+              negotiate: false
+            e0/3:
+              layer: 2
+              trunk: false
+              vlans: 70
+              negotiate: false
+            e1/0:
+              layer: 2
+              trunk: false
+              vlans: 60
+              negotiate: false
+            e1/3:
+              layer: 2
+              trunk: false
+              vlans: 60
+              negotiate: false
+            port 1:
+              interfaces: "e0/1, e1/2"
+              layer: 2
+              trunk: true
+              vlans: "30,60,70"
+              negotiate: false
+            port 2:
+              interfaces: "e1/1, e0/0"
+              layer: 2
+              trunk: true
+              vlans: "30,60,70"
+              negotiate: false
+            e5/3:
+              description: "out of band"
+              layer: 3
+              ipv4:
+                address: "192.168.250.56"
+                cidr: 24
+        SW7:
+          interfaces:
+            e0/0:
+              layer: 2
+              trunk: true
+              vlans: "10,20,30,40"
+              negotiate: false
+            e0/1:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e0/2:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e0/3:
+              layer: 2
+              trunk: false
+              vlans: 10
+              negotiate: false
+            e1/0:
+              layer: 2
+              trunk: false
+              vlans: 40
+              negotiate: false
+            e1/1:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e1/2:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e1/3:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/0:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e2/1:
+              layer: 2
+              trunk: false
+              vlans: 20
+              negotiate: false
+            e3/3:
+              description: "out of band"
+              layer: 3
+              ipv4:
+                address: "192.168.250.57"
+                cidr: 24
+  vars:
+    globals:
+      domain:
+        a: "tapeitup"
+        b: "private"
+      alpouter:
+        ipv4:
+          address: ""
+          cidr: ""
+      metal:
+        ipv4:
+          address: "10.131.2.250"
+          cidr: "24"
+      oob:
+        ipv4:
+          address: "192.168.250.254"
+          cidr: "24"
+      crud_gateway:
+        ipv4:
+          address: "10.131.2.241"
+          cidr: "24"
+    vlans:
+    - number: 10
+      name: "sales"
+      site_main:
+        net_id: "10.131.10.0"
+        cidr: 25
+        dhcp:
+          node: "SW3"
+          interface: "lo0"
+          excluded:
+            start: "10.131.10.120"
+            end: "10.131.10.126"
+        fhrp_1:
+          ipv4:
+            address: "10.131.10.126"
+            priority: "SW3"
+      site_outreach:
+        net_id: "10.131.10.128"
+        cidr: 25
+        dhcp:
+          node: "SW3"
+          interface: "lo0"
+          excluded:
+            start: "10.131.10.250"
+            end: "10.131.10.255"
+    - number: 20
+      name: "guest"
+      site_main:
+        net_id: "10.131.20.0"
+        cidr: 23
+        dhcp:
+          excluded:
+            start: ""
+            end: ""
+        fhrp:
+          ipv4:
+            address: "10.131.21.254"
+            priority: "SW4"
+      site_outreach:
+        net_id: "10.131.22.0"
+        cidr: 24
+        dhcp:
+          node: "SW3"
+          interface: "lo0"
+          excluded:
+            start: "10.131.22.245"
+            end: "10.131.22.255"
+    - number: 30
+      name: "management"
+      fhrp:
+        ipv4:
+          address: "10.131.30.126"
+          priority: "SW4"
+    - number: 40
+      name: "supervisor"
+      fhrp:
+        ipv4:
+          address: "10.131.40.126"
+          priority: "SW3"
+    - number: 50
+      name: "voice"
+    - number: 60
+      name: "guest-services"
+      fhrp:
+        ipv4:
+          address: "10.131.60.254"
+          priority: "SW4"
+    - number: 70
+      name: "internal-services"
+      fhrp:
+        ipv4:
+          address: "10.131.70.254"
+          priority: "SW4"
+    - number: 80
+      name: "accounting"
+      fhrp:
+        ipv4:
+          address: "10.131.80.254"
+          priority: "SW4"
+    - number: 250
+      name: "out of bounds"
+    - number: 933
+      name: "native"

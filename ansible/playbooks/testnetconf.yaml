@@ -1,0 +1,23 @@
+---
+- name: play3
+  hosts: testnetconf
+  gather_facts: no
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  tasks:
+    - name: Read XML file
+      slurp:
+        src: misc/banner.xml
+      register: xml_file
+
+    - name: Convert XML content to string
+      set_fact:
+        rpc_content: "{{ xml_file.content | b64decode | trim }}"
+
+    - name: Debug XML content
+      debug:
+        msg: "{{ rpc_content }}"
+
+    - name: Send NETCONF RPC from XML content
+      ansible.netcommon.netconf_rpc:
+        rpc: "{{ rpc_content }}"

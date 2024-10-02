@@ -1,0 +1,54 @@
+---
+- name: name
+  hosts: R3
+  gather_facts: no
+  tasks:
+  - name: Print connection details
+    debug:
+      msg: "Connecting to {{ ansible_host }} with user {{ ansible_user }} and password {{ ansible_password }}"
+  - name: Precalculate Netmasks
+    convert_module:
+      what: "cidr_to_netmask"
+      cidr: "{{ item.value.ipv4.cidr }}"
+    register: netmask_results
+    loop: "{{ interfaces | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when: item.value.ipv4.address != ""
+  - name: Store Netmask
+    set_fact:
+      interfaces: "{{ interfaces | combine({ item.item.key: interfaces[item.item.key] | combine({'ipv4': interfaces[item.item.key].ipv4 | combine({'netmask': item.result_val}) }) }) }}"
+    loop: "{{ netmask_results.results }}"
+    when: item is defined and item.result_val is defined
+  - name: Configure Interfaces
+    ios_config:
+      lines: |
+        interface {{ item.key }}
+        {% if item.value.layer == 2 %}
+          {% if item.value.trunk %}
+            switchport mode trunk
+            switchport trunk allowed vlan {{ item.value.vlans }}
+          {% else %}
+            switchport mode access
+            switchport access vlan {{ item.value.vlans }}
+          {% endif %}
+        {% endif %}
+        {% if item.value.description %}
+          description {{ item.value.description }}
+        {% endif %}
+        {% if item.value.layer == 3 and item.value.ipv4.address and item.value.ipv4.cidr %}
+          ip address {{ item.value.ipv4.address }} {{ item.value.ipv4.netmask }}
+        {% endif %}
+        {% if item.value.ipv6_address %}
+          ipv6 address {{ item.value.ipv6_address }}
+        {% endif %}
+    loop: "{{ interfaces | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when:
+      - interfaces is defined
+      - item.value.ipv4.address != ""
+      - interfaces[item.key].ipv4.netmask is defined
+
+  - name: Configure Static IPv4 Routes
+    ios_config:
