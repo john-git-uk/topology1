@@ -1,8 +1,23 @@
-from project_globals import *
-from topology_data import *
-from pydantic import BaseModel, Field, ValidationError, validator
-from typing import Optional, List
+from __future__ import annotations
+from node import Node
 import logging
+import psutil
+import re
+import pexpect
+import libvirt
+import os
+from pathlib import Path
+import time
+VIR_DOMAIN_STATE_LOOKUP = {
+	libvirt.VIR_DOMAIN_NOSTATE: 'No State',
+	libvirt.VIR_DOMAIN_RUNNING: 'Running',
+	libvirt.VIR_DOMAIN_BLOCKED: 'Blocked',
+	libvirt.VIR_DOMAIN_PAUSED: 'Paused',
+	libvirt.VIR_DOMAIN_SHUTDOWN: 'Shutting Down',
+	libvirt.VIR_DOMAIN_SHUTOFF: 'Shut Off',
+	libvirt.VIR_DOMAIN_CRASHED: 'Crashed',
+	libvirt.VIR_DOMAIN_PMSUSPENDED: 'Power Management Suspended',
+}
 LOGGER = logging.getLogger('my_logger')
 def kill_virsh_console_processes():
 	"""
@@ -15,8 +30,6 @@ def kill_virsh_console_processes():
 	# Iterate over all running processes
 	for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
 		try:
-			# Access process info
-			pid = proc.info['pid']
 			name = proc.info['name']
 			cmdline = proc.info['cmdline']
 

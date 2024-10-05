@@ -1,8 +1,14 @@
-from topology_data import *
+from __future__ import annotations
+from interface import Interface
+from node import Node
+from topology import Topology
+from machine_data import get_machine_data
+import logging
+LOGGER = logging.getLogger('my_logger')
 def R3_Structures(topology: Topology):
 	LOGGER.debug("Loading R2 Structures")
 	machine_data=get_machine_data("vios-adventerprisek9-m.SPA.159-3.M6")
-	if(machine_data == None):
+	if(machine_data is None):
 		raise ValueError("Machine data not found")
 		
 	node_R3_i1=Interface(

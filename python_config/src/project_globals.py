@@ -1,21 +1,10 @@
-import netmiko
-from netmiko.ssh_autodetect import SSHDetect
-from netmiko import ConnectHandler
-import paramiko
-from paramiko import SSHClient
-from paramiko import Transport, RSAKey
+import ipaddress
 import logging
-LOGGER = logging.getLogger('my_logger')
-import json,time,urllib
-from tabulate import tabulate
+import libvirt
 import os
 from pathlib import Path
 import configparser
-from scp import SCPClient
 from dotenv import load_dotenv
-import requests
-import importlib.util
-import libvirt
 VIR_DOMAIN_STATE_LOOKUP = {
 	libvirt.VIR_DOMAIN_NOSTATE: 'No State',
 	libvirt.VIR_DOMAIN_RUNNING: 'Running',
@@ -26,11 +15,7 @@ VIR_DOMAIN_STATE_LOOKUP = {
 	libvirt.VIR_DOMAIN_CRASHED: 'Crashed',
 	libvirt.VIR_DOMAIN_PMSUSPENDED: 'Power Management Suspended',
 }
-import pexpect
-import sys
-import psutil
-import re
-import ipaddress
+LOGGER = logging.getLogger('my_logger')
 class Globals:
 	def __init__(self):
 		self.hypervisor_ssh_host = None
@@ -57,7 +42,7 @@ class Globals:
 			except ValueError:
 				ip_address = None
 			if not ip_address:
-				LOGGER.warning(f"Hypervisor SSH host is not a valid IPv4 address.")
+				LOGGER.warning("Hypervisor SSH host is not a valid IPv4 address.")
 				self.hypervisor_ssh_host = (input("Please enter a valid IPv4 address for the hypervisor SSH IPv4 address: "))
 			else:
 				if(input("Is "+str(self.hypervisor_ssh_host)+" the correct hypervisor SSH IPv4 address? (y/n): ") == "y"):
@@ -73,7 +58,7 @@ class Globals:
 			except ValueError:
 				port = None
 			if port < 1 or port > 65535:
-				LOGGER.warning(f"Hypervisor SSH port is not a valid port number.")
+				LOGGER.warning("Hypervisor SSH port is not a valid port number.")
 				self.hypervisor_ssh_port=input("Please enter a valid port number for the hypervisor SSH port: ")
 			else:
 				if(input("Is "+str(self.hypervisor_ssh_port)+" the correct hypervisor SSH port? (y/n): ") == "y"):
@@ -86,7 +71,7 @@ class Globals:
 		valid_hypervisor_ssh_username = False
 		while not valid_hypervisor_ssh_username:
 			if self.hypervisor_ssh_username == "":
-				LOGGER.warning(f"Hypervisor SSH username is empty.")
+				LOGGER.warning("Hypervisor SSH username is empty.")
 				self.hypervisor_ssh_username=input("Please enter a valid username for the hypervisor SSH host: ")
 			else:
 				if(input("Would you like to reenter the correct hypervisor SSH username? (y/n): ") == "y"):
@@ -98,7 +83,7 @@ class Globals:
 		valid_hypervisor_ssh_password = False
 		while not valid_hypervisor_ssh_password:
 			if self.hypervisor_ssh_password == "":
-				LOGGER.warning(f"Hypervisor SSH password is empty.")
+				LOGGER.warning("Hypervisor SSH password is empty.")
 				self.hypervisor_ssh_password=input("Please enter a valid password for the hypervisor SSH host: ")
 			else:
 				if(input("Would you like to reenter the correct hypervisor SSH password? (y/n): ") == "y"):
@@ -110,7 +95,7 @@ class Globals:
 		valid_hypervisor_ssh_key = False
 		while not valid_hypervisor_ssh_key:
 			if self.hypervisor_ssh_key == "":
-				LOGGER.warning(f" Hypervisor SSH key is empty.")
+				LOGGER.warning(" Hypervisor SSH key is empty.")
 				self.hypervisor_ssh_key=input("Please enter a valid key for the hypervisor SSH host: ")
 			else:
 				if(input("Would you like to reenter the correct hypervisor SSH key? (y/n): ") == "y"):
@@ -122,7 +107,7 @@ class Globals:
 		valid_lab_username = False
 		while not valid_lab_username:
 			if self.lab_username == "":
-				LOGGER.warning(f"Lab username is empty.")
+				LOGGER.warning("Lab username is empty.")
 				self.lab_username=input("Please enter a valid username for the lab: ")
 			else:
 				if(input("Would you like to reenter the correct lab username? (y/n): ") == "y"):
@@ -133,7 +118,7 @@ class Globals:
 		valid_lab_password = False
 		while not valid_lab_password:
 			if self.lab_password == "":
-				LOGGER.warning(f"Lab password	is empty.")
+				LOGGER.warning("Lab password	is empty.")
 				self.lab_password=input("Please enter a valid password for the lab: ")
 			else:
 				if(input("Would you like to reenter the correct lab password? (y/n): ") == "y"):
@@ -143,7 +128,7 @@ class Globals:
 	def load_data(self):
 		missing_data = False
 		# Find globals file
-		LOGGER.info(f"Attempting to find repo_globals.ini")
+		LOGGER.info("Attempting to find repo_globals.ini")
 		# Loop through 1, 2, and 3 directories up
 		current_dir = Path.cwd()
 		for i in range(1, 4):
@@ -156,11 +141,11 @@ class Globals:
 				LOGGER.info(f"Found: {repo_globals_file_path}")
 				break
 		else:
-			LOGGER.warning(f"repo_globals.ini not found within 3 directories up.")
+			LOGGER.warning("repo_globals.ini not found within 3 directories up.")
 			missing_data = True
 
 		# Find secrets file
-		LOGGER.info(f"Attempting to find secrets.env")
+		LOGGER.info("Attempting to find secrets.env")
 		# Loop through 1, 2, and 3 directories up
 		current_dir = Path.cwd()
 		for i in range(1, 4):
@@ -173,7 +158,7 @@ class Globals:
 				LOGGER.info(f"Found: {secrets_file_path}")
 				break
 		else:
-			LOGGER.warning(f"secrets.env not found within 3 directories up.")
+			LOGGER.warning("secrets.env not found within 3 directories up.")
 			missing_data = True
 
 		# Read configuration
@@ -214,10 +199,8 @@ class Globals:
 			LOGGER.warning("Missing data.")
 			validate = input("Would you like to validate the data? (y/n): ")
 			if(validate == "y"):
-				validate_data()
+				GLOBALS.validate_data()
 			else:
 				LOGGER.error("Data validation rejected. Exiting.")
 				exit()
 GLOBALS = Globals()
-def get_globals():
-	return GLOBALS

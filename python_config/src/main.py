@@ -1,36 +1,25 @@
-#from netmiko import ConnectHandler
-#from netmiko import NetMikoTimeoutException, NetMikoAuthenticationException
-from project_globals import *
-import netmiko
-from netmiko.ssh_autodetect import SSHDetect
-from netmiko import ConnectHandler
-import paramiko
+
+from __future__ import annotations
+from topology import Topology
+from handle_vmm import test_interact_vmm
+from node_data.node_ISP_data import ISP_Structures, ISP_relations
+from node_data.node_R1_data import R1_Structures, R1_relations
+from node_data.node_R2_data import R2_Structures, R2_relations
+from node_data.node_R3_data import R3_Structures, R3_relations
+from node_data.node_SW1_data import SW1_Structures, SW1_relations
+from node_data.node_SW2_data import SW2_Structures, SW2_relations
+from node_data.node_SW3_data import SW3_Structures, SW3_relations
+from node_data.node_SW4_data import SW4_Structures, SW4_relations
+from node_data.node_SW5_data import SW5_Structures, SW5_relations
+from node_data.node_SW6_data import SW6_Structures, SW6_relations
+from node_data.node_SW7_data import SW7_Structures, SW7_relations
+from project_globals import GLOBALS
 from paramiko import SSHClient
-from paramiko import Transport, RSAKey
+from paramiko import Transport#, RSAKey
 import logging
-LOGGER = logging.getLogger('my_logger')
-from topology_data import *
-from handle_vmm import *
-from node_data.node_ISP_data import *
-from node_data.node_R1_data import *
-from node_data.node_R2_data import *
-from node_data.node_R3_data import *
-from node_data.node_SW1_data import *
-from node_data.node_SW2_data import *
-from node_data.node_SW3_data import *
-from node_data.node_SW4_data import *
-from node_data.node_SW5_data import *
-from node_data.node_SW6_data import *
-from node_data.node_SW7_data import *
-import json,time,urllib
-from tabulate import tabulate
+import time
 import os
 from pathlib import Path
-import configparser
-from scp import SCPClient
-from dotenv import load_dotenv
-import requests
-import importlib.util
 import libvirt
 VIR_DOMAIN_STATE_LOOKUP = {
 	libvirt.VIR_DOMAIN_NOSTATE: 'No State',
@@ -42,14 +31,11 @@ VIR_DOMAIN_STATE_LOOKUP = {
 	libvirt.VIR_DOMAIN_CRASHED: 'Crashed',
 	libvirt.VIR_DOMAIN_PMSUSPENDED: 'Power Management Suspended',
 }
-import pexpect
-import sys
-import psutil
-import re
+LOGGER = logging.getLogger('my_logger')
 
 def test_connect_with_custom_ssh(topology: Topology):
 	try:
-		LOGGER.info(f"Connecting to R3")
+		LOGGER.info("Connecting to R3")
 
 		# Manually create the transport with custom Kex and MAC algorithms
 		transport = Transport((str(topology.get_node("R3").oob_interface.ipv4_address), 22))
@@ -77,16 +63,6 @@ def test_generate_stp_config(topology: Topology):
 				if node.hostname == "SW3" or node.hostname == "SW4":
 					shortlist.append(node)
 	for node in shortlist:
-		device = {
-			'device_type': node.machine_data.device_type,  # Let Netmiko autodetect the device type
-			'host': str(node.oob_interface.ipv4_address),  # Make sure to convert IP to string
-			'username': node.local_user,
-			'password': node.local_password,
-			'secret': node.local_password,  # Enable password if needed
-			'port': 22,  # Default SSH port
-			'verbose': True,
-			'conn_timeout': 30,
-		}
 		# Connect using Netmiko with the detected device type
 		#LOGGER.info(f"Connecting to {node.hostname} with device type {device.device_type}")
 		#connection = ConnectHandler(**device)
@@ -95,68 +71,77 @@ def test_generate_stp_config(topology: Topology):
 				config_commands = [
 					"spanning-tree mode rapid-pvst"
 				]
-				for topologyvlan in topology.vlans:
-					if topologyvlan.main_fhrp_priority.hostname == node.hostname:
+				for topology_vlan in topology.vlans:
+					if topology_vlan.main_fhrp_priority.hostname == node.hostname:
 						config_commands += ["spanning-tree vlan "+str(topology_vlan.number)+" priority 4096"]
 					else:
 						config_commands += ["spanning-tree vlan "+str(topology_vlan.number)+" priority 0"]
-
+def test_apply_vlan_config(topology: Topology):
+	LOGGER.warning("test_apply_vlan_config function not implemented.")
 def load_topology():
-	try:
-		topology = main_structures()
-		LOGGER.debug("Topology main loaded")
-		ISP_Structures(topology)
-		LOGGER.debug("ISP Structures loaded")
-		R1_Structures(topology)
-		LOGGER.debug("R1 Structures loaded")
-		R2_Structures(topology)
-		LOGGER.debug("R2 Structures loaded")
-		R3_Structures(topology)
-		LOGGER.debug("R3 Structures loaded")
-		SW1_Structures(topology)
-		LOGGER.debug("SW1 Structures loaded")
-		SW2_Structures(topology)
-		LOGGER.debug("SW2 Structures loaded")
-		SW3_Structures(topology)
-		LOGGER.debug("SW3 Structures loaded")
-		SW4_Structures(topology)
-		LOGGER.debug("SW4 Structures loaded")
-		SW5_Structures(topology)
-		LOGGER.debug("SW5 Structures loaded")
-		SW6_Structures(topology)
-		LOGGER.debug("SW6 Structures loaded")
-		SW7_Structures(topology)
-		LOGGER.debug("SW7 Structures loaded")
+	from topology_data import main_structures, main_relations
+	from node import Node
+	from vlan import VLAN
+	from interface import Interface
 
-		main_relations(topology)
-		LOGGER.debug("Main Relations loaded")
-		ISP_relations(topology)
-		LOGGER.debug("ISP Relations loaded")
-		R1_relations(topology)
-		LOGGER.debug("R1 Relations loaded")
-		R2_relations(topology)
-		LOGGER.debug("R2 Relations loaded")
-		R3_relations(topology)
-		LOGGER.debug("R3 Relations loaded")
-		SW1_relations(topology)
-		LOGGER.debug("SW1 Relations loaded")
-		SW2_relations(topology)
-		LOGGER.debug("SW2 Relations loaded")
-		SW3_relations(topology)
-		LOGGER.debug("SW3 Relations loaded")
-		SW4_relations(topology)
-		LOGGER.debug("SW4 Relations loaded")
-		SW5_relations(topology)
-		LOGGER.debug("SW5 Relations loaded")
-		SW6_relations(topology)
-		LOGGER.debug("SW6 Relations loaded")
-		SW7_relations(topology)
-		LOGGER.debug("SW7 Relations loaded")
-		
-		return topology
-	except Exception as e:
-		LOGGER.error(f"An error occurred loading topology: {e}")
-		exit(1)
+	#VLAN.update_forward_refs()
+	#Interface.update_forward_refs()
+	#Node.update_forward_refs()
+	#Topology.update_forward_refs()
+
+	topology = Topology()
+	main_structures(topology)
+	LOGGER.debug("Topology main loaded")
+	ISP_Structures(topology)
+	LOGGER.debug("ISP Structures loaded")
+	R1_Structures(topology)
+	LOGGER.debug("R1 Structures loaded")
+	R2_Structures(topology)
+	LOGGER.debug("R2 Structures loaded")
+	R3_Structures(topology)
+	LOGGER.debug("R3 Structures loaded")
+	SW1_Structures(topology)
+	LOGGER.debug("SW1 Structures loaded")
+	SW2_Structures(topology)
+	LOGGER.debug("SW2 Structures loaded")
+	SW3_Structures(topology)
+	LOGGER.debug("SW3 Structures loaded")
+	SW4_Structures(topology)
+	LOGGER.debug("SW4 Structures loaded")
+	SW5_Structures(topology)
+	LOGGER.debug("SW5 Structures loaded")
+	SW6_Structures(topology)
+	LOGGER.debug("SW6 Structures loaded")
+	SW7_Structures(topology)
+	LOGGER.debug("SW7 Structures loaded")
+
+	main_relations(topology)
+	LOGGER.debug("Main Relations loaded")
+	ISP_relations(topology)
+	LOGGER.debug("ISP Relations loaded")
+	R1_relations(topology)
+	LOGGER.debug("R1 Relations loaded")
+	R2_relations(topology)
+	LOGGER.debug("R2 Relations loaded")
+	R3_relations(topology)
+	LOGGER.debug("R3 Relations loaded")
+	SW1_relations(topology)
+	LOGGER.debug("SW1 Relations loaded")
+	SW2_relations(topology)
+	LOGGER.debug("SW2 Relations loaded")
+	SW3_relations(topology)
+	LOGGER.debug("SW3 Relations loaded")
+	SW4_relations(topology)
+	LOGGER.debug("SW4 Relations loaded")
+	SW5_relations(topology)
+	LOGGER.debug("SW5 Relations loaded")
+	SW6_relations(topology)
+	LOGGER.debug("SW6 Relations loaded")
+	SW7_relations(topology)
+	LOGGER.debug("SW7 Relations loaded")
+	
+	return topology
+
 def simple_function_prompt(topology:  Topology):
 	#create list of functions to run
 
@@ -190,7 +175,7 @@ def simple_function_prompt(topology:  Topology):
 			elif(selected_function_index == 4):
 				topology.generate_nodes_interfaces_config()
 			elif(selected_function_index == 5):
-				test_apply_stp_config(topology)
+				test_generate_stp_config(topology)
 			elif(selected_function_index == 6):
 				test_apply_vlan_config(topology)
 			elif(selected_function_index == 7):

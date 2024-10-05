@@ -1,8 +1,14 @@
-from topology_data import *
+from __future__ import annotations
+from interface import Interface
+from node import Node
+from topology import Topology
+from machine_data import get_machine_data
+import logging
+LOGGER = logging.getLogger('my_logger')
 def SW7_Structures(topology: Topology):
 	LOGGER.debug("Loading SW1 Structures")
 	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
-	if(machine_data == None):
+	if(machine_data is None):
 		raise ValueError("Machine data not found")
 		
 	node_SW7_i1=Interface(

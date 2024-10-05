@@ -1,11 +1,16 @@
-from topology_data import *
+from __future__ import annotations
+from interface import Interface
+from node import Node
+from topology import Topology
+from machine_data import get_machine_data
+import ipaddress
 import logging
 LOGGER = logging.getLogger('my_logger')
 def ISP_Structures(topology: Topology):
 	LOGGER.debug("Loading ISP Structures")
 	# Warning, currently lacking oob interface
 	machine_data=get_machine_data("vios-adventerprisek9-m.SPA.159-3.M6")
-	if(machine_data == None):
+	if(machine_data is None):
 		raise ValueError("Machine data not found")
 		
 	node_ISP_i1=Interface(

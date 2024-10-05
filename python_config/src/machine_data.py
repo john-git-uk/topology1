@@ -1,6 +1,5 @@
-from project_globals import *
-from pydantic import BaseModel, Field, ValidationError, validator
-from typing import Optional, List
+from pydantic import BaseModel
+from typing import Optional
 import logging
 LOGGER = logging.getLogger('my_logger')
 class MachineData(BaseModel):
