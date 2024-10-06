@@ -57,7 +57,7 @@ class VLAN(BaseModel):
 			count = usable_addresses
 		
 		# Calculate the start of the exclusion range by counting down from the last usable address
-		last_usable_address = self.ipv4_netid + usable_addresses - 1
+		last_usable_address = self.ipv4_netid + usable_addresses
 		LOGGER.debug(f"Last usable address: {last_usable_address}")
 		LOGGER.debug(f"Exclusion count: {count}")
 		LOGGER.debug(f"Exclusion start: {last_usable_address - count + 1}")

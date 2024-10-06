@@ -130,7 +130,7 @@ def structure_machine_data():
 MACHINE_DATA = structure_machine_data()
 # Example usage:
 def get_machine_data(machine_name):
-	LOGGER.debug(MACHINE_DATA)
+	#LOGGER.debug(MACHINE_DATA)
 	for data in MACHINE_DATA:
 		if data.name == machine_name:
 			return data
