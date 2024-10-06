@@ -44,7 +44,7 @@ def R1_Structures(topology: Topology):
 		#ipv6_cidr=127
 	)
 	node_R1_i5=Interface(
-		name="l0",
+		name="loop 0",
 		description="l0",
 		ipv4_address="10.133.2.1",
 		ipv4_cidr=32,

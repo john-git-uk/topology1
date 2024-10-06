@@ -6,7 +6,15 @@ from machine_data import get_machine_data
 import logging
 LOGGER = logging.getLogger('my_logger')
 def R3_Structures(topology: Topology):
-	LOGGER.debug("Loading R2 Structures")
+	LOGGER.debug("Loading R3 Structures")
+
+	for segs in topology.access_segments:
+		if(segs.name == "outreach"):
+			access_segment = segs
+	if(access_segment is None):
+		LOGGER.error("Access segment main not found")
+		return
+
 	machine_data=get_machine_data("vios-adventerprisek9-m.SPA.159-3.M6")
 	if(machine_data is None):
 		raise ValueError("Machine data not found")
@@ -56,7 +64,7 @@ def R3_Structures(topology: Topology):
 		ipv4_cidr=24
 	)
 	node_R3_i8=Interface(
-		name="l0",
+		name="loop 0",
 		description="l0",
 		ipv4_address="10.133.2.3",
 		ipv4_cidr=32,

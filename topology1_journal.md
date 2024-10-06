@@ -983,6 +983,7 @@ I set the SVI's as passive besides Vlan 30 management. Both R1 and R2 are advert
 #### R1 Config
 ~~~
 ip route 0.0.0.0 0.0.0.0 10.111.10.11
+ip route 0.0.0.0 0.0.0.0 10.111.10.21 8
 router ospf 1
 auto-cost reference-bandwidth 100000
 default-information originate
@@ -997,6 +998,7 @@ exit
 ~~~
 #### R2 Config 
 ~~~
+ip route 0.0.0.0 0.0.0.0 10.111.10.11 8
 ip route 0.0.0.0 0.0.0.0 10.111.10.21
 router ospf 1
 auto-cost reference-bandwidth 100000

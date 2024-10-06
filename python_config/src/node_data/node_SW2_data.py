@@ -6,13 +6,15 @@ from machine_data import get_machine_data
 import logging
 LOGGER = logging.getLogger('my_logger')
 def SW2_Structures(topology: Topology):
+	LOGGER.debug("Loading SW1 Structures")
+
 	for segs in topology.access_segments:
 		if(segs.name == "main"):
 			access_segment = segs
 	if(access_segment is None):
 		LOGGER.error("Access segment main not found")
 		return
-	LOGGER.debug("Loading SW1 Structures")
+		
 	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
 	if(machine_data is None):
 		raise ValueError("Machine data not found")
@@ -105,7 +107,7 @@ def SW2_Structures(topology: Topology):
 		ipv4_cidr=24
 	)
 	node_SW2_i14=Interface(
-		name="l0",
+		name="loop 0",
 		description="",
 		ipv4_address="10.133.2.12",
 		ipv4_cidr=32

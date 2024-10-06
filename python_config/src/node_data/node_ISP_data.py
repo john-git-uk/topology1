@@ -73,4 +73,4 @@ def ISP_relations(topology: Topology):
 	topology.get_node("ISP").get_interface("e0/1").connect_to(topology.get_node("R2").get_interface("e0/0"))
 	topology.get_node("ISP").get_interface("e0/2").connect_to(topology.get_node("R3").get_interface("e0/0"))
 	#topology.get_node("ISP").get_interface("e0/3").connect_to(topology.exit_interface_main)
-	topology.get_node("ISP").get_interface("e1/0").connect_to(topology.get_node("alpouter").get_interface("eth_int0"))
+	topology.get_node("ISP").get_interface("e1/0").connect_to(topology.exit_interface_main)

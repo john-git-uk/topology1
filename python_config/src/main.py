@@ -55,29 +55,6 @@ def test_connect_with_custom_ssh(topology: Topology):
 		ssh.close()
 	except Exception as e:
 		LOGGER.error("An error occurred: %s", str(e))
-def test_generate_stp_config(topology: Topology):
-	shortlist = []
-	for node in topology.nodes:
-		if node.machine_data:
-			if node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe":
-				if node.hostname == "SW3" or node.hostname == "SW4":
-					shortlist.append(node)
-	for node in shortlist:
-		# Connect using Netmiko with the detected device type
-		#LOGGER.info(f"Connecting to {node.hostname} with device type {device.device_type}")
-		#connection = ConnectHandler(**device)
-		if node.machine_data.category == "multilayer" or node.machine_data.category == "switch":
-			if node.hostname != "SW7":
-				config_commands = [
-					"spanning-tree mode rapid-pvst"
-				]
-				for topology_vlan in topology.vlans:
-					if topology_vlan.main_fhrp_priority.hostname == node.hostname:
-						config_commands += ["spanning-tree vlan "+str(topology_vlan.number)+" priority 4096"]
-					else:
-						config_commands += ["spanning-tree vlan "+str(topology_vlan.number)+" priority 0"]
-def test_apply_vlan_config(topology: Topology):
-	LOGGER.warning("test_apply_vlan_config function not implemented.")
 def load_topology():
 	from topology_data import main_structures, main_relations
 	from node import Node
@@ -152,7 +129,7 @@ def simple_function_prompt(topology:  Topology):
 		"Topology: Generate Nodes SSH Stub Config",#3
 		"Topology: Generate Nodes Interfaces Config",#4
 		"Topology: Generate Nodes Apply STP+VLAN Config",#5
-		"Topology: Generate Nodes FHRP Config",#6
+		"Topology: Generate Multiple Config for Cisco Nodes",#6
 		"Lab Handler: Import Virtual Console Telnet Ports from Lab API",#7
 		"Topology: Copy Config Files to a Linux Node",#8
 		"Test: Interact with VMM",#9
@@ -177,7 +154,7 @@ def simple_function_prompt(topology:  Topology):
 			elif(selected_function_index == 5):
 				topology.generate_nodes_stp_vlan_config()
 			elif(selected_function_index == 6):
-				topology.generate_nodes_fhrp_config()
+				topology.generate_multi_config()
 			elif(selected_function_index == 7):
 				if(os.path.exists("../python_config/src/handle_lab.py")):
 					from handle_lab import test_import_vconsole_telnet

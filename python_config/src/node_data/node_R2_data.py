@@ -39,7 +39,7 @@ def R2_Structures(topology: Topology):
 		ipv4_cidr=24
 	)
 	node_R2_i5=Interface(
-		name="l0",
+		name="loop 0",
 		description="l0",
 		ipv4_address="10.133.2.2",
 		ipv4_cidr=32,

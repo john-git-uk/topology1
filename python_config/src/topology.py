@@ -94,3 +94,18 @@ class Topology(BaseModel):
 		except Exception as e:
 			LOGGER.error("Error generating fhrp config for all nodes: %s", e)
 			raise
+	def generate_multi_config(self):
+		try:
+			LOGGER.info("Generating multi config for all nodes")
+			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
+			for node in self.nodes:
+				if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
+
+					node.generate_ssh_stub()
+					node.generate_interfaces_config()
+					node.generate_stp_vlan_config()
+					node.generate_fhrp_config()
+					node.generate_ospf_static_base_config()
+		except Exception as e:
+			LOGGER.error("Error generating multi config for all nodes: %s", e)
+			raise

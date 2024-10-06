@@ -8,6 +8,7 @@ from pathlib import Path
 import importlib.util
 from pydantic import BaseModel
 from typing import Optional, List, Dict
+from convert import cidr_to_wildmask, ipv4_netid
 LOGGER = logging.getLogger('my_logger')
 class Node(BaseModel):
 	def __repr__(self):
@@ -46,6 +47,7 @@ class Node(BaseModel):
 	interface_config_commands: List[str] = []
 	stp_vlan_config_commands: List[str] = []
 	fhrp_config_commands: List[str] = []
+	ospf_static_base_config_commands: List[str] = []
 	def add_interface(self, iface: Interface):
 		self.__interfaces.append(iface)
 		iface.node_a_part_of=self
@@ -101,8 +103,8 @@ class Node(BaseModel):
 				# Does it have an ip address?
 				if interface.ipv4_address:
 					# Is the machine multilayer?
-					# It is not applicable to "vlan" interfaces but nevermind
-					if self.machine_data.category == "multilayer" and (interface.name.find("vlan") == -1) and (interface.name.find("loop") == -1) and (interface.name != "l0"):
+					# It is not applicable to "vlan" interfaces
+					if self.machine_data.category == "multilayer" and (interface.name.find("vlan") == -1) and (interface.name.find("loop") == -1):
 						self.interface_config_commands += ["no switchport"]
 					temp_network=ipaddress.IPv4Network(f"0.0.0.0/{interface.ipv4_cidr}")
 					self.interface_config_commands += [
@@ -230,7 +232,7 @@ class Node(BaseModel):
 			if(len(self.oob_interface.interfaces) != 0):
 				LOGGER.error(f"Port-channel groups are currently unsupported for oob interface {self.oob_interface.name} on {self.hostname}")
 				return
-			if self.machine_data.category == "multilayer" and (self.oob_interface.name.find("vlan") == -1) and (self.oob_interface.name.find("loop") == -1) and (self.oob_interface.name != "l0"):
+			if self.machine_data.category == "multilayer" and (self.oob_interface.name.find("vlan") == -1) and (self.oob_interface.name.find("loop") == -1):
 				self.ssh_stub_config_commands.append("no switchport")
 
 			temp_network=ipaddress.IPv4Network(f"0.0.0.0/{self.oob_interface.ipv4_cidr}")
@@ -249,9 +251,9 @@ class Node(BaseModel):
 			self.ssh_stub_config_commands.append(f'ip link set dev {self.oob_interface.name} up')
 		
 		
-		print(f"########## SSH Config for {self.hostname}:")
-		for printable in self.ssh_stub_config_commands:
-			print(printable)
+		#print(f"########## SSH Config for {self.hostname}:")
+		#for printable in self.ssh_stub_config_commands:
+		#	print(printable)
 		
 		# Send the commands to file for review
 		out_path = Path("../python_config/output/stubs/")
@@ -309,9 +311,9 @@ class Node(BaseModel):
 		else:
 			logging.info("No config present for"+self.hostname+". Skipping...")
 	def generate_stp_vlan_config(self):
-		LOGGER.info(f"Generating stp vlan config for {self.hostname}")
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer" or self.machine_data.category == "switch"):
+				LOGGER.info(f"Generating stp vlan config for {self.hostname}")
 				access_segment = None
 				for seg in self.topology_a_part_of.access_segments:
 					for node in seg.nodes:
@@ -349,9 +351,9 @@ class Node(BaseModel):
 					for command in self.stp_vlan_config_commands:
 						print(command, file=f)
 	def generate_fhrp_config(self):
-		LOGGER.info(f"Generating fhrp config for {self.hostname}")
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer"):
+				LOGGER.info(f"Generating fhrp config for {self.hostname}")
 				access_segment = None
 				for seg in self.topology_a_part_of.access_segments:
 					for node in seg.fhrp:
@@ -387,3 +389,55 @@ class Node(BaseModel):
 						with open(os.path.join(out_path,self.hostname+'_fhrp.txt'), 'w') as f:
 							for command in self.fhrp_config_commands:
 								print(command, file=f)
+	def generate_ospf_static_base_config(self):
+		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
+			if(self.machine_data.category == "multilayer"):
+				LOGGER.info(f"Generating ospf static base config for {self.hostname}")
+				access_segment = None
+				for seg in self.topology_a_part_of.access_segments:
+					for node in seg.nodes:
+						if node.hostname == self.hostname:
+							access_segment = seg
+				if(access_segment is None):
+					LOGGER.error(f"No access segment found for OSPF assigned node {self.hostname}, skipping ospf static base config generation")
+					return
+				if(self.hostname == "ISP"):
+					LOGGER.error(f"ISP node is not currently supported for OSPF or static routing config generation, manual config required")
+					return
+				self.ospf_static_base_config_commands = []
+				# For each interface check if it is a WAN port
+				for interface in self.__interfaces:
+					if(interface.name.startswith("loop")):
+						continue
+					if(interface.name.startswith("vlan")):
+						continue
+					if(interface.ipv4_address is None):
+						continue
+					if(interface.neighbour is None):
+						LOGGER.critical(f"Interface {interface.name} has no neighbour, skipping ospf static base config generation")
+						return
+					# If it connects to ISP it is a WAN port (TODO: Make this rely on a better data entry)
+					LOGGER.debug(f"Checking neighbour {interface.neighbour}")
+					if(interface.neighbour.node_a_part_of.hostname == "ISP"):
+						self.ospf_static_base_config_commands += [f'ip route 0.0.0.0 0.0.0.0 {str(interface.neighbour.ipv4_address)}']
+					
+				self.ospf_static_base_config_commands += ['router ospf 1']
+				self.ospf_static_base_config_commands += ['auto-cost reference-bandwidth 100000']
+				for interface in self.__interfaces:
+					if(interface.name.startswith("loop")):
+						continue
+					if(interface.name.startswith("vlan")):
+						continue
+					if(interface.ipv4_address is None):
+						continue
+					if(interface.neighbour is None):
+						LOGGER.critical(f"Interface {interface.name} has no neighbour, skipping ospf static base config generation")
+						return
+					# If this interface has an ip address
+					if(interface.neighbour.ipv4_address is not None):
+						# Advertise the network
+						self.ospf_static_base_config_commands += [f'network {str(ipv4_netid(interface.ipv4_address,interface.ipv4_cidr))} {str(cidr_to_wildmask(interface.ipv4_cidr))} area 0']
+						# If neighbour is missing an ip address
+						if(interface.ipv4_address is None):
+							# Set as passive interface (TODO: reconsider the prerequisites for this)
+							self.ospf_static_base_config_commands += [f'passive-interface {interface.name}']

@@ -13,35 +13,41 @@ def main_structures(topology: Topology):
 	from vlan import VLAN
 	from access_segment import AccessSegment
 	
-	alpouter_eth_out0=Interface(
-		name="eth_out0", # This is a fake interface
-		description="",
-		ipv4_address="192.168.2.246",
-		ipv4_cidr=24
-		#ipv6_address=ipaddress.IPv6Address(),
-		#ipv6_cidr=128
-	)
-	alpouter_eth_int0=Interface(
-		name="eth_int0", # This is a fake interface
+	#alpouter_eth_out0=Interface(
+	#	name="eth_out0", # This is a fake interface
+	#	description="",
+	#	ipv4_address="192.168.2.246",
+	#	ipv4_cidr=24
+	#	#ipv6_address=ipaddress.IPv6Address(),
+	#	#ipv6_cidr=128
+	#)
+	topology_exit_main=Interface(
+		name="eth_int0",
 		description="",
 		ipv4_address="10.111.111.111",
 		ipv4_cidr=31,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fff6"),
 		ipv6_cidr=128
 	)
-	alpouter=Node(
-		hostname="alpouter",
-		machine_data=get_machine_data("alpine"),
-		local_user="auto",
-		local_password="otua",
-		interfaces=[alpouter_eth_int0],
-		oob_interface=alpouter_eth_out0,
+	topology_exit_oob=Interface(
+		name="oob", # This is a fake interface
+		description="",
+		ipv4_address="192.168.250.254",
+		ipv4_cidr=24,
 	)
+	fake_node=Node(
+		hostname="fake",
+		machine_data=get_machine_data("alpine"),
+		local_user="",
+		local_password="",
+	)
+	fake_node.add_interface(topology_exit_main)
+	fake_node.add_interface(topology_exit_oob)
 	topology.domain_name_a = "tapeitup"
 	topology.domain_name_b = "private"
-	topology.exit_interface_main=alpouter_eth_int0
-	topology.exit_interface_oob=alpouter_eth_int0
-	topology.add_node(alpouter)
+	topology.exit_interface_main=topology_exit_main
+	topology.exit_interface_oob=topology_exit_oob
+	topology.add_node(fake_node)
 	main_access_segment = AccessSegment(
 		name="main",
 	)
