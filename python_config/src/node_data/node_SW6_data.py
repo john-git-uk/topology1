@@ -6,6 +6,12 @@ from machine_data import get_machine_data
 import logging
 LOGGER = logging.getLogger('my_logger')
 def SW6_Structures(topology: Topology):
+	for segs in topology.access_segments:
+		if(segs.name == "main"):
+			access_segment = segs
+	if(access_segment is None):
+		LOGGER.error("Access segment main not found")
+		return
 	LOGGER.debug("Loading SW1 Structures")
 	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
 	if(machine_data is None):
@@ -22,17 +28,17 @@ def SW6_Structures(topology: Topology):
 	node_SW6_i3=Interface(
 		name="e0/2",
 		trunk=False,
-		vlans=[topology.get_vlan("management")]
+		vlans=[access_segment.get_vlan("management")]
 	)
 	node_SW6_i4=Interface(
 		name="e0/3",
 		trunk=False,
-		vlans=[topology.get_vlan("internal-services")]
+		vlans=[access_segment.get_vlan("internal-services")]
 	)
 	node_SW6_i5=Interface(
 		name="e1/0",
 		trunk=False,
-		vlans=[topology.get_vlan("guest-services")]
+		vlans=[access_segment.get_vlan("guest-services")]
 	)
 	node_SW6_i6=Interface(
 		name="e1/1",
@@ -45,7 +51,7 @@ def SW6_Structures(topology: Topology):
 	node_SW6_i8=Interface(
 		name="e1/3",
 		trunk=False,
-		vlans=[topology.get_vlan("guest-services")]
+		vlans=[access_segment.get_vlan("guest-services")]
 	)
 	node_SW6_i9=Interface(
 		name="e5/3",
@@ -64,9 +70,9 @@ def SW6_Structures(topology: Topology):
 		interfaces=[node_SW6_i2, node_SW6_i7],
 		trunk=True,
 		vlans=[
-			topology.get_vlan("management"),
-			topology.get_vlan("guest-services"),
-			topology.get_vlan("internal-services"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("guest-services"),
+			access_segment.get_vlan("internal-services"),
 		]
 	)
 	node_SW6_i12=Interface(
@@ -74,9 +80,9 @@ def SW6_Structures(topology: Topology):
 		interfaces=[node_SW6_i1, node_SW6_i6],
 		trunk=True,
 		vlans=[
-			topology.get_vlan("management"),
-			topology.get_vlan("guest-services"),
-			topology.get_vlan("internal-services"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("guest-services"),
+			access_segment.get_vlan("internal-services"),
 		]
 	)
 	node_SW6 = Node(
@@ -99,6 +105,7 @@ def SW6_Structures(topology: Topology):
 	node_SW6.add_interface(node_SW6_i11)
 	node_SW6.add_interface(node_SW6_i12)
 	topology.add_node(node_SW6)
+	access_segment.nodes.append(node_SW6)
 def SW6_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
 	topology.get_node("SW6").get_interface("e0/1").connect_to(topology.get_node("SW3").get_interface("e1/0"))

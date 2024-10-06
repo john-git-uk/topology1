@@ -54,7 +54,7 @@ def test_connect_with_custom_ssh(topology: Topology):
 
 		ssh.close()
 	except Exception as e:
-		LOGGER.error(f"An error occurred: {str(e)}")
+		LOGGER.error("An error occurred: %s", str(e))
 def test_generate_stp_config(topology: Topology):
 	shortlist = []
 	for node in topology.nodes:
@@ -82,6 +82,7 @@ def load_topology():
 	from topology_data import main_structures, main_relations
 	from node import Node
 	from vlan import VLAN
+	from access_segment import AccessSegment
 	from interface import Interface
 
 	#VLAN.update_forward_refs()
@@ -141,7 +142,6 @@ def load_topology():
 	LOGGER.debug("SW7 Relations loaded")
 	
 	return topology
-
 def simple_function_prompt(topology:  Topology):
 	#create list of functions to run
 
@@ -151,8 +151,8 @@ def simple_function_prompt(topology:  Topology):
 		"Globals: Load Data",#2
 		"Topology: Generate Nodes SSH Stub Config",#3
 		"Topology: Generate Nodes Interfaces Config",#4
-		"Test: Apply STP Config",#5
-		"Test: Apply VLAN Config",#6
+		"Topology: Generate Nodes Apply STP+VLAN Config",#5
+		"Topology: Generate Nodes FHRP Config",#6
 		"Lab Handler: Import Virtual Console Telnet Ports from Lab API",#7
 		"Topology: Copy Config Files to a Linux Node",#8
 		"Test: Interact with VMM",#9
@@ -175,9 +175,9 @@ def simple_function_prompt(topology:  Topology):
 			elif(selected_function_index == 4):
 				topology.generate_nodes_interfaces_config()
 			elif(selected_function_index == 5):
-				test_generate_stp_config(topology)
+				topology.generate_nodes_stp_vlan_config()
 			elif(selected_function_index == 6):
-				test_apply_vlan_config(topology)
+				topology.generate_nodes_fhrp_config()
 			elif(selected_function_index == 7):
 				if(os.path.exists("../python_config/src/handle_lab.py")):
 					from handle_lab import test_import_vconsole_telnet

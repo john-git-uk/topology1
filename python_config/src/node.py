@@ -44,6 +44,8 @@ class Node(BaseModel):
 	# Configuration commands storage
 	ssh_stub_config_commands: List[str] = []
 	interface_config_commands: List[str] = []
+	stp_vlan_config_commands: List[str] = []
+	fhrp_config_commands: List[str] = []
 	def add_interface(self, iface: Interface):
 		self.__interfaces.append(iface)
 		iface.node_a_part_of=self
@@ -61,6 +63,11 @@ class Node(BaseModel):
 		LOGGER.info(f"Generating interfaces config for {self.hostname}")
 		if self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe":
 			self.interface_config_commands = []
+			access_segment = None
+			for seg in self.topology_a_part_of.access_segments:
+				for node in seg.nodes:
+					if node.hostname == self.hostname:
+						access_segment = seg
 			
 			for index_a in range (self.get_interface_count()):
 				interface = self.get_interface_no(index_a)
@@ -85,6 +92,9 @@ class Node(BaseModel):
 				# Is it a subinterface?
 				# If it contains a period, it's a subinterface
 				if interface.name.find(".") > 0:
+					if access_segment is None:
+						LOGGER.error(f"Subinterface assigned node {self.hostname} has no access segment, skipping interface config generation")
+						return
 					# split the interface name on the period and get the 2nd part
 					vlan = interface.name.split(".")[1]
 					self.interface_config_commands += [f"encapsulation dot1Q {vlan}"]
@@ -102,6 +112,9 @@ class Node(BaseModel):
 				else:
 					# Does it have vlans?
 					if interface.vlans:
+						if access_segment is None:
+							LOGGER.error(f"VLAN assigned node {self.hostname} has no access segment, skipping interface config generation")
+							return
 						# Is it a trunk?
 						if interface.trunk:
 							allowed_vlans = ""
@@ -295,3 +308,82 @@ class Node(BaseModel):
 					logging.error(f"File {files['source']} not found")
 		else:
 			logging.info("No config present for"+self.hostname+". Skipping...")
+	def generate_stp_vlan_config(self):
+		LOGGER.info(f"Generating stp vlan config for {self.hostname}")
+		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
+			if(self.machine_data.category == "multilayer" or self.machine_data.category == "switch"):
+				access_segment = None
+				for seg in self.topology_a_part_of.access_segments:
+					for node in seg.nodes:
+						if node.hostname == self.hostname:
+							access_segment = seg
+				if(access_segment is None):
+					LOGGER.error(f"No access segment found for VLAN assigned node {self.hostname}, skipping stp vlan config generation")
+					return
+				self.stp_vlan_config_commands = []
+				self.stp_vlan_config_commands += ['spanning-tree mode rapid-pvst']
+				for vlan in access_segment.vlans:
+					if(vlan.name == "default"):
+						continue
+					self.stp_vlan_config_commands += [
+						'vlan '+str(vlan.number),
+						'name '+vlan.name,
+						'exit'
+					]
+					if vlan.fhrp0_priority is None:
+						continue
+					if(vlan.fhrp0_priority.node_a_part_of.hostname == self.hostname):
+						self.stp_vlan_config_commands += [
+							'spanning-tree vlan '+str(vlan.number)+' priority '+str(4096),
+							'spanning-tree vlan '+str(vlan.number)+' root primary'
+						]
+					else:
+						self.stp_vlan_config_commands += [
+							'spanning-tree vlan '+str(vlan.number)+' priority '+str(0),
+							'spanning-tree vlan '+str(vlan.number)+' root secondary'
+						]
+				# Send the commands to file for review
+				out_path = Path("../python_config/output/stp_vlan/")
+				out_path.mkdir(exist_ok=True, parents=True)
+				with open(os.path.join(out_path,self.hostname+'_stp_vlan.txt'), 'w') as f:
+					for command in self.stp_vlan_config_commands:
+						print(command, file=f)
+	def generate_fhrp_config(self):
+		LOGGER.info(f"Generating fhrp config for {self.hostname}")
+		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
+			if(self.machine_data.category == "multilayer"):
+				access_segment = None
+				for seg in self.topology_a_part_of.access_segments:
+					for node in seg.fhrp:
+						if node.hostname == self.hostname:
+							access_segment = seg
+				if(access_segment is None):
+					LOGGER.debug(f"{self.hostname} not part of FHRP system.")
+					return
+				# For each node interfaces
+				for interface in self.__interfaces:
+					LOGGER.debug(f"Generating fhrp config for {self.hostname} working on interface {interface.name}")
+					# That is a SVI
+					if(interface.name.startswith("vlan")):
+						# Get the vlan from interface name
+						vlan = access_segment.get_vlan_nom(int(interface.name.split(" ")[1]))
+						if(vlan == None):
+							LOGGER.error(f"{interface.name} not found for {self.hostname}")
+							return
+						self.fhrp_config_commands += [
+							'interface '+interface.name,
+							'standby 0 ip '+str(vlan.fhrp0_ipv4_address),
+							'standby 0 preempt delay rel 60',
+							'standby 0 timers msec 200 msec 650',
+						]
+						# If this node interface is the priority
+						if(vlan.fhrp0_priority.node_a_part_of.hostname == self.hostname):
+							self.fhrp_config_commands += ['standby 0 priority 200']
+						else:
+							self.fhrp_config_commands += ['standby 0 priority 111']
+						# Send the commands to file for review
+						out_path = Path("../python_config/output/fhrp/")
+						out_path.mkdir(exist_ok=True, parents=True)
+						with open(os.path.join(out_path,self.hostname+'_fhrp.txt'), 'w') as f:
+							for command in self.fhrp_config_commands:
+								print(command, file=f)

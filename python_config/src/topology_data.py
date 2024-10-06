@@ -1,17 +1,17 @@
 from __future__ import annotations
 import ipaddress
-from machine_data import get_machine_data
 import logging
 import os
+from machine_data import get_machine_data
 LOGGER = logging.getLogger('my_logger')
 
 #sys.setrecursionlimit(500)  # Set a lower recursion limit
-
 
 def main_structures(topology: Topology):
 	from node import Node
 	from interface import Interface
 	from vlan import VLAN
+	from access_segment import AccessSegment
 	
 	alpouter_eth_out0=Interface(
 		name="eth_out0", # This is a fake interface
@@ -39,94 +39,128 @@ def main_structures(topology: Topology):
 	)
 	topology.domain_name_a = "tapeitup"
 	topology.domain_name_b = "private"
-	topology.vlans = []
-	topology.nodes = []
 	topology.exit_interface_main=alpouter_eth_int0
 	topology.exit_interface_oob=alpouter_eth_int0
 	topology.add_node(alpouter)
+	main_access_segment = AccessSegment(
+		name="main",
+	)
+	outreach_access_segment = AccessSegment(
+		name="outreach",
+	)
+	topology.access_segments.append(main_access_segment)
+	topology.access_segments.append(outreach_access_segment)
 	############################################################################
 	vlan_10 = VLAN(
 		number=10,
 		name="sales",
-		main_ipv4_netid="10.133.10.0",
-		main_ipv4_cidr=25,
-		main_fhrp0_ipv4_address="10.133.10.126",
-		main_dhcp_exclusion_start=[ipaddress.ip_address("10.133.10.120")],
-		main_dhcp_exclusion_end=[ipaddress.ip_address("10.133.10.126")],
-		outreach_ipv4_netid="10.133.10.128",
-		outreach_ipv4_cidr=25,
-		outreach_dhcp_exclusion_start=[ipaddress.ip_address("10.133.10.250")],
-		outreach_dhcp_exclusion_end=[ipaddress.ip_address("10.133.10.255")],
+		ipv4_netid="10.133.10.0",
+		ipv4_cidr=25,
+		fhrp0_ipv4_address="10.133.10.126",
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.10.120")],
+		dhcp_exclusion_end=[ipaddress.ip_address("10.133.10.126")],
 	)
 	vlan_20 = VLAN(
 		number=20,
 		name="guest",
-		main_ipv4_netid="10.133.20.0",
-		main_ipv4_cidr=23,
-		main_fhrp0_ipv4_address="10.133.21.254",
-		main_dhcp_exclusion_start=[ipaddress.ip_address("10.133.21.240")],
-		main_dhcp_exclusion_end=[ipaddress.ip_address("10.133.21.255")],
-		outreach_ipv4_netid="10.133.22.0",
-		outreach_ipv4_cidr=24,
-		outreach_dhcp_exclusion_start=[ipaddress.ip_address("10.133.22.245")],
-		outreach_dhcp_exclusion_end=[ipaddress.ip_address("10.133.22.255")],
+		ipv4_netid="10.133.20.0",
+		ipv4_cidr=23,
+		fhrp0_ipv4_address="10.133.21.254",
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.21.240")],
+		dhcp_exclusion_end=[ipaddress.ip_address("10.133.21.255")],
 	)
 	vlan_30 = VLAN(
 		number=30,
 		name="management",
-		main_ipv4_netid="10.133.30.0",
-		main_ipv4_cidr=25,
-		main_fhrp0_ipv4_address="10.133.30.126",
+		ipv4_netid="10.133.30.0",
+		ipv4_cidr=25,
+		fhrp0_ipv4_address="10.133.30.126",
 	)
 	vlan_40 = VLAN(
 		number=40,
 		name="supervisor",
-		main_ipv4_netid="10.133.40.0",
-		main_ipv4_cidr=25,
-		main_fhrp0_ipv4_address="10.133.40.126",
+		ipv4_netid="10.133.40.0",
+		ipv4_cidr=25,
+		fhrp0_ipv4_address="10.133.40.126",
 	)
 	vlan_50 = VLAN(
 		number=50,
 		name="voice",
-		main_ipv4_netid="10.133.50.0",
-		main_ipv4_cidr=25,
+		ipv4_netid="10.133.50.0",
+		ipv4_cidr=25,
 	)
 	vlan_60 = VLAN(
 		number=60,
 		name="guest-services",
-		main_ipv4_netid="10.133.60.0",
-		main_ipv4_cidr=24,
-		main_fhrp0_ipv4_address="10.133.60.254",
+		ipv4_netid="10.133.60.0",
+		ipv4_cidr=24,
+		fhrp0_ipv4_address="10.133.60.254",
 	)
 	vlan_70 = VLAN(
 			number=70,
 			name="internal-services",
-			main_ipv4_netid="10.133.70.0",
-			main_ipv4_cidr=24,
-			main_fhrp0_ipv4_address="10.133.70.254",
+			ipv4_netid="10.133.70.0",
+			ipv4_cidr=24,
+			fhrp0_ipv4_address="10.133.70.254",
 	)
 	vlan_80 = VLAN(
 			number=80,
 			name="accounting",
-			main_ipv4_netid="10.133.80.0",
-			main_ipv4_cidr=24,
-			main_fhrp0_ipv4_address="10.133.80.254",
+			ipv4_netid="10.133.80.0",
+			ipv4_cidr=24,
+			fhrp0_ipv4_address="10.133.80.254",
 	)
 	vlan_250 = VLAN(
 			number=250,
 			name="oob",
-			main_ipv4_netid="10.133.250.0",
-			main_ipv4_cidr=24,
+			ipv4_netid="10.133.250.0",
+			ipv4_cidr=24,
 	)
-	topology.add_vlan(vlan_10)
-	topology.add_vlan(vlan_20)
-	topology.add_vlan(vlan_30)
-	topology.add_vlan(vlan_40)
-	topology.add_vlan(vlan_50)
-	topology.add_vlan(vlan_60)
-	topology.add_vlan(vlan_70)
-	topology.add_vlan(vlan_80)
-	topology.add_vlan(vlan_250)
+	main_access_segment.vlans.append(vlan_10)
+	main_access_segment.vlans.append(vlan_20)
+	main_access_segment.vlans.append(vlan_30)
+	main_access_segment.vlans.append(vlan_40)
+	main_access_segment.vlans.append(vlan_50)
+	main_access_segment.vlans.append(vlan_60)
+	main_access_segment.vlans.append(vlan_70)
+	main_access_segment.vlans.append(vlan_80)
+	main_access_segment.vlans.append(vlan_250)
+	vlan_250.auto_dhcp_exclude(14)
+
+	ovlan_10 = VLAN(
+		number=10,
+		name="sales",
+		ipv4_netid="10.133.10.128",
+		ipv4_cidr=25,
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.10.250")],
+		dhcp_exclusion_end=[ipaddress.ip_address("10.133.10.255")],
+	)
+	ovlan_20 = VLAN(
+		number=20,
+		name="guest",
+		ipv4_netid="10.133.22.0",
+		ipv4_cidr=24,
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.22.245")],
+		dhcp_exclusion_end=[ipaddress.ip_address("10.133.22.255")],
+	)
+	ovlan_30 = VLAN(
+		number=30,
+		name="management",
+		ipv4_netid="10.133.30.128",
+		ipv4_cidr=25,
+	)
+	ovlan_40 = VLAN(
+		number=40,
+		name="supervisor",
+		ipv4_netid="10.133.40.128",
+		ipv4_cidr=25,
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.40.250")],
+		dhcp_exclusion_end=[ipaddress.ip_address("10.133.40.255")],
+	)
+	outreach_access_segment.vlans.append(ovlan_10)
+	outreach_access_segment.vlans.append(ovlan_20)
+	outreach_access_segment.vlans.append(ovlan_30)
+	outreach_access_segment.vlans.append(ovlan_40)
 	############################################################################
 	radius_server_interface_eth1=Interface(  # noqa: F841
 		name="eth1",
@@ -259,19 +293,31 @@ def main_structures(topology: Topology):
 	prox1.config_path=os.path.abspath("../node_config/server/prox1")
 	prox1.config_copying_paths = []
 	topology.add_node(prox1)
+	LOGGER.debug(f"Access segments: {topology.access_segments}")
 	return topology
 def main_relations(topology: Topology):
-	topology.get_vlan("sales").main_fhrp0_priority=topology.get_node("SW3").get_interface("vlan 10")
-	topology.get_vlan("sales").main_dhcp_interface=topology.get_node("SW3").get_interface("l0")
-	topology.get_vlan("sales").outreach_dhcp_interface=topology.get_node("SW3").get_interface("l0")
+	for seg in topology.access_segments:
+		if(seg.name == "main"):
+			main = seg
+		if(seg.name == "outreach"):
+			outreach = seg
+	if(main is None):
+		LOGGER.error("No main access segment found")
+		return
+	if(outreach is None):
+		LOGGER.error("No outreach access segment found")
+		return
+	main.get_vlan("sales").fhrp0_priority=topology.get_node("SW3").get_interface("vlan 10")
+	main.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("l0")
+	outreach.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("l0")
 
-	topology.get_vlan("guest").main_fhrp0_priority=topology.get_node("SW4").get_interface("vlan 20")
-	topology.get_vlan("guest").main_dhcp_interface=topology.get_node("SW3").get_interface("l0")
-	topology.get_vlan("guest").outreach_dhcp_interface=topology.get_node("SW3").get_interface("l0")
+	main.get_vlan("guest").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 20")
+	main.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("l0")
+	outreach.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("l0")
 
-	topology.get_vlan("management").main_fhrp0_priority=topology.get_node("SW4").get_interface("vlan 30")
-	topology.get_vlan("supervisor").main_fhrp0_priority=topology.get_node("SW3").get_interface("vlan 40")
-	topology.get_vlan("guest-services").main_fhrp0_priority=topology.get_node("SW3").get_interface("vlan 60")
-	topology.get_vlan("internal-services").main_fhrp0_priority=topology.get_node("SW4").get_interface("vlan 70")
-	topology.get_vlan("accounting").main_fhrp0_priority=topology.get_node("SW4").get_interface("vlan 80")
+	main.get_vlan("management").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 30")
+	main.get_vlan("supervisor").fhrp0_priority=topology.get_node("SW3").get_interface("vlan 40")
+	main.get_vlan("guest-services").fhrp0_priority=topology.get_node("SW3").get_interface("vlan 60")
+	main.get_vlan("internal-services").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 70")
+	main.get_vlan("accounting").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 80")
 	LOGGER.debug(str(len(topology.nodes)))

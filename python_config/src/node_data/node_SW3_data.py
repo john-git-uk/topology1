@@ -6,6 +6,12 @@ from machine_data import get_machine_data
 import logging
 LOGGER = logging.getLogger('my_logger')
 def SW3_Structures(topology: Topology):
+	for segs in topology.access_segments:
+		if(segs.name == "main"):
+			access_segment = segs
+	if(access_segment is None):
+		LOGGER.error("Access segment main not found")
+		return
 	LOGGER.debug("Loading SW1 Structures")
 	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
 
@@ -35,32 +41,32 @@ def SW3_Structures(topology: Topology):
 		name="e0/3",
 		trunk=True,
 		vlans=[
-			topology.get_vlan("sales"),
-			topology.get_vlan("guest"),
-			topology.get_vlan("management"),
-			topology.get_vlan("supervisor")#,
-			#topology.get_vlan("voice")
+			access_segment.get_vlan("sales"),
+			access_segment.get_vlan("guest"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("supervisor")#,
+			#access_segment.get_vlan("voice")
 		]
 	)
 	node_SW3_i7=Interface(
 		name="e2/0",
 		trunk=True,
 		vlans=[
-			topology.get_vlan("sales"),
-			topology.get_vlan("guest"),
-			topology.get_vlan("management"),
+			access_segment.get_vlan("sales"),
+			access_segment.get_vlan("guest"),
+			access_segment.get_vlan("management"),
 		]
 	)
 	node_SW3_i8=Interface(
 		name="e3/0",
 		trunk=True,
 		vlans=[
-			topology.get_vlan("sales"),
-			topology.get_vlan("guest"),
-			topology.get_vlan("management"),
-			topology.get_vlan("supervisor"),
-			#topology.get_vlan("voice"),
-			topology.get_vlan("accounting")
+			access_segment.get_vlan("sales"),
+			access_segment.get_vlan("guest"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("supervisor"),
+			#access_segment.get_vlan("voice"),
+			access_segment.get_vlan("accounting")
 		]
 	)
 	node_SW3_i9=Interface(
@@ -124,9 +130,9 @@ def SW3_Structures(topology: Topology):
 		interfaces=[node_SW3_i4, node_SW3_i5],
 		trunk=True,
 		vlans=[
-			topology.get_vlan("management"),
-			topology.get_vlan("guest-services"),
-			topology.get_vlan("internal-services"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("guest-services"),
+			access_segment.get_vlan("internal-services"),
 		]	
 	)
 	node_SW3_i21=Interface(
@@ -134,14 +140,14 @@ def SW3_Structures(topology: Topology):
 		interfaces=[node_SW3_i1, node_SW3_i2, node_SW3_i3],
 		trunk=True,
 		vlans=[
-			topology.get_vlan("sales"),
-			topology.get_vlan("guest"),
-			topology.get_vlan("management"),
-			topology.get_vlan("supervisor"),
-			#topology.get_vlan("voice"),
-			topology.get_vlan("guest-services"),
-			topology.get_vlan("internal-services"),
-			topology.get_vlan("accounting")
+			access_segment.get_vlan("sales"),
+			access_segment.get_vlan("guest"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("supervisor"),
+			#access_segment.get_vlan("voice"),
+			access_segment.get_vlan("guest-services"),
+			access_segment.get_vlan("internal-services"),
+			access_segment.get_vlan("accounting")
 		]
 	)
 	node_SW3=Node(
@@ -173,6 +179,8 @@ def SW3_Structures(topology: Topology):
 	node_SW3.add_interface(node_SW3_i20)
 	node_SW3.add_interface(node_SW3_i21)
 	topology.add_node(node_SW3)
+	access_segment.nodes.append(node_SW3)
+	access_segment.fhrp.append(node_SW3)
 def SW3_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
 	topology.get_node("SW3").get_interface("e0/0").connect_to(topology.get_node("SW4").get_interface("e0/0"))

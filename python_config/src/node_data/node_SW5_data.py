@@ -6,6 +6,12 @@ from machine_data import get_machine_data
 import logging
 LOGGER = logging.getLogger('my_logger')
 def SW5_Structures(topology: Topology):
+	for segs in topology.access_segments:
+		if(segs.name == "main"):
+			access_segment = segs
+	if(access_segment is None):
+		LOGGER.error("Access segment main not found")
+		return
 	LOGGER.debug("Loading SW1 Structures")
 	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
 	if(machine_data is None):
@@ -15,58 +21,58 @@ def SW5_Structures(topology: Topology):
 		name="e0/0",
 		trunk=True,
 		vlans=[
-			topology.get_vlan("sales"),
-			topology.get_vlan("guest"),
-			topology.get_vlan("management"),
-			topology.get_vlan("supervisor"),
-			#topology.get_vlan("voice"),
+			access_segment.get_vlan("sales"),
+			access_segment.get_vlan("guest"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("supervisor"),
+			#access_segment.get_vlan("voice"),
 		]
 	)
 	node_SW5_i2=Interface(
 		name="e0/1",
 		trunk=True,
 		vlans=[
-			topology.get_vlan("sales"),
-			topology.get_vlan("guest"),
-			topology.get_vlan("management"),
-			topology.get_vlan("supervisor"),
-			#topology.get_vlan("voice"),
+			access_segment.get_vlan("sales"),
+			access_segment.get_vlan("guest"),
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("supervisor"),
+			#access_segment.get_vlan("voice"),
 		]
 	)
 	node_SW5_i3=Interface(
 		name="e0/2",
 		trunk=False,
-		vlans=[topology.get_vlan("sales")]
+		vlans=[access_segment.get_vlan("sales")]
 	)
 	node_SW5_i4=Interface(
 		name="e0/3",
 		trunk=False,
-		vlans=[topology.get_vlan("sales")]
+		vlans=[access_segment.get_vlan("sales")]
 	)
 	node_SW5_i5=Interface(
 		name="e1/0",
 		trunk=False,
-		vlans=[topology.get_vlan("supervisor")]
+		vlans=[access_segment.get_vlan("supervisor")]
 	)
 	node_SW5_i6=Interface(
 		name="e1/1",
 		trunk=False,
-		vlans=[topology.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")]
 	)
 	node_SW5_i7=Interface(
 		name="e1/2",
 		trunk=False,
-		vlans=[topology.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")]
 	)
 	node_SW5_i8=Interface(
 		name="e1/3",
 		trunk=False,
-		vlans=[topology.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")]
 	)
 	node_SW5_i9=Interface(
 		name="e2/0",
 		trunk=False,
-		vlans=[topology.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")]
 	)
 	node_SW5_i10=Interface(
 		name="e3/3",
@@ -100,6 +106,7 @@ def SW5_Structures(topology: Topology):
 	node_SW5.add_interface(node_SW5_i10)
 	node_SW5.add_interface(node_SW5_i11)
 	topology.add_node(node_SW5)
+	access_segment.nodes.append(node_SW5)
 def SW5_relations(topology: Topology):
 	LOGGER.debug("Loading SW5 Relations")
 	topology.get_node("SW5").get_interface("e0/0").connect_to(topology.get_node("SW3").get_interface("e0/3"))

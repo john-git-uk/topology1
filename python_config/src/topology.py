@@ -17,17 +17,18 @@ class Topology(BaseModel):
 	exit_interface_main: Optional[Interface]=None
 	exit_interface_oob: Optional[Interface]=None
 	exit_interface_real_wap: Optional[Interface]=None
-	vlans: List[VLAN]=[]
+	#vlans: List[VLAN]=[]
 	nodes: List[Node]=[]
-	def add_vlan(self, vlan: VLAN):
-		self.vlans.append(vlan)
+	access_segments: List[AccessSegment]=[]
+	#def add_vlan(self, vlan: VLAN):
+	#	self.vlans.append(vlan)
 	def add_node(self, node: Node):
 		self.nodes.append(node)
 		node.topology_a_part_of=self
-	def get_vlan(self, name: str):
-		for vlan in self.vlans:
-			if vlan.name == name:
-				return vlan
+	#def get_vlan(self, name: str):
+	#	for vlan in self.vlans:
+	#		if vlan.name == name:
+	#			return vlan
 	def get_node(self, name: str):
 		for node in self.nodes:
 			if node.hostname == name:
@@ -39,22 +40,22 @@ class Topology(BaseModel):
 			for node in self.nodes:
 				LOGGER.debug(f"Considering generating interfaces config for node: {node.hostname}")
 				node.generate_interfaces_config()
-				LOGGER.debug(f"Considering apply config for node using netmiko: {node.hostname}")
-				if(node.machine_data.device_type != "cisco_ios" and node.machine_data.device_type != "cisco_xe"):
-					continue
-				node.apply_interfaces_config_netmiko()
+				#LOGGER.debug(f"Considering apply config for node using netmiko: {node.hostname}")
+				#if(node.machine_data.device_type != "cisco_ios" and node.machine_data.device_type != "cisco_xe"):
+				#	continue
+				#node.apply_interfaces_config_netmiko()
 		except Exception as e:
 			LOGGER.error(f"Error generating interfaces config for all nodes: {e}")
 			raise
 	def generate_nodes_ssh_stubs(self):
 		try:
 			LOGGER.info("Generating ssh stubs for all nodes")
-			LOGGER.debug(f"Here are the nodes in the list: {self.nodes}")
+			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
 			for node in self.nodes:
-				LOGGER.debug(f"Considering generating ssh stubs for node: {node.hostname}")
+				LOGGER.debug("Considering generating ssh stubs for node: %s", node.hostname)
 				node.generate_ssh_stub()
 		except Exception as e:
-			LOGGER.error(f"Error generating ssh stubs for all nodes: {e}")
+			LOGGER.error("Error generating ssh stubs for all nodes: %s", e)
 			raise
 	def choose_linux_node_for_telnet_config(self):
 		shortlist = []
@@ -73,3 +74,23 @@ class Topology(BaseModel):
 			else:
 				print("Invalid selection.")	
 		return None
+	def generate_nodes_stp_vlan_config(self):
+		try:
+			LOGGER.info("Generating stp vlan config for all nodes")
+			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
+			for node in self.nodes:
+				if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
+					node.generate_stp_vlan_config()
+		except Exception as e:
+			LOGGER.error("Error generating stp vlan config for all nodes: %s", e)
+			raise
+	def generate_nodes_fhrp_config(self):
+		try:
+			LOGGER.info("Generating fhrp config for all nodes")
+			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
+			for node in self.nodes:
+				if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
+					node.generate_fhrp_config()
+		except Exception as e:
+			LOGGER.error("Error generating fhrp config for all nodes: %s", e)
+			raise
