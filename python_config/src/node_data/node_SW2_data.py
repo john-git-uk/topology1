@@ -28,12 +28,14 @@ def SW2_Structures(topology: Topology):
 			access_segment.get_vlan("management"),
 			access_segment.get_vlan("supervisor")#,
 			#access_segment.get_vlan("voice")
-		]
+		],
+		ospf_participant=False,
 	)
 	node_SW2_i2=Interface(
 		name="e0/1",
 		trunk=False,
-		vlans=[access_segment.get_vlan("sales")]
+		vlans=[access_segment.get_vlan("sales")],
+		ospf_participant=False,
 	)
 	node_SW2_i3=Interface(
 		name="e0/2",
@@ -45,7 +47,8 @@ def SW2_Structures(topology: Topology):
 			access_segment.get_vlan("supervisor"),
 			#access_segment.get_vlan("voice")
 			access_segment.get_vlan("accounting")
-		]
+		],
+		ospf_participant=False,
 	)
 	node_SW2_i4=Interface(
 		name="e0/3",
@@ -57,60 +60,69 @@ def SW2_Structures(topology: Topology):
 			access_segment.get_vlan("supervisor"),
 			#access_segment.get_vlan("voice")
 			access_segment.get_vlan("accounting")
-		]
+		],
+		ospf_participant=False,
 	)
 	node_SW2_i5=Interface(
 		name="e1/0",
 		trunk=False,
-		vlans=[access_segment.get_vlan("sales")]
+		vlans=[access_segment.get_vlan("sales")],
+		ospf_participant=False,
 	)
 	node_SW2_i6=Interface(
 		name="e1/1",
 		trunk=False,
-		vlans=[access_segment.get_vlan("supervisor")]
+		vlans=[access_segment.get_vlan("supervisor")],
+		ospf_participant=False,
 	)
 	node_SW2_i7=Interface(
 		name="e1/2",
 		trunk=False,
-		vlans=[access_segment.get_vlan("sales")]
+		vlans=[access_segment.get_vlan("sales")],
+		ospf_participant=False,
 	)
 	node_SW2_i8=Interface(
 		name="e1/3",
 		trunk=False,
-		vlans=[access_segment.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")],
+		ospf_participant=False,
 	)
 	node_SW2_i9=Interface(
 		name="e2/0",
 		trunk=False,
-		vlans=[access_segment.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")],
+		ospf_participant=False,
 	)
 	node_SW2_i10=Interface(
 		name="e2/1",
 		trunk=False,
-		vlans=[access_segment.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")],
+		ospf_participant=False,
 	)
 	node_SW2_i11=Interface(
 		name="e2/2",
 		trunk=False,
-		vlans=[access_segment.get_vlan("accounting")]
-
+		vlans=[access_segment.get_vlan("accounting")],
+		ospf_participant=False,
 	)
 	node_SW2_i12=Interface(
 		name="e2/3",
 		trunk=False,
-		vlans=[access_segment.get_vlan("guest")]
+		vlans=[access_segment.get_vlan("guest")],
+		ospf_participant=False,
 	)
 	node_SW2_i13=Interface(
 		name="e3/3",
 		description="out of band",
 		ipv4_address="192.168.250.52",
-		ipv4_cidr=24
+		ipv4_cidr=24,
+		ospf_participant=False,
 	)
 	node_SW2_i14=Interface(
 		name="loop 0",
 		description="",
 		ipv4_address="10.133.2.12",
-		ipv4_cidr=32
+		ipv4_cidr=32,
 	)
 	node_SW2=Node(
 		hostname="SW2",

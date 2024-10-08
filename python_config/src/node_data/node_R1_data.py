@@ -17,6 +17,8 @@ def R1_Structures(topology: Topology):
 		description="Connected to SW3",
 		ipv4_address="10.133.2.64",
 		ipv4_cidr=31,
+		ospf_participant=True,
+		ospf_passive=False,
 		#ipv6_address="",
 		#ipv6_cidr=127
 	)
@@ -25,6 +27,8 @@ def R1_Structures(topology: Topology):
 		description="Connected to ISP",
 		ipv4_address="10.111.10.10",
 		ipv4_cidr=31,
+		ospf_participant=True,
+		ospf_passive=True,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::ffff"),
 		ipv6_cidr=127
 	)
@@ -33,6 +37,8 @@ def R1_Structures(topology: Topology):
 		description="Connected to SW4",
 		ipv4_address="10.133.2.72",
 		ipv4_cidr=31,
+		ospf_participant=True,
+		ospf_passive=False,
 		#ipv6_address="",
 		#ipv6_cidr=127
 	)
@@ -41,6 +47,8 @@ def R1_Structures(topology: Topology):
 		description="Out of band",
 		ipv4_address="192.168.250.1",
 		ipv4_cidr=24,
+		ospf_participant=False,
+		ospf_passive=True,
 		#ipv6_cidr=127
 	)
 	node_R1_i5=Interface(
@@ -48,6 +56,18 @@ def R1_Structures(topology: Topology):
 		description="l0",
 		ipv4_address="10.133.2.1",
 		ipv4_cidr=32,
+		ospf_participant=True,
+		ospf_passive=True,
+		#ipv6_address="",
+		#ipv6_cidr=127
+	)
+	node_R1_i6=Interface(
+		name="tunnel 0",
+		description="tunnel to R3 via IPsec",
+		ipv4_address="10.133.2.68",
+		ipv4_cidr=31,
+		ospf_participant=True,
+		ospf_passive=False,
 		#ipv6_address="",
 		#ipv6_cidr=127
 	)
@@ -63,6 +83,7 @@ def R1_Structures(topology: Topology):
 	node_R1.add_interface(node_R1_i3)
 	node_R1.add_interface(node_R1_i4)
 	node_R1.add_interface(node_R1_i5)
+	node_R1.add_interface(node_R1_i6)
 	topology.add_node(node_R1)
 def R1_relations(topology: Topology):
 	LOGGER.debug("Loading R1 Relations")
@@ -70,3 +91,5 @@ def R1_relations(topology: Topology):
 	topology.get_node("R1").get_interface("g2").connect_to(topology.get_node("ISP").get_interface("e0/0"))
 	topology.get_node("R1").get_interface("g3").connect_to(topology.get_node("SW4").get_interface("e2/1"))
 	topology.get_node("R1").get_interface("g4").connect_to(topology.exit_interface_oob)
+	topology.get_node("R1").get_interface("tunnel 0").tunnel_destination=(topology.get_node("R3").get_interface("e0/0"))
+	topology.get_node("R1").get_interface("tunnel 0").connect_to(topology.get_node("R3").get_interface("tunnel 0"))

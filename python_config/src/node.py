@@ -8,12 +8,13 @@ from pathlib import Path
 import importlib.util
 from pydantic import BaseModel
 from typing import Optional, List, Dict
-from convert import cidr_to_wildmask, ipv4_netid
+from convert import cidr_to_wildmask, ipv4_netid, cidr_to_netmask
 LOGGER = logging.getLogger('my_logger')
 class Node(BaseModel):
 	def __repr__(self):
 		return f"Node(name={self.hostname})"
 	class Config:
+		debug = True # Enable debug mode
 		validate_assignment = True
 		arbitrary_types_allowed = True
 		from_attributes = True
@@ -48,6 +49,9 @@ class Node(BaseModel):
 	stp_vlan_config_commands: List[str] = []
 	fhrp_config_commands: List[str] = []
 	ospf_static_base_config_commands: List[str] = []
+	dhcp_config_commands: List[str] = []
+	wan_config_commands: List[str] = []
+	ntp_config_commands: List[str] = []
 	def add_interface(self, iface: Interface):
 		self.__interfaces.append(iface)
 		iface.node_a_part_of=self
@@ -73,7 +77,7 @@ class Node(BaseModel):
 			
 			for index_a in range (self.get_interface_count()):
 				interface = self.get_interface_no(index_a)
-				LOGGER.info(f"Configuring interface {interface.name}")
+				LOGGER.debug(f"Configuring interface {interface.name}")
 				# Is it a port channel?
 				if len(interface.interfaces) > 0:
 					# Go into members and set the channel group
@@ -139,7 +143,7 @@ class Node(BaseModel):
 								"switchport access vlan "+str(interface.vlans[0].number)
 							]
 						self.interface_config_commands += ["switchport nonegotiate"]
-						self.interface_config_commands += ["no shutdown"]
+					self.interface_config_commands += ["no shutdown"]
 						
 			
 
@@ -244,6 +248,9 @@ class Node(BaseModel):
 			self.ssh_stub_config_commands.append("login local")
 			self.ssh_stub_config_commands.append("transport input ssh")
 			self.ssh_stub_config_commands.append("exec-timeout 0 0")
+			self.ssh_stub_config_commands.append("line console 0")
+			self.ssh_stub_config_commands.append("exec-timeout 0 0")
+			self.ssh_stub_config_commands.append("exit")
 
 		elif(self.machine_data.device_type=="debian" or self.machine_data.device_type=="alpine"):
 			self.ssh_stub_config_commands = []
@@ -391,53 +398,328 @@ class Node(BaseModel):
 								print(command, file=f)
 	def generate_ospf_static_base_config(self):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
-			if(self.machine_data.category == "multilayer"):
+			if(self.machine_data.category == "multilayer" or self.machine_data.category == "router"):
 				LOGGER.info(f"Generating ospf static base config for {self.hostname}")
 				access_segment = None
 				for seg in self.topology_a_part_of.access_segments:
 					for node in seg.nodes:
 						if node.hostname == self.hostname:
 							access_segment = seg
-				if(access_segment is None):
-					LOGGER.error(f"No access segment found for OSPF assigned node {self.hostname}, skipping ospf static base config generation")
-					return
+				#if(access_segment is None):
+				#	LOGGER.error(f"No access segment found for OSPF assigned node {self.hostname}, skipping ospf static base config generation")
+				#	return
 				if(self.hostname == "ISP"):
 					LOGGER.error(f"ISP node is not currently supported for OSPF or static routing config generation, manual config required")
 					return
 				self.ospf_static_base_config_commands = []
-				# For each interface check if it is a WAN port
+				# If it connects to ISP it is a WAN port (TODO: Make this rely on a better data entry)
+				if(self.get_wan_interface() is not None):
+					self.ospf_static_base_config_commands += [
+						f'ip route 0.0.0.0 0.0.0.0 {str(self.get_wan_interface().ipv4_address)}'
+					]
+				
+				ospf_commands=[]
+				if(self.machine_data.category == "multilayer"):
+					ospf_commands += ['ip routing']
+				ospf_commands += ['router ospf 1']
+				ospf_commands += ['auto-cost reference-bandwidth 100000']
+				if(self.get_wan_interface() is not None):
+					ospf_commands += ["default-information originate"]
 				for interface in self.__interfaces:
-					if(interface.name.startswith("loop")):
-						continue
-					if(interface.name.startswith("vlan")):
-						continue
-					if(interface.ipv4_address is None):
-						continue
-					if(interface.neighbour is None):
-						LOGGER.critical(f"Interface {interface.name} has no neighbour, skipping ospf static base config generation")
-						return
-					# If it connects to ISP it is a WAN port (TODO: Make this rely on a better data entry)
-					LOGGER.debug(f"Checking neighbour {interface.neighbour}")
-					if(interface.neighbour.node_a_part_of.hostname == "ISP"):
-						self.ospf_static_base_config_commands += [f'ip route 0.0.0.0 0.0.0.0 {str(interface.neighbour.ipv4_address)}']
-					
-				self.ospf_static_base_config_commands += ['router ospf 1']
-				self.ospf_static_base_config_commands += ['auto-cost reference-bandwidth 100000']
-				for interface in self.__interfaces:
-					if(interface.name.startswith("loop")):
-						continue
-					if(interface.name.startswith("vlan")):
-						continue
-					if(interface.ipv4_address is None):
-						continue
-					if(interface.neighbour is None):
-						LOGGER.critical(f"Interface {interface.name} has no neighbour, skipping ospf static base config generation")
-						return
-					# If this interface has an ip address
-					if(interface.neighbour.ipv4_address is not None):
-						# Advertise the network
-						self.ospf_static_base_config_commands += [f'network {str(ipv4_netid(interface.ipv4_address,interface.ipv4_cidr))} {str(cidr_to_wildmask(interface.ipv4_cidr))} area 0']
-						# If neighbour is missing an ip address
+					if(interface.ospf_participant):
 						if(interface.ipv4_address is None):
-							# Set as passive interface (TODO: reconsider the prerequisites for this)
-							self.ospf_static_base_config_commands += [f'passive-interface {interface.name}']
+							LOGGER.critical(f"Interface {interface.name} has no ip address, skipping ospf static base config generation")
+							return
+						if (not interface.name.startswith("vlan"))and(not interface.name.startswith("loop")):
+							if(interface.neighbour is None):
+								LOGGER.critical(f"Interface {interface.name} has no neighbour, skipping ospf static base config generation")
+								return
+							#if(interface.neighbour.ipv4_address is None):
+							#	LOGGER.critical(f"Interface {interface.name} has neighbour without ip address, skipping ospf static base config generation")
+							#	return
+						# If this interface has an ip address
+						# Advertise the network
+						ospf_commands += [f'network {str(ipv4_netid(interface.ipv4_address,interface.ipv4_cidr))} {str(cidr_to_wildmask(interface.ipv4_cidr))} area 0']
+					# If layer 3 check passive
+					if(interface.ospf_passive and interface.ipv4_address is not None):
+						ospf_commands += [f'passive-interface {interface.name}']
+				
+				ospf = False
+				for command in ospf_commands:
+					if command.startswith("network"):
+						ospf = True
+				if ospf == False:
+					ospf_commands = []
+					LOGGER.debug("no interfaces participating in ospf, no config required")
+				self.ospf_static_base_config_commands += ospf_commands
+
+				# Send the commands to file for review
+				out_path = Path("../python_config/output/routing_base/")
+				out_path.mkdir(exist_ok=True, parents=True)
+				with open(os.path.join(out_path,self.hostname+'_routing_base.txt'), 'w') as f:
+					for command in self.ospf_static_base_config_commands:
+						print(command, file=f)
+	def generate_dhcp_config(self):
+		# TODO: Make this part of data not hardcoded
+		###############################################
+		dhcp_server=None
+		if(self.hostname == "SW3"):
+			dhcp_server="SW3"
+		if(self.hostname == "R3"):
+			dhcp_server="R3"
+		dhcp_helper=None
+		if(self.hostname == "SW4"):
+			dhcp_helper=self.topology_a_part_of.get_node("R1").get_interface("loop 0")
+		###############################################
+		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
+			if(self.machine_data.category == "multilayer" or self.machine_data.category == "router"):
+				LOGGER.info(f"Generating dhcp config for {self.hostname}")
+				access_segment = None
+				for seg in self.topology_a_part_of.access_segments:
+					for node in seg.nodes:
+						if node.hostname == self.hostname:
+							access_segment = seg
+				if(self.hostname == dhcp_server):
+					for vlan in access_segment.vlans:
+						if (vlan.dhcp_exclusion_start is not None) and (vlan.dhcp_exclusion_end is not None):
+							if len(vlan.dhcp_exclusion_start) == 0:
+								continue
+							LOGGER.debug(f"Generating dhcp config for {self.hostname} working on vlan {vlan.name}")
+
+							if(len(vlan.dhcp_exclusion_start) != len(vlan.dhcp_exclusion_end)):
+								LOGGER.critical(f"DHCP exclusion start and end do not match for vlan {vlan.name}")
+								return
+
+							for exclusion in range(len(vlan.dhcp_exclusion_start)):
+								self.dhcp_config_commands += [f'ip dhcp excluded-address {str(vlan.dhcp_exclusion_start[exclusion])} {str(vlan.dhcp_exclusion_end[exclusion])}']
+							if(vlan.fhrp0_ipv4_address is not None):
+								gateway = vlan.fhrp0_ipv4_address
+							else:
+								if(vlan.default_gateway is None):
+									LOGGER.critical(f"default gateway not set for vlan {vlan.name}")
+									continue
+								gateway = vlan.default_gateway.ipv4_address
+							self.dhcp_config_commands += [
+								'ip dhcp pool '+str(vlan.number),
+								'network '+str(vlan.ipv4_netid)+' /'+str(vlan.ipv4_cidr),
+								'default-router '+str(gateway),
+								'domain-name '+self.topology_a_part_of.domain_name_a+'.'+self.topology_a_part_of.domain_name_b,
+								'dns-server '+str(self.topology_a_part_of.dns_ipv4_address),
+								'exit'
+							]
+				if(dhcp_helper is not None):
+					for interface in self.__interfaces:
+						if(interface.ipv4_address is None):
+							continue
+						self.dhcp_config_commands += [f"interface {interface.name}"]
+						self.dhcp_config_commands += [f"ip dhcp helper address {dhcp_helper.ipv4_address}"]
+				
+				# Send the commands to file for review
+				out_path = Path("../python_config/output/dhcp/")
+				out_path.mkdir(exist_ok=True, parents=True)
+				with open(os.path.join(out_path,self.hostname+'_dhcp.txt'), 'w') as f:
+					for command in self.dhcp_config_commands:
+						print(command, file=f)
+	def generate_wan_config(self):
+		# TODO: Make this part of data not hardcoded
+		###############################################
+		###############################################
+		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
+			if(self.machine_data.category == "router"):
+				LOGGER.info(f"Generating wan config for {self.hostname}")
+				
+				# Find the interface that connects to ISP
+				
+				if(self.get_wan_interface() is None):
+					LOGGER.debug(f"{self.hostname} has no wan interface, skipping wan config generation")
+					return
+				self.wan_config_commands = []
+				self.wan_config_commands += [
+					f'ip access-list extended NAT',
+					f'10 permit ip 10.131.0.0 {cidr_to_wildmask(16)} {ipv4_netid(self.topology_a_part_of.exit_interface_main.ipv4_address,24)} {cidr_to_wildmask(24)}',
+					f'20 deny ip 10.131.0.0 {cidr_to_wildmask(16)} 10.131.0.0 {cidr_to_wildmask(16)}',
+					f'30 permit ip 10.131.0.0 {cidr_to_wildmask(16)} any',
+					f'10000 deny ip any any',
+					"exit",
+					f'ip nat inside source list NAT interface {self.get_wan_interface().name} overload'
+				]
+				
+				for interface in self.__interfaces:
+					if(interface.ipv4_address is None):
+						continue
+					if(interface.name.startswith("loop")):
+						continue
+					if(interface.name.startswith("tunnel")):
+						continue
+					if(interface == self.get_wan_interface()):
+						self.wan_config_commands += [
+							f'interface {interface.name}',
+							f'ip nat outside',
+							f'exit',
+						]
+					else:
+						self.wan_config_commands += [
+							f'interface {interface.name}',
+							f'ip nat inside',
+							f'exit',
+						]
+				
+				self.wan_config_commands += [
+					"crypto isakmp policy 10",
+					"en aes 256",
+					"auth pre-share",
+					"group 14",
+					"lifetime 3600",
+					"exit",
+				]
+				# TODO: Make this part of data not hardcoded
+				if self.hostname == "R1":
+					self.wan_config_commands += [
+						f"crypto isakmp key vpnsecretkey13 address {self.topology_a_part_of.get_node("R3").get_wan_interface().ipv4_address}",
+					]
+				if self.hostname == "R2":
+					self.wan_config_commands += [
+						f"crypto isakmp key vpnsecretkey23 address {self.topology_a_part_of.get_node("R3").get_wan_interface().ipv4_address}",
+					]
+				if self.hostname == "R3":
+					self.wan_config_commands += [
+						f"crypto isakmp key vpnsecretkey13 address {self.topology_a_part_of.get_node("R1").get_wan_interface().ipv4_address}",
+						f"crypto isakmp key vpnsecretkey23 address {self.topology_a_part_of.get_node("R2").get_wan_interface().ipv4_address}",
+					]
+
+				self.wan_config_commands += [
+					"crypto ipsec transform-set ESP-AES256-SHA esp-aes 256 esp-sha-hmac",
+					"mode tunnel",
+					"exit",
+				]
+
+				self.wan_config_commands += [
+					"ip access-list extended vpn_traff",
+					f"deny ip any 192.168.2.0 {cidr_to_wildmask(24)}",
+					f"permit ip 10.131.0.0 {cidr_to_wildmask(16)} 10.131.0.0 {cidr_to_wildmask(16)}",
+					"exit",
+					"crypto ipsec profile VPNPROFILE",
+					"set transform-set ESP-AES256-SHA",
+				]
+
+				for tunnel in self.__interfaces:
+					if tunnel.name.startswith("tunnel"):
+						# Find ospf neighbour and validate data
+						ospf_neighbour=None
+						if(tunnel.ipv4_address is None):
+							LOGGER.critical(f"{self.hostname} - {tunnel.name} has no ipv4 address, cannot configure VPN, skipping node config...")
+							return
+						if(tunnel.ipv4_cidr is None):
+							LOGGER.critical(f"{self.hostname} - {tunnel.name} has no ipv4 cidr, cannot configure VPN, skipping node config...")
+							return
+						if(tunnel.tunnel_destination is None):
+							LOGGER.critical(f"{self.hostname} - {tunnel.name} has no tunnel destination, cannot configure VPN, skipping node config...")
+							return
+						for neigh in tunnel.tunnel_destination.node_a_part_of.__interfaces:
+							if(neigh.name.startswith("loop") and neigh.name.endswith("0")):
+								if(neigh.ipv4_address is None):
+									LOGGER.critical(f"{neigh.name} has no ipv4 address, cannot configure VPN, skipping node config...")
+									return
+								if(neigh.ipv4_cidr is None):
+									LOGGER.critical(f"{neigh.name} has no ipv4 cidr, cannot configure VPN, skipping node config...")
+									return
+								ospf_neighbour=neigh.ipv4_address
+
+						self.wan_config_commands += [
+							f"interface {tunnel.name}",
+							f"ip address {tunnel.ipv4_address} {cidr_to_netmask(tunnel.ipv4_cidr)}",
+							f"tunnel source {self.get_wan_interface().ipv4_address}",
+							"tunnel mode ipsec ipv4",
+							f"tunnel destination {tunnel.tunnel_destination.ipv4_address}",
+							"tunnel protection ipsec profile VPNPROFILE",
+							"ip ospf network point-to-point",
+							"no shutdown",
+							"exit",
+							# Add static routes to prevent advertisments of VPN taking precidense
+							f"ip route {tunnel.tunnel_destination.ipv4_address} 255.255.255.255 {self.get_wan_interface().neighbour.ipv4_address}",
+							"router ospf 1",
+							f"neighbor {ospf_neighbour}",
+							"exit",
+						]
+
+						# Send the commands to file for review
+						t_path = Path("../python_config/output/wan/")
+						t_path.mkdir(exist_ok=True, parents=True)
+						with open(os.path.join(t_path,self.hostname+'_wan.txt'), 'w') as f:
+							for command in self.wan_config_commands:
+									print(command, file=f)
+	def generate_ntp_config(self):
+		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
+			LOGGER.info(f"Generating ntp config for {self.hostname}")
+
+			self.ntp_config_commands += [
+				"clock timezone GMT 0",
+				"clock summer-time BST recurring last Sun Mar 1:00 last Sun Oct 2:00",
+				"ntp authenticate",
+				f"ntp authentication-key 1 md5 {self.topology_a_part_of.ntp_password}",
+				"ntp trusted-key 1",
+				f"ntp server {self.topology_a_part_of.ntp_public}",
+			]
+			# Check if the master
+			master = False
+			for interface in self.__interfaces:
+				if (id(interface) == id(self.topology_a_part_of.ntp_master)):
+					self.ntp_config_commands += [
+						f'ntp master',
+					]
+					master = True
+					break
+			if not master:
+
+				if(self.topology_a_part_of.ntp_master is not None):
+
+					self.ntp_config_commands += [
+						f'ntp server {self.topology_a_part_of.ntp_master.ipv4_address} key 1 prefer',
+					]
+		
+			self.ntp_config_commands += [	
+				"ntp update-calendar"
+			]
+			# TODO: Hardcoded
+			found_interface = False
+			for interface in self.__interfaces:
+				if interface.name=="vlan 30":
+					self.ntp_config_commands += [
+					f'ntp source {interface.name}'
+					]
+					found_interface = True
+					break
+				
+				if interface.name=="loop 0":
+					self.ntp_config_commands += [
+					f'ntp source {interface.name}'
+					]
+					found_interface = True
+					break
+			if not found_interface:
+				LOGGER.error (f"Could not find interface for ntp source for {self.hostname}")
+
+			# Send the commands to file for review
+			t_path = Path("../python_config/output/ntp/")
+			t_path.mkdir(exist_ok=True, parents=True)
+			with open(os.path.join(t_path,self.hostname+'_ntp.txt'), 'w') as f:
+				for command in self.ntp_config_commands:
+						print(command, file=f)
+			
+	def get_wan_interface(self):
+		# TODO: Make this data not rely on ISP node and rely on topology exits or site exits or something
+		# TODO: This assumes there is only one wan interface on a node
+		# TODO: Was channel group zero actually undefined or was it used by cisco?
+		LOGGER.debug(f"Finding wan interface for {self.hostname}")
+		for interface in self.__interfaces:
+			if(interface.ipv4_address is None):
+				continue
+			if(interface.name.startswith("loop")):
+				continue
+			if(interface.name.startswith("vlan")):
+				continue
+			if(interface.channel_group is not None):
+				continue
+			if(interface.neighbour.node_a_part_of.hostname == "ISP"):
+				return interface
+		return None

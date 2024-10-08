@@ -9,6 +9,7 @@ class VLAN(BaseModel):
 	def __repr__(self):
 		return f"VLAN(name={self.name})"
 	class Config:
+		debug = True # Enable debug mode
 		validate_assignment = True
 		arbitrary_types_allowed = True
 		from_attributes = True
@@ -21,7 +22,6 @@ class VLAN(BaseModel):
 	number: int
 	name: str
 
-	# Main Site
 	ipv4_netid: ipaddress.IPv4Address
 	ipv4_cidr: int
 	fhrp0_ipv4_address: Optional[ipaddress.IPv4Address] = None
@@ -32,13 +32,7 @@ class VLAN(BaseModel):
 	dhcp_interface: Optional[Interface] = None
 	dhcp_exclusion_start: Optional[List[ipaddress.IPv4Address]] = []
 	dhcp_exclusion_end: Optional[List[ipaddress.IPv4Address]] = []
-
-	# Outreach Site
-	ipv4_netid: Optional[ipaddress.IPv4Address] = None
-	ipv4_cidr: Optional[int] = None
-	dhcp_interface: Optional["Interface"] = None
-	dhcp_exclusion_start: Optional[List[ipaddress.IPv4Address]] = []
-	dhcp_exclusion_end: Optional[List[ipaddress.IPv4Address]] = []
+	default_gateway: Optional["Interface"] = None
 
 	def auto_dhcp_exclude(self, count: int):
 		""" Automatically generate a list of excluded addresses at the end of the subnet."""

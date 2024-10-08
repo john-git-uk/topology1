@@ -18,6 +18,7 @@ from paramiko import SSHClient
 from paramiko import Transport#, RSAKey
 import logging
 import time
+import sys
 import os
 from pathlib import Path
 import libvirt
@@ -32,6 +33,8 @@ VIR_DOMAIN_STATE_LOOKUP = {
 	libvirt.VIR_DOMAIN_PMSUSPENDED: 'Power Management Suspended',
 }
 LOGGER = logging.getLogger('my_logger')
+
+sys.setrecursionlimit(30111)  # Set a lower recursion limit
 
 def test_connect_with_custom_ssh(topology: Topology):
 	try:

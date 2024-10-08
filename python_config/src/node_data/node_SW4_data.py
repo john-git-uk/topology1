@@ -52,6 +52,7 @@ def SW4_Structures(topology: Topology):
 	)
 	node_SW4_i7=Interface(
 		name="e1/1",
+		description="Connected to SW1",
 		trunk=True,
 		vlans=[
 			access_segment.get_vlan("sales"),
@@ -61,6 +62,7 @@ def SW4_Structures(topology: Topology):
 	)
 	node_SW4_i8=Interface(
 		name="e1/2",
+		description="Connected to SW5",
 		trunk=True,
 		vlans=[
 			access_segment.get_vlan("sales"),
@@ -72,58 +74,82 @@ def SW4_Structures(topology: Topology):
 	node_SW4_i9=Interface(
 		name="vlan 10",
 		ipv4_address="10.133.10.125",
-		ipv4_cidr=25
+		ipv4_cidr=25,
+		ospf_participant=True,
+		ospf_passive=True,
 	)
 	node_SW4_i10=Interface(
 		name="vlan 20",
 		ipv4_address="10.133.21.253",
-		ipv4_cidr=23
+		ipv4_cidr=23,
+		ospf_participant=True,
+		ospf_passive=True,
 	)
 	node_SW4_i11=Interface(
 		name="vlan 30",
 		ipv4_address="10.133.30.4",
-		ipv4_cidr=25
+		ipv4_cidr=25,
+		ospf_participant=True,
+		ospf_passive=False,
 	)
 	node_SW4_i12=Interface(
 		name="vlan 40",
 		ipv4_address="10.133.40.125",
-		ipv4_cidr=25
+		ipv4_cidr=25,
+		ospf_participant=True,
+		ospf_passive=True,
 	)
 	node_SW4_i13=Interface(
 		name="vlan 60",
 		ipv4_address="10.133.60.253",
-		ipv4_cidr=24
+		ipv4_cidr=24,
+		ospf_participant=True,
+		ospf_passive=True,
 	)
 	node_SW4_i14=Interface(
 		name="vlan 70",
 		ipv4_address="10.133.70.253",
-		ipv4_cidr=24
+		ipv4_cidr=24,
+		ospf_participant=True,
+		ospf_passive=True,
 	)
 	node_SW4_i15=Interface(
 		name="vlan 80",
 		ipv4_address="10.133.80.253",
-		ipv4_cidr=24
+		ipv4_cidr=24,
+		ospf_participant=True,
+		ospf_passive=True,
 	)
 	node_SW4_i16=Interface(
 		name="e1/3",
+		description="Connected to R2",
 		ipv4_address="10.133.2.67",
-		ipv4_cidr=31
+		ipv4_cidr=31,
+		ospf_participant=True,
+		ospf_passive=False,
 	)
 	node_SW4_i17=Interface(
 		name="e2/1",
+		description="Connected to R1",
 		ipv4_address="10.133.2.73",
-		ipv4_cidr=31
+		ipv4_cidr=31,
+		ospf_participant=True,
+		ospf_passive=False,
 	)
 	node_SW4_i18=Interface(
 		name="e5/3",
 		description="out of band",
 		ipv4_address="192.168.250.54",
-		ipv4_cidr=24
+		ipv4_cidr=24,
+		ospf_participant=False,
+		ospf_passive=True,
 	)
 	node_SW4_i19=Interface(
 		name="loop 0",
 		ipv4_address="10.133.2.14",
-		ipv4_cidr=32
+		ipv4_cidr=32,
+		ospf_participant=True,
+		ospf_passive=True,
 	)
 	node_SW4_i20=Interface(
 		name="port 1",
@@ -133,7 +159,8 @@ def SW4_Structures(topology: Topology):
 			access_segment.get_vlan("management"),
 			access_segment.get_vlan("guest-services"),
 			access_segment.get_vlan("internal-services"),
-		]
+		],
+		ospf_participant=False,
 	)
 	node_SW4_i21=Interface(
 		name="port 2",
@@ -148,7 +175,8 @@ def SW4_Structures(topology: Topology):
 			access_segment.get_vlan("guest-services"),
 			access_segment.get_vlan("internal-services"),
 			access_segment.get_vlan("accounting")
-		]
+		],
+		ospf_participant=False,
 	)
 	node_SW4=Node(
 		hostname="SW4",

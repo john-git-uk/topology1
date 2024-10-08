@@ -12,6 +12,7 @@ class Interface(BaseModel):
 	def __repr__(self):
 		return f"Interface(name={self.name})"
 	class Config:
+		debug = True # Enable debug mode
 		validate_assignment = True
 		arbitrary_types_allowed = True
 		from_attributes = True
@@ -25,7 +26,10 @@ class Interface(BaseModel):
 	neighbour: Optional["Interface"] = None
 	name: str
 	description: Optional[str]=None
+	ospf_participant: bool=False
+	ospf_passive: bool=False,
 	interfaces: List["Interface"]=[]
+	# TODO: Was channel group zero actually undefined or was it used by cisco?
 	channel_group: Optional[int]=None
 	ipv4_address: Optional[ipaddress.IPv4Address]=None
 	ipv4_cidr: Optional[int]=None
@@ -35,6 +39,7 @@ class Interface(BaseModel):
 	#Optional[ipv4_cidr: List[int]]=None
 	#Optional[ipv6_address: List[ipaddress.IPv6Address]]=None
 	#Optional[ipv6_cidr: List[int]]=None
+	tunnel_destination: Optional[Interface]=None
 	trunk: Optional[bool]=None
 	vlans: List["VLAN"]=[]
 	def add_vlan(self, vlan: "VLAN"):

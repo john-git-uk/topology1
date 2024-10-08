@@ -2,9 +2,11 @@ from __future__ import annotations
 import logging
 from pydantic import BaseModel
 from typing import Optional, List
+import ipaddress
 LOGGER = logging.getLogger('my_logger')
 class Topology(BaseModel):
 	class Config:
+		debug = True # Enable debug mode
 		validate_assignment = True
 		arbitrary_types_allowed = True
 		from_attributes = True
@@ -12,11 +14,15 @@ class Topology(BaseModel):
 			'vlans': {'exclude': True},
 			'nodes': {'exclude': True},
 		}
-	domain_name_a: Optional[str]="local",
+	domain_name_a: Optional[str]="local"
 	domain_name_b: Optional[str]=None
+	dns_ipv4_address: Optional[ipaddress.IPv4Address]=None
 	exit_interface_main: Optional[Interface]=None
 	exit_interface_oob: Optional[Interface]=None
 	exit_interface_real_wap: Optional[Interface]=None
+	ntp_master: Optional[Interface]=None
+	ntp_public: Optional[ipaddress.IPv4Address]=None
+	ntp_password: Optional[str]="outoftime"
 	#vlans: List[VLAN]=[]
 	nodes: List[Node]=[]
 	access_segments: List[AccessSegment]=[]
@@ -33,6 +39,10 @@ class Topology(BaseModel):
 		for node in self.nodes:
 			if node.hostname == name:
 				return node
+	def get_access_segment(self, name: str):
+		for access_segment in self.access_segments:
+			if access_segment.name == name:
+				return access_segment
 	def generate_nodes_interfaces_config(self):
 		try:
 			LOGGER.info("Generating interfaces config for all nodes")
@@ -106,6 +116,9 @@ class Topology(BaseModel):
 					node.generate_stp_vlan_config()
 					node.generate_fhrp_config()
 					node.generate_ospf_static_base_config()
+					node.generate_dhcp_config()
+					node.generate_wan_config()
+					node.generate_ntp_config()
 		except Exception as e:
 			LOGGER.error("Error generating multi config for all nodes: %s", e)
 			raise

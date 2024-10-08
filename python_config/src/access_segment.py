@@ -5,6 +5,7 @@ from typing import Optional, List
 LOGGER = logging.getLogger('my_logger')
 class AccessSegment(BaseModel):
 	class Config:
+		debug = True # Enable debug mode
 		validate_assignment = True
 		arbitrary_types_allowed = True
 		from_attributes = True

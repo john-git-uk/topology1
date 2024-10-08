@@ -1098,7 +1098,6 @@ As specified in topology data section each vlan has an excluded address range fo
 ~~~
 ip dhcp excluded-address 10.131.10.250 10.131.10.255
 ip dhcp excluded-address 10.131.22.245 10.131.22.255
-ip dhcp excluded-address 10.131.30.250 10.131.30.255
 ip dhcp excluded-address 10.131.40.250 10.131.40.255
 ip dhcp pool 10
 network 10.131.10.128 /25
@@ -1108,11 +1107,6 @@ dns-server 10.131.60.250 1.1.1.1
 ip dhcp pool 22
 network 10.131.22.0 /24
 default-router 10.131.22.254
-domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
-ip dhcp pool 30
-network 10.131.30.128 /25
-default-router 10.131.30.254
 domain-name tapeitup.private
 dns-server 10.131.60.250 1.1.1.1
 ip dhcp pool 40
@@ -1125,10 +1119,7 @@ dns-server 10.131.60.250 1.1.1.1
 ~~~
 ip dhcp excluded-address 10.131.10.120 10.131.10.126
 ip dhcp excluded-address 10.131.21.245 10.131.21.255
-ip dhcp excluded-address 10.131.30.120 10.131.30.126
 ip dhcp excluded-address 10.131.40.120 10.131.40.126
-ip dhcp excluded-address 10.131.60.225 10.131.60.255
-ip dhcp excluded-address 10.131.70.225 10.131.70.255
 ip dhcp excluded-address 10.131.80.225 10.131.80.255
 ip dhcp pool 10
 network  10.131.10.0 /25
@@ -1142,27 +1133,9 @@ default-router 10.131.21.254
 domain-name tapeitup.private
 dns-server 10.131.60.250 1.1.1.1
 exit
-ip dhcp pool 30
-network 10.131.30.0 /25
-default-router 10.131.30.126
-domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
-exit
 ip dhcp pool 40
 network 10.131.40.0 /25
 default-router 10.131.40.126
-domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
-exit
-ip dhcp pool 60
-network 10.131.60.0 /24
-default-router 10.131.60.254
-domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
-exit
-ip dhcp pool 70
-network 10.131.70.0 /24
-default-router 10.131.70.254
 domain-name tapeitup.private
 dns-server 10.131.60.250 1.1.1.1
 exit
@@ -1283,7 +1256,7 @@ icmp 10.111.10.10:17019 10.131.10.1:17019 10.111.10.11:17019  10.111.10.11:17019
 icmp 10.111.10.10:17275 10.131.10.1:17275 10.111.10.11:17275  10.111.10.11:17275
 icmp 10.111.10.10:17531 10.131.10.1:17531 10.111.10.11:17531  10.111.10.11:17531
 ~~~
-## VPN - IPSec - PSK
+## VPN - IPSec - PSK with OSPF
 IPSec is a secure VPN technology. It doesn't support multicast unless I combine with GRE. Multicast is not essential for OSPF as I can manually specify the neighbour. I made sure to use the interface Tunnel0 as it simplifies the config. It is essential to have the same policy at either end. Advertising the endpoints WAN port over the VPN using OSPF will cause flapping or errors. I use static routes to ensure the WAN ports preferred route remains outside VPN. The WAN port over VPN routes are still available in the OSPF process, but I see no reason they would be used instead of a static route with default ad.
 #### R1 Config
 ~~~
@@ -1310,6 +1283,7 @@ set transform-set ESP-AES256-SHA
 
 interface Tunnel0
 ip address 10.131.2.68 255.255.255.254
+ip ospf network point-to-point
 tunnel source g2
 tunnel mode ipsec ipv4
 tunnel destination 10.111.10.30
@@ -1321,7 +1295,7 @@ ip route 10.111.10.20 255.255.255.255 10.111.10.11
 ip route 10.111.10.30 255.255.255.255 10.111.10.11
 
 router ospf 1
-neighbor 10.131.2.3
+network 10.131.2.68 0.0.0.1 a 0
 exit
 ~~~
 #### R2 Config
@@ -1350,6 +1324,7 @@ set transform-set ESP-AES256-SHA
 interface Tunnel0
 ip address 10.131.2.70 255.255.255.254
 tunnel source Ethernet0/1
+ip ospf network point-to-point
 tunnel mode ipsec ipv4
 tunnel destination 10.111.10.30
 tunnel protection ipsec profile VPNPROFILE
@@ -1360,7 +1335,7 @@ ip route 10.111.10.10 255.255.255.255 10.111.10.21
 ip route 10.111.10.30 255.255.255.255 10.111.10.21
 
 router ospf 1
-neighbor 10.131.2.3
+network 10.131.2.70 0.0.0.1 a 0
 exit
 ~~~
 #### R3 Config
@@ -1391,6 +1366,7 @@ interface tunnel 0
 ip address 10.131.2.69 255.255.255.254
 tunnel source e0/0
 tunnel mode ipsec ipv4
+ip ospf network point-to-point
 tunnel protection ipsec profile VPNPROFILE
 tunnel destination 10.111.10.10
 no shutdown
@@ -1399,6 +1375,7 @@ interface tunnel 1
 ip address 10.131.2.71 255.255.255.254
 tunnel source e0/0
 tunnel mode ipsec ipv4
+ip ospf network point-to-point
 tunnel protection ipsec profile VPNPROFILE
 tunnel destination 10.111.10.20
 no shutdown
@@ -1408,8 +1385,8 @@ ip route 10.111.10.10 255.255.255.255 10.111.10.31
 ip route 10.111.10.20 255.255.255.255 10.111.10.31
 
 router ospf 1
-neighbor 10.131.2.1
-neighbor 10.131.2.2
+network 10.131.2.68 0.0.0.1 a 0
+network 10.131.2.70 0.0.0.1 a 0
 exit
 ~~~
 ## Vlan Access Control (incomplete)
@@ -1841,29 +1818,6 @@ interface range ethernet 5/0 - 3
     switchport nonegotiate
     shutdown
 
-~~~
-## OSPF Inter-Site
-In order for OSPF to function over the IPSec additional configuration is needed. I manually define the neighbour. This means unicast traffic will be used to form a neighbour relationship.
-
-#### R1 Config
-~~~
-router os 1
-neigh 10.131.2.3
-exit
-~~~
-#### R2 Config
-~~~
-router os 1
-neigh 10.131.2.3
-exit
-~~~
-
-#### R3 Config
-~~~
-router os 1
-neigh 10.131.2.1
-neigh 10.131.2.2
-exit
 ~~~
 ## NTP
 I ensure minimal discrepancy in the time reported by my LAN devices. For this, I configure R1 to sync to an internet ntp server. The rest of the devices I configure to sync to R1 first and 1.1.1.1 if R1 fails.
