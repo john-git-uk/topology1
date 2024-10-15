@@ -87,8 +87,8 @@ def main_structures(topology: Topology):
 		ipv4_netid="10.133.40.0",
 		ipv4_cidr=25,
 		fhrp0_ipv4_address="10.133.40.126",
-		dhcp_exclusion_start=[ipaddress.ip_address("10.131.40.120")],
-		dhcp_exclusion_end=[ipaddress.ip_address("10.131.40.126")],
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.40.120")],
+		dhcp_exclusion_end=[ipaddress.ip_address("10.133.40.126")],
 	)
 	vlan_50 = VLAN(
 		number=50,
@@ -116,8 +116,8 @@ def main_structures(topology: Topology):
 		ipv4_netid="10.133.80.0",
 		ipv4_cidr=24,
 		fhrp0_ipv4_address="10.133.80.254",
-		dhcp_exclusion_start=[ipaddress.ip_address("10.131.80.225")],
-		dhcp_exclusion_end=[ipaddress.ip_address("10.131.80.255")],
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.80.225")],
+		dhcp_exclusion_end=[ipaddress.ip_address("10.133.80.255")],
 	)
 	#vlan_250 = VLAN(
 	#		number=250,
@@ -163,7 +163,7 @@ def main_structures(topology: Topology):
 		name="supervisor",
 		ipv4_netid="10.133.40.128",
 		ipv4_cidr=25,
-		dhcp_exclusion_start=[ipaddress.ip_address("10.131.40.248")],
+		dhcp_exclusion_start=[ipaddress.ip_address("10.133.40.248")],
 		dhcp_exclusion_end=[ipaddress.ip_address("10.133.40.255")],
 	)
 	outreach_access_segment.vlans.append(ovlan_10)
@@ -171,9 +171,10 @@ def main_structures(topology: Topology):
 	outreach_access_segment.vlans.append(ovlan_30)
 	outreach_access_segment.vlans.append(ovlan_40)
 	############################################################################
+	### This is old docker node
 	radius_server_interface_eth1=Interface(  # noqa: F841
 		name="eth1",
-		ipv4_address="10.131.70.251",
+		ipv4_address="10.133.70.251",
 		ipv4_cidr=24
 	)
 	radius_server_interface_eth2=Interface(
@@ -201,10 +202,10 @@ def main_structures(topology: Topology):
 	]
 	topology.add_node(radius_server)
 	############################################################################
-
+	### This is old docker node
 	ldap_server_interface_eth1=Interface(  # noqa: F841
 		name="eth1",
-		ipv4_address="10.131.70.250",
+		ipv4_address="10.133.70.250",
 		ipv4_cidr=24
 	)
 	ldap_server_interface_eth2=Interface(
@@ -238,10 +239,10 @@ def main_structures(topology: Topology):
 	]
 	topology.add_node(ldap_server)
 	############################################################################
-
+	### This is old docker node
 	aaa_server_interface_eth1=Interface(  # noqa: F841
 		name="eth1",
-		ipv4_address="10.131.70.251",
+		ipv4_address="10.133.70.251",
 		ipv4_cidr=24
 	)
 	aaa_server_interface_eth2=Interface(
@@ -269,27 +270,27 @@ def main_structures(topology: Topology):
 	]
 	topology.add_node(aaa_server)
 	############################################################################
-	prox1_interface_vi_oob = {
-		"name": "vi_oob",
-		"ipv4_address": "192.168.2.239",
-		"ipv4_cidr": 24,
-		"mac_address": "52:54:00:24:15:df"
-	}
-
-	prox1_interface_vi_vlan60 = {  # noqa: F841
-		"name": "vi_vlan60",
-		"ipv4_address": None,  # No IPv4 address assigned
-		"ipv6_address": "fe80::5054:ff:fe9e:ab06/64",
-		"mac_address": "52:54:00:9e:ab:08"
-	}
-
-	prox1_interface_vi_vlan70 = {  # noqa: F841
-		"name": "vi_vlan70",
-		"ipv4_address": "192.168.70.231",
-		"ipv4_cidr": 24,
-		"ipv6_address": "fe80::5054:ff:fe9e:ab08/64",
-		"mac_address": "52:54:00:9e:ab:08"
-	}
+	prox1_interface_oob_hitch = Interface (
+		name= "oob_hitch",
+		ipv4_address= "192.168.2.239",
+		ipv4_cidr= 24,
+	)
+	prox1_interface_vmbr60 = Interface (
+		name= "vmbr60",
+		ipv4_address= "10.133.60.245",
+		ipv4_cidr= 24,
+	)
+	prox1_interface_vmbr70 = Interface (
+		name= "vmbr70",
+		ipv4_address= "10.133.70.245",
+		ipv4_cidr= 24,
+	)
+	prox1_interface_enp1s0 = Interface (
+		name= "enp1s0",
+	)
+	prox1_interface_enp2s0 = Interface (
+		name= "enp2s0",
+	)
 	prox1=Node(
 		hostname="prox1",
 		machine_data=get_machine_data("proxmox"),
@@ -297,12 +298,17 @@ def main_structures(topology: Topology):
 		local_password="toorp",
 		interfaces=[],
 		hypervisor_telnet_port=0,
-		oob_interface=prox1_interface_vi_oob,
+		oob_interface=prox1_interface_oob_hitch,
 	)
+	prox1.add_interface(prox1_interface_oob_hitch)
+	prox1.add_interface(prox1_interface_vmbr60)
+	prox1.add_interface(prox1_interface_vmbr70)
+	prox1.add_interface(prox1_interface_enp1s0)
+	prox1.add_interface(prox1_interface_enp2s0)
+	# TODO: Forget the other interfaces for now
 	prox1.config_path=os.path.abspath("../node_config/server/prox1")
 	prox1.config_copying_paths = []
 	topology.add_node(prox1)
-	LOGGER.debug(f"Access segments: {topology.access_segments}")
 	return topology
 def main_relations(topology: Topology):
 	for seg in topology.access_segments:
@@ -336,3 +342,7 @@ def main_relations(topology: Topology):
 	
 	topology.ntp_master=topology.get_node("R1").get_interface("loop 0")
 	topology.ntp_public=ipaddress.IPv4Address("1.1.1.1")
+
+	topology.get_node("prox1").get_interface("enp1s0").connect_to(topology.exit_interface_oob)
+	topology.get_node("prox1").get_interface("enp2s0").connect_to(topology.get_node("SW6").get_interface("e2/0"))
+	# TODO: Add the other interfaces for prox1

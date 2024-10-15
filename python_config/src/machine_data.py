@@ -108,7 +108,7 @@ def structure_machine_data():
 	)
 	m_proxmox=MachineData(
 		name="proxmox",
-		device_type="debian",
+		device_type="proxmox",
 		category="host",
 		ssh_support=True,
 		netconf_support=False,

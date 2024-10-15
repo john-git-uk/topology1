@@ -1,0 +1,51 @@
+dn: ou=People,dc=tapeitup,dc=private
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,dc=tapeitup,dc=private
+objectClass: organizationalUnit
+ou: Groups
+
+# Network Admin Group
+dn: cn=network_admin,ou=Groups,dc=tapeitup,dc=private
+objectClass: posixGroup
+cn: network_admin
+gidNumber: 10001
+
+# Sales Group
+dn: cn=sales,ou=Groups,dc=tapeitup,dc=private
+objectClass: posixGroup
+cn: sales
+gidNumber: 10002
+
+# User John
+dn: uid=john,ou=People,dc=tapeitup,dc=private
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: john
+sn: none
+givenName: john
+uid: john
+uidNumber: 1001
+gidNumber: 10001
+homeDirectory: /home/john
+loginShell: /bin/bash
+mail: john@tapeitup.private
+userPassword: {SSHA}VrHa6dK8wDewHUmn1begyCJNmq9SIwt1
+
+# User Dave
+dn: uid=dave,ou=People,dc=tapeitup,dc=private
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dave
+sn: none
+givenName: dave
+uid: dave
+uidNumber: 1002
+gidNumber: 10002
+homeDirectory: /home/dave
+loginShell: /bin/bash
+mail: dave@tapeitup.private
+userPassword: {SSHA}CU6BdjNWkngd4snNvl4k6A6jBHPbNmAw

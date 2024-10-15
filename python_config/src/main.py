@@ -13,6 +13,9 @@ from node_data.node_SW4_data import SW4_Structures, SW4_relations
 from node_data.node_SW5_data import SW5_Structures, SW5_relations
 from node_data.node_SW6_data import SW6_Structures, SW6_relations
 from node_data.node_SW7_data import SW7_Structures, SW7_relations
+from node_data.node_ldap_server_1 import ldap_server_1_structures, ldap_server_1_relations
+from node_data.node_radius_server_1 import radius_server_1_structures, radius_server_1_relations
+from node_data.node_dns_server_1 import dns_server_1_structures, dns_server_1_relations
 from project_globals import GLOBALS
 from paramiko import SSHClient
 from paramiko import Transport#, RSAKey
@@ -95,6 +98,12 @@ def load_topology():
 	LOGGER.debug("SW6 Structures loaded")
 	SW7_Structures(topology)
 	LOGGER.debug("SW7 Structures loaded")
+	ldap_server_1_structures(topology)
+	LOGGER.debug("LDAP Server 1 Structures loaded")
+	radius_server_1_structures(topology)
+	LOGGER.debug("Radius Server 1 Structures loaded")
+	dns_server_1_structures(topology)
+	LOGGER.debug("DNS Server 1 Structures loaded")
 
 	main_relations(topology)
 	LOGGER.debug("Main Relations loaded")
@@ -120,7 +129,14 @@ def load_topology():
 	LOGGER.debug("SW6 Relations loaded")
 	SW7_relations(topology)
 	LOGGER.debug("SW7 Relations loaded")
-	
+	ldap_server_1_relations(topology)
+	LOGGER.debug("LDAP Server 1 Relations loaded")
+	radius_server_1_relations(topology)
+	LOGGER.debug("Radius Server 1 Relations loaded")
+	dns_server_1_relations(topology)
+	LOGGER.debug("DNS Server 1 Relations loaded")
+
+
 	return topology
 def simple_function_prompt(topology:  Topology):
 	#create list of functions to run
@@ -129,9 +145,9 @@ def simple_function_prompt(topology:  Topology):
 	functions_display = [
 		"Globals: Validate Data",#1
 		"Globals: Load Data",#2
-		"Topology: Generate Nodes SSH Stub Config",#3
-		"Topology: Generate Nodes Interfaces Config",#4
-		"Topology: Generate Nodes Apply STP+VLAN Config",#5
+		"Configure prox1 containers",#3
+		"Unused",#4
+		"Unused",#5
 		"Topology: Generate Multiple Config for Cisco Nodes",#6
 		"Lab Handler: Import Virtual Console Telnet Ports from Lab API",#7
 		"Topology: Copy Config Files to a Linux Node",#8
@@ -151,11 +167,28 @@ def simple_function_prompt(topology:  Topology):
 			elif(selected_function_index == 2):
 				GLOBALS.load_data()
 			elif(selected_function_index == 3):
-				topology.generate_nodes_ssh_stubs()
+				from handle_proxmox import Container, test_create_container, test_validate_container_config, start_container
+				test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("ldap-server-1"))
+				test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("radius-server-1"))
+				test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("dns-server-1"))
+				start_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("ldap-server-1"))
+				start_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("radius-server-1"))
+				start_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("dns-server-1"))
+
+				from node_data.node_ldap_server_1 import configure_ldap_server_1, packages_time_ldap_server_1
+				from node_data.node_radius_server_1 import configure_radius_server_1, packages_time_radius_server_1
+				from node_data.node_dns_server_1 import configure_dns_server_1, packages_time_dns_server_1
+
+				#packages_time_ldap_server_1(topology.get_node("ldap-server-1"))
+				configure_ldap_server_1(topology.get_node("ldap-server-1"))
+				#packages_time_radius_server_1(topology.get_node("radius-server-1"))
+				#configure_radius_server_1(topology.get_node("radius-server-1"))
+				#packages_time_dns_server_1(topology.get_node("dns-server-1"))
+				#configure_dns_server_1(topology.get_node("dns-server-1"))
 			elif(selected_function_index == 4):
-				topology.generate_nodes_interfaces_config()
+				pass
 			elif(selected_function_index == 5):
-				topology.generate_nodes_stp_vlan_config()
+				pass
 			elif(selected_function_index == 6):
 				topology.generate_multi_config()
 			elif(selected_function_index == 7):

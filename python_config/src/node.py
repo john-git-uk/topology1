@@ -43,6 +43,7 @@ class Node(BaseModel):
 	ipv4_ntp_server: Optional[ipaddress.IPv4Address]=None
 	ipv6_ntp_server: Optional[ipaddress.IPv6Address]=None
 	__interfaces: List[Interface]=[]
+	__containers: List[Container]=[]
 	# Configuration commands storage
 	ssh_stub_config_commands: List[str] = []
 	interface_config_commands: List[str] = []
@@ -65,6 +66,18 @@ class Node(BaseModel):
 		return self.__interfaces[index]
 	def get_interface_count(self):
 		return len(self.__interfaces)
+	def add_container(self, container: Container):
+		self.__containers.append(container)
+	def get_container(self, name: str):
+		for container in self.__containers:
+			if container.node_data.hostname == name:
+				return container
+	def get_container_count(self):
+		return len(self.containers)
+	def get_container_no(self, index: int):
+		if index < 0 or index >= len(self.containers):
+			raise IndexError("Container index out of range.")
+		return self.containers[index]
 	def generate_interfaces_config(self):
 		LOGGER.info(f"Generating interfaces config for {self.hostname}")
 		if self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe":
@@ -415,7 +428,7 @@ class Node(BaseModel):
 				# If it connects to ISP it is a WAN port (TODO: Make this rely on a better data entry)
 				if(self.get_wan_interface() is not None):
 					self.ospf_static_base_config_commands += [
-						f'ip route 0.0.0.0 0.0.0.0 {str(self.get_wan_interface().ipv4_address)}'
+						f'ip route 0.0.0.0 0.0.0.0 {str(self.get_wan_interface().neighbour.ipv4_address)}'
 					]
 				
 				ospf_commands=[]
@@ -536,9 +549,9 @@ class Node(BaseModel):
 				self.wan_config_commands = []
 				self.wan_config_commands += [
 					f'ip access-list extended NAT',
-					f'10 permit ip 10.131.0.0 {cidr_to_wildmask(16)} {ipv4_netid(self.topology_a_part_of.exit_interface_main.ipv4_address,24)} {cidr_to_wildmask(24)}',
-					f'20 deny ip 10.131.0.0 {cidr_to_wildmask(16)} 10.131.0.0 {cidr_to_wildmask(16)}',
-					f'30 permit ip 10.131.0.0 {cidr_to_wildmask(16)} any',
+					f'10 permit ip 10.133.0.0 {cidr_to_wildmask(16)} {ipv4_netid(self.topology_a_part_of.exit_interface_main.ipv4_address,24)} {cidr_to_wildmask(24)}',
+					f'20 deny ip 10.133.0.0 {cidr_to_wildmask(16)} 10.133.0.0 {cidr_to_wildmask(16)}',
+					f'30 permit ip 10.133.0.0 {cidr_to_wildmask(16)} any',
 					f'10000 deny ip any any',
 					"exit",
 					f'ip nat inside source list NAT interface {self.get_wan_interface().name} overload'
@@ -596,7 +609,7 @@ class Node(BaseModel):
 				self.wan_config_commands += [
 					"ip access-list extended vpn_traff",
 					f"deny ip any 192.168.2.0 {cidr_to_wildmask(24)}",
-					f"permit ip 10.131.0.0 {cidr_to_wildmask(16)} 10.131.0.0 {cidr_to_wildmask(16)}",
+					f"permit ip 10.133.0.0 {cidr_to_wildmask(16)} 10.133.0.0 {cidr_to_wildmask(16)}",
 					"exit",
 					"crypto ipsec profile VPNPROFILE",
 					"set transform-set ESP-AES256-SHA",

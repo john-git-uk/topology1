@@ -3,7 +3,7 @@ This is a journal of my topology1 project. For more complex and complete informa
 ## Unusual Subnets
 For this lab I will use 10.111.0.0/16 to represent the ISP owned network.
   
-10.131.0.0/16 and other /16 subnets of the 10.0.0.0/8 block will remain private.
+10.133.0.0/16 and other /16 subnets of the 10.0.0.0/8 block will remain private.
   
 192.168.2.0/24 is used outside of the lab for my real LAN and will not be used in the lab besides the ISP node.
 ## Proprietary Software Requirements
@@ -52,121 +52,121 @@ These /32 host addresses are assigned by lab ISP
 |R3-ISP| 10.111.10.30 | - | 10.111.10.31|
 |R1-ISP| 10.111.10.10 |-|   10.111.10.11|
 |R2-ISP| 10.111.10.20 |-|   10.111.10.21|
-### Loopbacks IPv4 10.131.2.0/26
+### Loopbacks IPv4 10.133.2.0/26
 ~~~
-R1 10.131.2.1
-R2 10.131.2.2
-R3 10.131.2.3
-SW3 10.131.2.13
-SW4 10.131.2.14
+R1 10.133.2.1
+R2 10.133.2.2
+R3 10.133.2.3
+SW3 10.133.2.13
+SW4 10.133.2.14
 ~~~
-### IPv4 Links in subnet 10.131.2.64/26
+### IPv4 Links in subnet 10.133.2.64/26
 #### (.64 to .127) subnetted /31
 |  |  |  | |
 | :---: | :--: | :--: | :--: |
-|R1-SW3     | 10.131.2.64     |-|   10.131.2.65 |
-|R2-SW4     | 10.131.2.66     |-|   10.131.2.67 |
-|R1-R3 VPN  | 10.131.2.68     |-|   10.131.2.69 |
-|R2-R3 VPN  | 10.131.2.70     |-|   10.131.2.71 |
-|R1-SW4     | 10.131.2.72     |-|   10.131.2.73 |
-|R2-SW3     | 10.131.2.74     |-|   10.131.2.75 |
+|R1-SW3     | 10.133.2.64     |-|   10.133.2.65 |
+|R2-SW4     | 10.133.2.66     |-|   10.133.2.67 |
+|R1-R3 VPN  | 10.133.2.68     |-|   10.133.2.69 |
+|R2-R3 VPN  | 10.133.2.70     |-|   10.133.2.71 |
+|R1-SW4     | 10.133.2.72     |-|   10.133.2.73 |
+|R2-SW3     | 10.133.2.74     |-|   10.133.2.75 |
 ### Vlans & IPv4
 Native VLAN = 933
 
-#### vlan 10 sales 10.131.10.0/25 10.131.10.128/25
+#### vlan 10 sales 10.133.10.0/25 10.133.10.128/25
 126 usable addresses
 ~~~
-main: 10.131.10.0/25
-SW3SVI: 10.131.10.124
-SW4SVI: 10.131.10.125
-HSRP-gate: 10.131.10.126
-outreach: 10.131.10.128/25
-gateway: 10.131.10.254
+main: 10.133.10.0/25
+SW3SVI: 10.133.10.124
+SW4SVI: 10.133.10.125
+HSRP-gate: 10.133.10.126
+outreach: 10.133.10.128/25
+gateway: 10.133.10.254
 ~~~
-#### vlan 20 guest 10.131.20.0/23 10.131.22.0/24
+#### vlan 20 guest 10.133.20.0/23 10.133.22.0/24
 510 usable addresses & 254 usable addresses
 ~~~
-main: 10.131.20.0/23
-SW3SVI: 10.131.21.252
-SW4SVI: 10.131.21.253
-HSRP-gate: 10.131.21.254
-outreach: 10.131.22.0/24
-gateway: 10.131.22.254
+main: 10.133.20.0/23
+SW3SVI: 10.133.21.252
+SW4SVI: 10.133.21.253
+HSRP-gate: 10.133.21.254
+outreach: 10.133.22.0/24
+gateway: 10.133.22.254
 ~~~
-#### vlan 30 management 10.131.30.0/25 10.131.30.128/25
+#### vlan 30 management 10.133.30.0/25 10.133.30.128/25
 126 usable addresses
 ~~~
-main: 10.131.30.0/25
-management_server: 10.131.30.123
-SW1SVI: 10.131.30.1
-SW2SVI: 10.131.30.2
-SW3SVI: 10.131.30.3
-SW4SVI: 10.131.30.4
-SW5SVI: 10.131.30.5
-SW6SVI: 10.131.30.6
-Site1_HSRP-gate: 10.131.30.126
-outreach: 10.131.30.128/25
-SW7SVI: 10.131.30.137
-Site2_Gateway: 10.131.30.254
+main: 10.133.30.0/25
+management_server: 10.133.30.123
+SW1SVI: 10.133.30.1
+SW2SVI: 10.133.30.2
+SW3SVI: 10.133.30.3
+SW4SVI: 10.133.30.4
+SW5SVI: 10.133.30.5
+SW6SVI: 10.133.30.6
+Site1_HSRP-gate: 10.133.30.126
+outreach: 10.133.30.128/25
+SW7SVI: 10.133.30.137
+Site2_Gateway: 10.133.30.254
 ~~~
 
-#### vlan 40 supervisor 10.131.40.0/25 10.131.40.128/25
+#### vlan 40 supervisor 10.133.40.0/25 10.133.40.128/25
 126 usable addresses
 ~~~
-main: 10.131.40.0/25
-SW3SVI: 10.131.40.124
-SW4SVI: 10.131.40.125
-HSRP-gate: 10.131.40.126
-outreach: 10.131.40.128/25
-gateway: 10.131.40.254
+main: 10.133.40.0/25
+SW3SVI: 10.133.40.124
+SW4SVI: 10.133.40.125
+HSRP-gate: 10.133.40.126
+outreach: 10.133.40.128/25
+gateway: 10.133.40.254
 ~~~
-#### vlan 60 guest-services 10.131.60.0/24
+#### vlan 60 guest-services 10.133.60.0/24
 254 usable addresses
 ~~~
-main: 10.131.60.0/24
-dns_server: 10.131.60.250
-web_server: 10.131.60.251
-SW3SVI: 10.131.60.252
-SW4SVI: 10.131.60.253
-HSRP-gate: 10.131.60.254
+main: 10.133.60.0/24
+dns_server: 10.133.60.250
+web_server: 10.133.60.251
+SW3SVI: 10.133.60.252
+SW4SVI: 10.133.60.253
+HSRP-gate: 10.133.60.254
 ~~~
-#### vlan 70 internal-services 10.131.70.0/24
+#### vlan 70 internal-services 10.133.70.0/24
 254 usable addresses
 ~~~
-main: 10.131.70.0/24
-prox1 10.131.70.231
-ldap_server 10.131.70.250
-aaa_server 10.131.70.251
-SW3SVI: 10.131.70.252
-SW4SVI: 10.131.70.253
-HSRP-gate: 10.131.70.254
+main: 10.133.70.0/24
+prox1 10.133.70.231
+ldap_server 10.133.70.250
+aaa_server 10.133.70.251
+SW3SVI: 10.133.70.252
+SW4SVI: 10.133.70.253
+HSRP-gate: 10.133.70.254
 ~~~
-#### vlan 80 accounting 10.131.80.0/24
+#### vlan 80 accounting 10.133.80.0/24
 254 usable addresses
 ~~~
-main: 10.131.80.0/24
-SW3SVI: 10.131.80.252
-SW4SVI: 10.131.80.253
-HSRP-gate: 10.131.80.254
+main: 10.133.80.0/24
+SW3SVI: 10.133.80.252
+SW4SVI: 10.133.80.253
+HSRP-gate: 10.133.80.254
 ~~~
 ### IPv4 DHCP pools
 #### Main Site:
 | Subnet | Exclusion Start | | Exclusion End |
 | :---: | :--: | :--: | :--: |
-| 10.131.10.0/25 | 10.131.10.120 |-| 10.131.10.126 |
-| 10.131.20.0/23 | 10.131.21.245 |-| 10.131.21.255 |
-| 10.131.30.0/25 | 10.131.30.120 |-| 10.131.30.126 |
-| 10.131.40.0/25 | 10.131.40.120 |-| 10.131.40.126 |
-| 10.131.60.0/24 | 10.131.60.225 |-| 10.131.60.255 |
-| 10.131.70.0/24 | 10.131.70.225 |-| 10.131.70.255 |
-| 10.131.80.0/24 | 10.131.80.225 |-| 10.131.80.255 |
+| 10.133.10.0/25 | 10.133.10.120 |-| 10.133.10.126 |
+| 10.133.20.0/23 | 10.133.21.245 |-| 10.133.21.255 |
+| 10.133.30.0/25 | 10.133.30.120 |-| 10.133.30.126 |
+| 10.133.40.0/25 | 10.133.40.120 |-| 10.133.40.126 |
+| 10.133.60.0/24 | 10.133.60.225 |-| 10.133.60.255 |
+| 10.133.70.0/24 | 10.133.70.225 |-| 10.133.70.255 |
+| 10.133.80.0/24 | 10.133.80.225 |-| 10.133.80.255 |
 #### Outreach Site:
 | Subnet | Exclusion Start | | Exclusion End |
 | :---: | :--: | :--: | :--: |
-| 10.131.10.128/25 | 10.131.10.250 |-| 10.131.10.255 |
-| 10.131.22.0/24 | 10.131.22.245 |-| 10.131.22.255 |
-| 10.131.30.128/25 | 10.131.30.250 |-| 10.131.30.255 |
-| 10.131.40.128/25 | 10.131.40.250 |-| 10.131.40.255 |
+| 10.133.10.128/25 | 10.133.10.250 |-| 10.133.10.255 |
+| 10.133.22.0/24 | 10.133.22.245 |-| 10.133.22.255 |
+| 10.133.30.128/25 | 10.133.30.250 |-| 10.133.30.255 |
+| 10.133.40.128/25 | 10.133.40.250 |-| 10.133.40.255 |
 ### IPv6
 When creating the IPv6 assignments I ensure the static addresses and DHCP address pool fall outside of SLAAC. I assign a large amount of amount of addresses to DHCP but I exclude 4 Bytes giving 65,536 addresses. I use /127 addresses for point to point links instead of just link-local. It is reproducible when replacing devices, it increases readability and ease of debugging. Unique local FC00::/7 would also work if internet is not required.
   
@@ -710,32 +710,32 @@ I configure gateway addresses for R3 sub-interfaces. This is where all the outre
 #### R1 Config
 ~~~
 interface g1
-ip add 10.131.2.64 255.255.255.254
+ip add 10.133.2.64 255.255.255.254
 no shutdown
 interface g2
 ip add 10.111.10.10 255.255.255.254
 no shutdown
 interface g3
-ip add 10.131.2.72 255.255.255.254
+ip add 10.133.2.72 255.255.255.254
 no shutdown
 interface lo0
-ip add 10.131.2.1 255.255.255.255
+ip add 10.133.2.1 255.255.255.255
 no shutdown
 exit
 ~~~
 #### R2 Config
 ~~~
 interface e0/0
-ip add 10.131.2.66 255.255.255.254
+ip add 10.133.2.66 255.255.255.254
 no shutdown
 interface e0/1
 ip add 10.111.10.20 255.255.255.254
 no shutdown
 interface e0/2
-ip add 10.131.2.74 255.255.255.254
+ip add 10.133.2.74 255.255.255.254
 no shutdown
 interface lo0
-ip add 10.131.2.2 255.255.255.255
+ip add 10.133.2.2 255.255.255.255
 no shutdown
 exit
 ~~~
@@ -744,15 +744,15 @@ exit
 interface e0/1
 no shutdown
 interface e0/1.10
-ip add 10.131.10.254 255.255.255.128
+ip add 10.133.10.254 255.255.255.128
 interface e0/1.20
-ip add 10.131.22.254 255.255.255.0
+ip add 10.133.22.254 255.255.255.0
 interface e0/1.30
-ip add 10.131.30.254 255.255.255.128
+ip add 10.133.30.254 255.255.255.128
 interface e0/1.40
-ip add 10.131.40.254 255.255.255.128
+ip add 10.133.40.254 255.255.255.128
 interface lo0
-ip add 10.131.2.3 255.255.255.255
+ip add 10.133.2.3 255.255.255.255
 no shutdown
 interface e0/0
 ip add 10.111.10.30 255.255.255.254
@@ -763,18 +763,18 @@ exit
 #### SW1 Config
 ~~~
 no ip routing
-ip default-gateway 10.131.30.126
+ip default-gateway 10.133.30.126
 interface vlan 30 
-ip add 10.131.30.1 255.255.255.128
+ip add 10.133.30.1 255.255.255.128
 no shutdown
 exit
 ~~~
 #### SW2 Config
 ~~~
 no ip routing
-ip default-gateway 10.131.30.126
+ip default-gateway 10.133.30.126
 interface vlan 30
-ip add 10.131.30.2 255.255.255.128
+ip add 10.133.30.2 255.255.255.128
 no shutdown
 exit
 ~~~
@@ -782,35 +782,35 @@ exit
 ~~~
 ip routing
 interface vlan 10
-ip add 10.131.10.124 255.255.255.128
+ip add 10.133.10.124 255.255.255.128
 no shutdown
 interface vlan 20
-ip add 10.131.21.252 255.255.254.0
+ip add 10.133.21.252 255.255.254.0
 no shutdown
 interface vlan 30
-ip add 10.131.30.3 255.255.255.128
+ip add 10.133.30.3 255.255.255.128
 no shutdown
 interface vlan 40
-ip add 10.131.40.124 255.255.255.128
+ip add 10.133.40.124 255.255.255.128
 no shutdown
 interface vlan 60
-ip add 10.131.60.252 255.255.255.0
+ip add 10.133.60.252 255.255.255.0
 no shutdown
 interface vlan 70
-ip add 10.131.70.252 255.255.255.0
+ip add 10.133.70.252 255.255.255.0
 no shutdown
 interface vlan 80
-ip add 10.131.80.252 255.255.255.0
+ip add 10.133.80.252 255.255.255.0
 no shutdown
 interface e4/0
 no switchp
-ip add 10.131.2.65 255.255.255.254
+ip add 10.133.2.65 255.255.255.254
 interface e1/2
 no switchp
-ip add 10.131.2.75 255.255.255.254
+ip add 10.133.2.75 255.255.255.254
 no shutdown
 interface lo0
-ip add 10.131.2.13 255.255.255.255
+ip add 10.133.2.13 255.255.255.255
 no shutdown
 exit
 ~~~
@@ -819,35 +819,35 @@ exit
 ~~~
 ip routing
 interface vlan 10
-ip add 10.131.10.125 255.255.255.128
+ip add 10.133.10.125 255.255.255.128
 no shutdown
 interface vlan 20
-ip add 10.131.21.253 255.255.254.0
+ip add 10.133.21.253 255.255.254.0
 no shutdown
 interface vlan 30
-ip add 10.131.30.4 255.255.255.128
+ip add 10.133.30.4 255.255.255.128
 no shutdown
 interface vlan 40
-ip add 10.131.40.125 255.255.255.128
+ip add 10.133.40.125 255.255.255.128
 no shutdown
 interface vlan 60
-ip add 10.131.60.253 255.255.255.0
+ip add 10.133.60.253 255.255.255.0
 no shutdown
 interface vlan 70
-ip add 10.131.70.253 255.255.255.0
+ip add 10.133.70.253 255.255.255.0
 no shutdown
 interface vlan 80
-ip add 10.131.80.253 255.255.255.0
+ip add 10.133.80.253 255.255.255.0
 interface e1/3
 no switchp
-ip add 10.131.2.67 255.255.255.254
+ip add 10.133.2.67 255.255.255.254
 no shutdown
 interface e2/1
 no switchp
-ip add 10.131.2.73 255.255.255.254
+ip add 10.133.2.73 255.255.255.254
 no shutdown
 interface lo0
-ip add 10.131.2.14 255.255.255.255
+ip add 10.133.2.14 255.255.255.255
 no shutdown
 exit
 ~~~
@@ -855,9 +855,9 @@ exit
 #### SW5 Config
 ~~~
 no ip routing
-ip default-gateway 10.131.30.126
+ip default-gateway 10.133.30.126
 interface vlan 30 
-ip add 10.131.30.5 255.255.255.128
+ip add 10.133.30.5 255.255.255.128
 no shutdown
 exit
 ~~~
@@ -865,9 +865,9 @@ exit
 #### SW6 Config
 ~~~
 no ip routing
-ip default-gateway 10.131.30.126
+ip default-gateway 10.133.30.126
 interface vlan 30 
-ip add 10.131.30.6 255.255.255.128
+ip add 10.133.30.6 255.255.255.128
 no shutdown
 exit
 ~~~
@@ -875,9 +875,9 @@ exit
 #### SW7 Config
 ~~~
 no ip routing
-ip default-gateway 10.131.30.254
+ip default-gateway 10.133.30.254
 interface vlan 30 
-ip add 10.131.30.137 255.255.255.128
+ip add 10.133.30.137 255.255.255.128
 no shutdown
 exit
 ~~~
@@ -890,37 +890,37 @@ I configure HSRP for first hop redundancy. Without HSRP, losing a distribution s
 #### SW3 Config
 ~~~
 interface vlan 10
-standby ip 10.131.10.126
+standby ip 10.133.10.126
 standby preempt delay rel 60
 standby priority 200
 standby 0 timers msec 200 msec 650
 interface vlan 20
-standby ip 10.131.21.254
+standby ip 10.133.21.254
 standby preempt delay rel 60
 standby priority 111
 standby 0 timers msec 200 msec 650
 interface vlan 30
-standby ip 10.131.30.126
+standby ip 10.133.30.126
 standby preempt delay rel 60
 standby priority 111
 standby 0 timers msec 200 msec 650
 interface vlan 40
-standby ip 10.131.40.126
+standby ip 10.133.40.126
 standby preempt delay rel 60
 standby priority 200
 standby 0 timers msec 200 msec 650
 interface vlan 60
-standby ip 10.131.60.254
+standby ip 10.133.60.254
 standby preempt delay rel 60
 standby priority 111
 standby 0 timers msec 200 msec 650
 interface vlan 70
-standby ip 10.131.70.254
+standby ip 10.133.70.254
 standby preempt delay rel 60
 standby priority 111
 standby 0 timers msec 200 msec 650
 interface vlan 80
-standby ip 10.131.80.254
+standby ip 10.133.80.254
 standby preempt delay rel 60
 standby priority 111
 standby 0 timers msec 200 msec 650
@@ -930,37 +930,37 @@ exit
 #### SW4 Config
 ~~~
 interface vlan 10
-standby ip 10.131.10.126
+standby ip 10.133.10.126
 standby preempt delay rel 60
 standby priority 111
 standby 0 timers msec 200 msec 650
 interface vlan 20
-standby ip 10.131.21.254
+standby ip 10.133.21.254
 standby preempt delay rel 60
 standby priority 200
 standby 0 timers msec 200 msec 650
 interface vlan 30
-standby ip 10.131.30.126
+standby ip 10.133.30.126
 standby preempt delay rel 60
 standby priority 200
 standby 0 timers msec 200 msec 650
 interface vlan 40
-standby ip 10.131.40.126
+standby ip 10.133.40.126
 standby preempt delay rel 60
 standby priority 111
 standby 0 timers msec 200 msec 650
 interface vlan 60
-standby ip 10.131.60.254
+standby ip 10.133.60.254
 standby preempt delay rel 60
 standby priority 200
 standby 0 timers msec 200 msec 650
 interface vlan 70
-standby ip 10.131.70.254
+standby ip 10.133.70.254
 standby preempt delay rel 60
 standby priority 200
 standby 0 timers msec 200 msec 650
 interface vlan 80
-standby ip 10.131.80.254
+standby ip 10.133.80.254
 standby preempt delay rel 60
 standby priority 200
 standby 0 timers msec 200 msec 650
@@ -974,7 +974,7 @@ Example SW3 excerpt:
 ~~~
 Preemption enabled, delay reload 60 secs
   Active router is local
-  Standby router is 10.131.10.125, priority 111 (expires in 0.688 sec)
+  Standby router is 10.133.10.125, priority 111 (expires in 0.688 sec)
 ~~~
 
 ## OSPF
@@ -990,9 +990,9 @@ default-information originate
 passive-interface e0/1
 
 network 10.111.10.10 0.0.0.1 a 0
-network 10.131.2.1 0.0.0.0 a 0
-network 10.131.2.64 0.0.0.1 a 0
-network 10.131.2.72 0.0.0.1 a 0
+network 10.133.2.1 0.0.0.0 a 0
+network 10.133.2.64 0.0.0.1 a 0
+network 10.133.2.72 0.0.0.1 a 0
 
 exit
 ~~~
@@ -1006,9 +1006,9 @@ default-information originate
 passive-interface e0/1
 
 network 10.111.10.20 0.0.0.1 a 0
-network 10.131.2.2 0.0.0.0 a 0
-network 10.131.2.66 0.0.0.1 a 0
-network 10.131.2.74 0.0.0.1 a 0
+network 10.133.2.2 0.0.0.0 a 0
+network 10.133.2.66 0.0.0.1 a 0
+network 10.133.2.74 0.0.0.1 a 0
 
 exit
 ~~~
@@ -1026,11 +1026,11 @@ passive-interface e0/1.30
 passive-interface e0/1.40
 
 network 10.111.10.30 0.0.0.1 a 0
-network 10.131.2.3 0.0.0.0 a 0
-network 10.131.10.128 0.0.0.127 a 0
-network 10.131.22.0 0.0.0.255 a 0
-network 10.131.30.128 0.0.0.127 a 0
-network 10.131.40.128 0.0.0.127 a 0
+network 10.133.2.3 0.0.0.0 a 0
+network 10.133.10.128 0.0.0.127 a 0
+network 10.133.22.0 0.0.0.255 a 0
+network 10.133.30.128 0.0.0.127 a 0
+network 10.133.40.128 0.0.0.127 a 0
 
 exit
 ~~~
@@ -1041,16 +1041,16 @@ ip routing
 router ospf 1
 auto-cost reference-bandwidth 100000
 
-network 10.131.2.64 0.0.0.1 a 0
-network 10.131.2.74 0.0.0.1 a 0
-network 10.131.2.13 0.0.0.0 a 0
-network 10.131.10.0 0.0.0.127 area 0
-network 10.131.20.0 0.0.1.255 area 0
-network 10.131.30.0 0.0.0.127 area 0
-network 10.131.40.0 0.0.0.127 area 0
-network 10.131.60.0 0.0.0.255 area 0
-network 10.131.70.0 0.0.0.255 area 0
-network 10.131.80.0 0.0.0.255 area 0
+network 10.133.2.64 0.0.0.1 a 0
+network 10.133.2.74 0.0.0.1 a 0
+network 10.133.2.13 0.0.0.0 a 0
+network 10.133.10.0 0.0.0.127 area 0
+network 10.133.20.0 0.0.1.255 area 0
+network 10.133.30.0 0.0.0.127 area 0
+network 10.133.40.0 0.0.0.127 area 0
+network 10.133.60.0 0.0.0.255 area 0
+network 10.133.70.0 0.0.0.255 area 0
+network 10.133.80.0 0.0.0.255 area 0
 
 passive-interface Vlan10
 passive-interface Vlan20
@@ -1068,16 +1068,16 @@ ip routing
 router ospf 1
 auto-cost reference-bandwidth 100000
 
-network 10.131.2.66 0.0.0.1 a 0
-network 10.131.2.72 0.0.0.1 a 0
-network 10.131.2.14 0.0.0.0 a 0
-network 10.131.10.0 0.0.0.127 area 0
-network 10.131.20.0 0.0.1.255 area 0
-network 10.131.30.0 0.0.0.127 area 0
-network 10.131.40.0 0.0.0.127 area 0
-network 10.131.60.0 0.0.0.255 area 0
-network 10.131.70.0 0.0.0.255 area 0
-network 10.131.80.0 0.0.0.255 area 0
+network 10.133.2.66 0.0.0.1 a 0
+network 10.133.2.72 0.0.0.1 a 0
+network 10.133.2.14 0.0.0.0 a 0
+network 10.133.10.0 0.0.0.127 area 0
+network 10.133.20.0 0.0.1.255 area 0
+network 10.133.30.0 0.0.0.127 area 0
+network 10.133.40.0 0.0.0.127 area 0
+network 10.133.60.0 0.0.0.255 area 0
+network 10.133.70.0 0.0.0.255 area 0
+network 10.133.80.0 0.0.0.255 area 0
 
 passive-interface Vlan10
 passive-interface Vlan20
@@ -1096,60 +1096,60 @@ SW4 SVI will be configured with a helper address so SW4 forwards DHCP traffic to
 As specified in topology data section each vlan has an excluded address range for static IP assignment.
 #### R3 Config
 ~~~
-ip dhcp excluded-address 10.131.10.250 10.131.10.255
-ip dhcp excluded-address 10.131.22.245 10.131.22.255
-ip dhcp excluded-address 10.131.40.250 10.131.40.255
+ip dhcp excluded-address 10.133.10.250 10.133.10.255
+ip dhcp excluded-address 10.133.22.245 10.133.22.255
+ip dhcp excluded-address 10.133.40.250 10.133.40.255
 ip dhcp pool 10
-network 10.131.10.128 /25
-default-router 10.131.10.254
+network 10.133.10.128 /25
+default-router 10.133.10.254
 domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
+dns-server 10.133.60.250 1.1.1.1
 ip dhcp pool 22
-network 10.131.22.0 /24
-default-router 10.131.22.254
+network 10.133.22.0 /24
+default-router 10.133.22.254
 domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
+dns-server 10.133.60.250 1.1.1.1
 ip dhcp pool 40
-network 10.131.40.128 /25
-default-router 10.131.40.254
+network 10.133.40.128 /25
+default-router 10.133.40.254
 domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
+dns-server 10.133.60.250 1.1.1.1
 ~~~
 #### SW3 Config
 ~~~
-ip dhcp excluded-address 10.131.10.120 10.131.10.126
-ip dhcp excluded-address 10.131.21.245 10.131.21.255
-ip dhcp excluded-address 10.131.40.120 10.131.40.126
-ip dhcp excluded-address 10.131.80.225 10.131.80.255
+ip dhcp excluded-address 10.133.10.120 10.133.10.126
+ip dhcp excluded-address 10.133.21.245 10.133.21.255
+ip dhcp excluded-address 10.133.40.120 10.133.40.126
+ip dhcp excluded-address 10.133.80.225 10.133.80.255
 ip dhcp pool 10
-network  10.131.10.0 /25
-default-router 10.131.10.126
+network  10.133.10.0 /25
+default-router 10.133.10.126
 domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
+dns-server 10.133.60.250 1.1.1.1
 exit
 ip dhcp pool 20
-network 10.131.20.0 /23
-default-router 10.131.21.254
+network 10.133.20.0 /23
+default-router 10.133.21.254
 domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
+dns-server 10.133.60.250 1.1.1.1
 exit
 ip dhcp pool 40
-network 10.131.40.0 /25
-default-router 10.131.40.126
+network 10.133.40.0 /25
+default-router 10.133.40.126
 domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
+dns-server 10.133.60.250 1.1.1.1
 exit
 ip dhcp pool 80
-network 10.131.80.0 /24
-default-router 10.131.80.254
+network 10.133.80.0 /24
+default-router 10.133.80.254
 domain-name tapeitup.private
-dns-server 10.131.60.250 1.1.1.1
+dns-server 10.133.60.250 1.1.1.1
 exit
 ~~~
 #### SW4 Config
 ~~~
 interface r vl 10-80
-ip helper-address 10.131.2.13
+ip helper-address 10.133.2.13
 ~~~
 ## NAT + WAN ACL
 I configure dynamic NAT. I configure port address translation. I configure an access list to permit any host on the LAN to be translated.
@@ -1159,9 +1159,9 @@ Initially I left NAT as "permit any". However after debugging the VPN I discover
 #### R1 Config
 ~~~
 ip access-list extended NAT
-10 permit ip 10.131.0.0 0.0.255.255 192.168.2.0 0.0.0.255
-20 deny ip 10.131.0.0 0.0.255.255 10.131.0.0 0.0.255.255
-30 permit ip 10.131.0.0 0.0.255.255 any
+10 permit ip 10.133.0.0 0.0.255.255 192.168.2.0 0.0.0.255
+20 deny ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
+30 permit ip 10.133.0.0 0.0.255.255 any
 10000 deny ip any any
 exit
 
@@ -1185,9 +1185,9 @@ exit
 #### R2 Config
 ~~~
 ip access-list extended NAT
-10 permit ip 10.131.0.0 0.0.255.255 192.168.2.0 0.0.0.255
-20 deny ip 10.131.0.0 0.0.255.255 10.131.0.0 0.0.255.255
-30 permit ip 10.131.0.0 0.0.255.255 any
+10 permit ip 10.133.0.0 0.0.255.255 192.168.2.0 0.0.0.255
+20 deny ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
+30 permit ip 10.133.0.0 0.0.255.255 any
 10000 deny ip any any
 exit
 
@@ -1211,9 +1211,9 @@ exit
 #### R3 Config
 ~~~
 ip access-list extended NAT
-10 permit ip 10.131.0.0 0.0.255.255 192.168.2.0 0.0.0.255
-20 deny ip 10.131.0.0 0.0.255.255 10.131.0.0 0.0.255.255
-30 permit ip 10.131.0.0 0.0.255.255 any
+10 permit ip 10.133.0.0 0.0.255.255 192.168.2.0 0.0.0.255
+20 deny ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
+30 permit ip 10.133.0.0 0.0.255.255 any
 10000 deny ip any any
 exit
 
@@ -1240,7 +1240,7 @@ I test by pinging 10.111.10.11 from guest0
 
 ~~~
 VPCS> ip dhcp
-DDORA IP 10.131.10.1/25 GW 10.131.10.126
+DDORA IP 10.133.10.1/25 GW 10.133.10.126
 
 VPCS> ping 10.111.10.11
 
@@ -1250,11 +1250,11 @@ VPCS> ping 10.111.10.11
 I can view the translations with **show ip nat translations**. This is an excerpt:
 ~~~
 Pro Inside global      Inside local       Outside local      Outside global
-icmp 10.111.10.10:16507 10.131.10.1:16507 10.111.10.11:16507  10.111.10.11:16507
-icmp 10.111.10.10:16763 10.131.10.1:16763 10.111.10.11:16763  10.111.10.11:16763
-icmp 10.111.10.10:17019 10.131.10.1:17019 10.111.10.11:17019  10.111.10.11:17019
-icmp 10.111.10.10:17275 10.131.10.1:17275 10.111.10.11:17275  10.111.10.11:17275
-icmp 10.111.10.10:17531 10.131.10.1:17531 10.111.10.11:17531  10.111.10.11:17531
+icmp 10.111.10.10:16507 10.133.10.1:16507 10.111.10.11:16507  10.111.10.11:16507
+icmp 10.111.10.10:16763 10.133.10.1:16763 10.111.10.11:16763  10.111.10.11:16763
+icmp 10.111.10.10:17019 10.133.10.1:17019 10.111.10.11:17019  10.111.10.11:17019
+icmp 10.111.10.10:17275 10.133.10.1:17275 10.111.10.11:17275  10.111.10.11:17275
+icmp 10.111.10.10:17531 10.133.10.1:17531 10.111.10.11:17531  10.111.10.11:17531
 ~~~
 ## VPN - IPSec - PSK with OSPF
 IPSec is a secure VPN technology. It doesn't support multicast unless I combine with GRE. Multicast is not essential for OSPF as I can manually specify the neighbour. I made sure to use the interface Tunnel0 as it simplifies the config. It is essential to have the same policy at either end. Advertising the endpoints WAN port over the VPN using OSPF will cause flapping or errors. I use static routes to ensure the WAN ports preferred route remains outside VPN. The WAN port over VPN routes are still available in the OSPF process, but I see no reason they would be used instead of a static route with default ad.
@@ -1275,14 +1275,14 @@ exit
 
 ip access-list extended vpn_traff
 deny ip any 192.168.2.0 0.0.0.255
-permit ip 10.131.0.0 0.0.255.255 10.131.0.0 0.0.255.255
+permit ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
 exit
 
 crypto ipsec profile VPNPROFILE
 set transform-set ESP-AES256-SHA
 
 interface Tunnel0
-ip address 10.131.2.68 255.255.255.254
+ip address 10.133.2.68 255.255.255.254
 ip ospf network point-to-point
 tunnel source g2
 tunnel mode ipsec ipv4
@@ -1295,7 +1295,7 @@ ip route 10.111.10.20 255.255.255.255 10.111.10.11
 ip route 10.111.10.30 255.255.255.255 10.111.10.11
 
 router ospf 1
-network 10.131.2.68 0.0.0.1 a 0
+network 10.133.2.68 0.0.0.1 a 0
 exit
 ~~~
 #### R2 Config
@@ -1315,14 +1315,14 @@ exit
 
 ip access-list extended vpn_traff
 deny ip any 192.168.2.0 0.0.0.255
-permit ip 10.131.0.0 0.0.255.255 10.131.0.0 0.0.255.255
+permit ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
 exit
 
 crypto ipsec profile VPNPROFILE
 set transform-set ESP-AES256-SHA
 
 interface Tunnel0
-ip address 10.131.2.70 255.255.255.254
+ip address 10.133.2.70 255.255.255.254
 tunnel source Ethernet0/1
 ip ospf network point-to-point
 tunnel mode ipsec ipv4
@@ -1335,7 +1335,7 @@ ip route 10.111.10.10 255.255.255.255 10.111.10.21
 ip route 10.111.10.30 255.255.255.255 10.111.10.21
 
 router ospf 1
-network 10.131.2.70 0.0.0.1 a 0
+network 10.133.2.70 0.0.0.1 a 0
 exit
 ~~~
 #### R3 Config
@@ -1359,11 +1359,11 @@ set transform-set ESP-AES256-SHA
 
 ip access-list extended vpn_traff
 deny ip any 192.168.2.0 0.0.0.255
-permit ip 10.131.0.0 0.0.255.255 10.131.0.0 0.0.255.255
+permit ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
 exit
 
 interface tunnel 0
-ip address 10.131.2.69 255.255.255.254
+ip address 10.133.2.69 255.255.255.254
 tunnel source e0/0
 tunnel mode ipsec ipv4
 ip ospf network point-to-point
@@ -1372,7 +1372,7 @@ tunnel destination 10.111.10.10
 no shutdown
 
 interface tunnel 1
-ip address 10.131.2.71 255.255.255.254
+ip address 10.133.2.71 255.255.255.254
 tunnel source e0/0
 tunnel mode ipsec ipv4
 ip ospf network point-to-point
@@ -1385,8 +1385,8 @@ ip route 10.111.10.10 255.255.255.255 10.111.10.31
 ip route 10.111.10.20 255.255.255.255 10.111.10.31
 
 router ospf 1
-network 10.131.2.68 0.0.0.1 a 0
-network 10.131.2.70 0.0.0.1 a 0
+network 10.133.2.68 0.0.0.1 a 0
+network 10.133.2.70 0.0.0.1 a 0
 exit
 ~~~
 ## Vlan Access Control (incomplete)
@@ -1398,55 +1398,55 @@ All VLANs will be unable route to the management VLAN.
 #### Vlan 10 Main
 ~~~
 ip access-list ex vlan10_filter
-10 permit   ip 10.131.10.0  0.0.0.127  10.131.10.0    0.0.0.127
-20 permit   ip 10.131.10.0  0.0.0.127  10.131.10.128  0.0.0.127
-30 permit   ip 10.131.10.0  0.0.0.127  10.131.60.0    0.0.0.255
-40 permit   ip 10.131.10.0  0.0.0.127  10.131.70.0    0.0.0.255
-50 permit   tcp 10.131.10.0 0.0.0.127  10.131.30.0   0.0.0.127 established
+10 permit   ip 10.133.10.0  0.0.0.127  10.133.10.0    0.0.0.127
+20 permit   ip 10.133.10.0  0.0.0.127  10.133.10.128  0.0.0.127
+30 permit   ip 10.133.10.0  0.0.0.127  10.133.60.0    0.0.0.255
+40 permit   ip 10.133.10.0  0.0.0.127  10.133.70.0    0.0.0.255
+50 permit   tcp 10.133.10.0 0.0.0.127  10.133.30.0   0.0.0.127 established
 
-1000 deny   ip any 10.131.0.0 0.0.255.255
-2000 permit ip 10.131.10.0 0.0.0.255 any
+1000 deny   ip any 10.133.0.0 0.0.255.255
+2000 permit ip 10.133.10.0 0.0.0.255 any
 ~~~
 #### Vlan 20 Main
 ~~~
 ip access-list ex vlan20_filter
-10 permit   ip 10.131.20.0  0.0.1.255  10.131.20.0   0.0.1.255
-20 permit   ip 10.131.20.0  0.0.1.255  10.131.22.0   0.0.0.255
-30 permit   ip 10.131.20.0  0.0.1.255  10.131.60.0   0.0.0.255
-40 permit   tcp 10.131.20.0 0.0.1.255  10.131.30.0   0.0.0.127 established
+10 permit   ip 10.133.20.0  0.0.1.255  10.133.20.0   0.0.1.255
+20 permit   ip 10.133.20.0  0.0.1.255  10.133.22.0   0.0.0.255
+30 permit   ip 10.133.20.0  0.0.1.255  10.133.60.0   0.0.0.255
+40 permit   tcp 10.133.20.0 0.0.1.255  10.133.30.0   0.0.0.127 established
 
-1000 deny     ip any 10.131.0.0 0.0.255.255
-2000 permit   ip 10.131.20.0 0.0.0.255 any
+1000 deny     ip any 10.133.0.0 0.0.255.255
+2000 permit   ip 10.133.20.0 0.0.0.255 any
 ~~~
 #### Vlan 30 Main
 vlan 30 can establish ssh connections
 ~~~
 ip access-list ex vlan30_filter
-10 permit   ip 10.131.30.0  0.0.0.127  10.131.30.0    0.0.0.127
-20 permit   ip 10.131.30.0  0.0.0.127  10.131.30.128  0.0.0.127
+10 permit   ip 10.133.30.0  0.0.0.127  10.133.30.0    0.0.0.127
+20 permit   ip 10.133.30.0  0.0.0.127  10.133.30.128  0.0.0.127
 
-130 permit   tcp 10.131.30.0 0.0.0.127  10.131.10.0    0.0.0.127 eq 22
-140 permit   tcp 10.131.30.0 0.0.0.127  10.131.10.128  0.0.0.127 eq 22
-150 permit   tcp 10.131.30.0 0.0.0.127  10.131.20.0    0.0.1.255 eq 22
-160 permit   tcp 10.131.30.0 0.0.0.127  10.131.22.0    0.0.0.255 eq 22
-170 permit   tcp 10.131.30.0 0.0.0.127  10.131.40.0    0.0.0.127 eq 22
-180 permit   tcp 10.131.30.0 0.0.0.127  10.131.40.128  0.0.0.127 eq 22
+130 permit   tcp 10.133.30.0 0.0.0.127  10.133.10.0    0.0.0.127 eq 22
+140 permit   tcp 10.133.30.0 0.0.0.127  10.133.10.128  0.0.0.127 eq 22
+150 permit   tcp 10.133.30.0 0.0.0.127  10.133.20.0    0.0.1.255 eq 22
+160 permit   tcp 10.133.30.0 0.0.0.127  10.133.22.0    0.0.0.255 eq 22
+170 permit   tcp 10.133.30.0 0.0.0.127  10.133.40.0    0.0.0.127 eq 22
+180 permit   tcp 10.133.30.0 0.0.0.127  10.133.40.128  0.0.0.127 eq 22
 
 
-1000 deny     ip any 10.131.0.0 0.0.255.255
-2000 permit   ip 10.131.30.0 0.0.0.255 any
+1000 deny     ip any 10.133.0.0 0.0.255.255
+2000 permit   ip 10.133.30.0 0.0.0.255 any
 ~~~
 #### Vlan 40 Main
 ~~~
 ip access-list ex vlan40_filter
-10 permit   ip 10.131.40.0  0.0.0.127  10.131.40.0    0.0.0.127
-20 permit   ip 10.131.40.0  0.0.0.127  10.131.40.128  0.0.0.127
-30 permit   ip 10.131.40.0  0.0.0.127  10.131.60.0    0.0.0.255
-40 permit   ip 10.131.40.0  0.0.0.127  10.131.70.0    0.0.0.255
-50 permit   tcp 10.131.40.0 0.0.0.127  10.131.30.0   0.0.0.127 established
+10 permit   ip 10.133.40.0  0.0.0.127  10.133.40.0    0.0.0.127
+20 permit   ip 10.133.40.0  0.0.0.127  10.133.40.128  0.0.0.127
+30 permit   ip 10.133.40.0  0.0.0.127  10.133.60.0    0.0.0.255
+40 permit   ip 10.133.40.0  0.0.0.127  10.133.70.0    0.0.0.255
+50 permit   tcp 10.133.40.0 0.0.0.127  10.133.30.0   0.0.0.127 established
 
-1000 deny     ip any 10.131.0.0 0.0.255.255
-2000 permit   ip 10.131.40.0 0.0.0.255 any
+1000 deny     ip any 10.133.0.0 0.0.255.255
+2000 permit   ip 10.133.40.0 0.0.0.255 any
 ~~~
 
 #### web_server_access
@@ -1459,81 +1459,81 @@ outgoing
 #### dns_server_access
 outgoing
 ~~~
-1000 permit ip 10.131.0.0 0.0.255.255
+1000 permit ip 10.133.0.0 0.0.255.255
 deny any any 
 ~~~
 #### aaa_server_access
 outgoing
 ~~~
-1000 permit ip 10.131.0.0 0.0.255.255
+1000 permit ip 10.133.0.0 0.0.255.255
 deny any any 
 ~~~
 
 #### management_server_access
 outgoing
 ~~~
-100 permit ip 10.131.30.0 0.0.0.255
+100 permit ip 10.133.30.0 0.0.0.255
 
-1000 deny     ip any 10.131.0.0 0.0.255.255
-2000 permit   ip 10.131.30.0 0.0.0.255 any
+1000 deny     ip any 10.133.0.0 0.0.255.255
+2000 permit   ip 10.133.30.0 0.0.0.255 any
 ~~~
 
 ~~~
 ip access-list ex vlan_filter
-deny    ip 10.131.10.0 0.0.0.255 10.131.20.0 0.0.1.255
-deny    ip 10.131.10.0 0.0.0.255 10.131.22.0 0.0.0.255
-deny    ip 10.131.10.0 0.0.0.255 10.131.30.0 0.0.0.255
-deny    ip 10.131.10.0 0.0.0.255 10.131.40.0 0.0.0.255
-permit  ip 10.131.10.0 0.0.0.255 10.131.60.0 0.0.0.255
-permit  ip 10.131.10.0 0.0.0.255 10.131.70.0 0.0.0.255
-deny    ip 10.131.10.0 0.0.1.255 10.131.80.0 0.0.0.255
+deny    ip 10.133.10.0 0.0.0.255 10.133.20.0 0.0.1.255
+deny    ip 10.133.10.0 0.0.0.255 10.133.22.0 0.0.0.255
+deny    ip 10.133.10.0 0.0.0.255 10.133.30.0 0.0.0.255
+deny    ip 10.133.10.0 0.0.0.255 10.133.40.0 0.0.0.255
+permit  ip 10.133.10.0 0.0.0.255 10.133.60.0 0.0.0.255
+permit  ip 10.133.10.0 0.0.0.255 10.133.70.0 0.0.0.255
+deny    ip 10.133.10.0 0.0.1.255 10.133.80.0 0.0.0.255
 
-deny ip   10.131.20.0 0.0.1.255 10.131.10.0 0.0.0.255
-deny ip   10.131.20.0 0.0.1.255 10.131.30.0 0.0.0.255
-deny ip   10.131.20.0 0.0.1.255 10.131.40.0 0.0.0.255
-permit ip 10.131.20.0 0.1.0.255 10.131.60.0 0.0.0.255
-deny ip   10.131.20.0 0.0.1.255 10.131.70.0 0.0.0.255
-deny ip   10.131.20.0 0.0.1.255 10.131.80.0 0.0.0.255
+deny ip   10.133.20.0 0.0.1.255 10.133.10.0 0.0.0.255
+deny ip   10.133.20.0 0.0.1.255 10.133.30.0 0.0.0.255
+deny ip   10.133.20.0 0.0.1.255 10.133.40.0 0.0.0.255
+permit ip 10.133.20.0 0.1.0.255 10.133.60.0 0.0.0.255
+deny ip   10.133.20.0 0.0.1.255 10.133.70.0 0.0.0.255
+deny ip   10.133.20.0 0.0.1.255 10.133.80.0 0.0.0.255
 
-deny ip   10.131.22.0 0.0.0.255 10.131.10.0 0.0.0.255
-deny ip   10.131.22.0 0.0.0.255 10.131.30.0 0.0.0.255
-deny ip   10.131.22.0 0.0.0.255 10.131.40.0 0.0.0.255
-permit ip 10.131.22.0 0.0.0.255 10.131.60.0 0.0.0.255
-deny ip   10.131.22.0 0.0.0.255 10.131.70.0 0.0.0.255
-deny ip   10.131.22.0 0.0.0.255 10.131.80.0 0.0.0.255
+deny ip   10.133.22.0 0.0.0.255 10.133.10.0 0.0.0.255
+deny ip   10.133.22.0 0.0.0.255 10.133.30.0 0.0.0.255
+deny ip   10.133.22.0 0.0.0.255 10.133.40.0 0.0.0.255
+permit ip 10.133.22.0 0.0.0.255 10.133.60.0 0.0.0.255
+deny ip   10.133.22.0 0.0.0.255 10.133.70.0 0.0.0.255
+deny ip   10.133.22.0 0.0.0.255 10.133.80.0 0.0.0.255
 
-deny ip 10.131.30.0 0.0.0.255 10.131.10.0 0.0.0.255
-deny ip 10.131.30.0 0.0.0.255 10.131.20.0 0.0.1.255
-deny ip 10.131.30.0 0.0.0.255 10.131.22.0 0.0.0.255
-deny ip 10.131.30.0 0.0.0.255 10.131.40.0 0.0.0.255
-deny ip 10.131.30.0 0.0.0.255 10.131.50.0 0.0.0.255
-deny ip 10.131.30.0 0.0.0.255 10.131.60.0 0.0.0.255
-deny ip 10.131.30.0 0.0.0.255 10.131.70.0 0.0.0.255
-deny ip 10.131.30.0 0.0.0.255 10.131.80.0 0.0.0.255
-deny ip 10.131.30.0 0.0.0.127 any log
+deny ip 10.133.30.0 0.0.0.255 10.133.10.0 0.0.0.255
+deny ip 10.133.30.0 0.0.0.255 10.133.20.0 0.0.1.255
+deny ip 10.133.30.0 0.0.0.255 10.133.22.0 0.0.0.255
+deny ip 10.133.30.0 0.0.0.255 10.133.40.0 0.0.0.255
+deny ip 10.133.30.0 0.0.0.255 10.133.50.0 0.0.0.255
+deny ip 10.133.30.0 0.0.0.255 10.133.60.0 0.0.0.255
+deny ip 10.133.30.0 0.0.0.255 10.133.70.0 0.0.0.255
+deny ip 10.133.30.0 0.0.0.255 10.133.80.0 0.0.0.255
+deny ip 10.133.30.0 0.0.0.127 any log
 
-deny ip   10.131.40.0 0.0.0.255 10.131.20.0 0.0.1.255
-deny ip   10.131.40.0 0.0.0.255 10.131.22.0 0.0.0.255
-deny ip   10.131.40.0 0.0.0.255 10.131.30.0 0.0.0.255
-permit ip 10.131.40.0 0.0.0.255 10.131.60.0 0.0.0.255
-permit ip 10.131.40.0 0.0.0.255 10.131.70.0 0.0.0.255
-deny ip   10.131.40.0 0.0.0.255 10.131.80.0 0.0.0.255
+deny ip   10.133.40.0 0.0.0.255 10.133.20.0 0.0.1.255
+deny ip   10.133.40.0 0.0.0.255 10.133.22.0 0.0.0.255
+deny ip   10.133.40.0 0.0.0.255 10.133.30.0 0.0.0.255
+permit ip 10.133.40.0 0.0.0.255 10.133.60.0 0.0.0.255
+permit ip 10.133.40.0 0.0.0.255 10.133.70.0 0.0.0.255
+deny ip   10.133.40.0 0.0.0.255 10.133.80.0 0.0.0.255
 
-deny ip 10.131.70.0 0.0.0.255 10.131.20.0 0.0.1.255
-deny ip 10.131.70.0 0.0.0.255 10.131.22.0 0.0.0.255
-deny ip 10.131.70.0 0.0.0.255 10.131.30.0 0.0.0.255
+deny ip 10.133.70.0 0.0.0.255 10.133.20.0 0.0.1.255
+deny ip 10.133.70.0 0.0.0.255 10.133.22.0 0.0.0.255
+deny ip 10.133.70.0 0.0.0.255 10.133.30.0 0.0.0.255
 
-deny ip 10.131.80.0 0.0.0.255 10.131.20.0 0.0.1.255
-deny ip 10.131.80.0 0.0.0.255 10.131.22.0 0.0.0.255
-deny ip 10.131.80.0 0.0.0.255 10.131.30.0 0.0.0.255
+deny ip 10.133.80.0 0.0.0.255 10.133.20.0 0.0.1.255
+deny ip 10.133.80.0 0.0.0.255 10.133.22.0 0.0.0.255
+deny ip 10.133.80.0 0.0.0.255 10.133.30.0 0.0.0.255
 
-permit udp 10.131.30.0 0.0.0.127 ip any eq ntp
+permit udp 10.133.30.0 0.0.0.127 ip any eq ntp
 permit ip any any
 
 ip access-list ex service_filter
-permit ip 10.131.30.0 0.0.0.255 any
-permit tcp any host 10.131.60.251 eq www
-permit udp 10.131.0.0 0.0.255.255 host 10.131.60.250 eq domain
+permit ip 10.133.30.0 0.0.0.255 any
+permit tcp any host 10.133.60.251 eq www
+permit udp 10.133.0.0 0.0.255.255 host 10.133.60.250 eq domain
 deny any any
 ~~~
 ## Access Layer Security
@@ -1546,21 +1546,21 @@ no ip dhcp snoop info opt
 ip dhcp snooping
 
 arp access-list ARP_ACL
-permit ip host 10.131.10.124 mac host aabb.cc80.0600
-permit ip host 10.131.10.125 mac host aabb.cc80.0700
-permit ip host 10.131.10.126 mac host 0000.0c07.ac00
+permit ip host 10.133.10.124 mac host aabb.cc80.0600
+permit ip host 10.133.10.125 mac host aabb.cc80.0700
+permit ip host 10.133.10.126 mac host 0000.0c07.ac00
 
-permit ip host 10.131.21.252 mac host aabb.cc80.0600
-permit ip host 10.131.21.253 mac host aabb.cc80.0700
-permit ip host 10.131.21.254 mac host 0000.0c07.ac00
+permit ip host 10.133.21.252 mac host aabb.cc80.0600
+permit ip host 10.133.21.253 mac host aabb.cc80.0700
+permit ip host 10.133.21.254 mac host 0000.0c07.ac00
 
-permit ip host 10.131.40.124 mac host aabb.cc80.0600
-permit ip host 10.131.40.125 mac host aabb.cc80.0700
-permit ip host 10.131.40.126 mac host 0000.0c07.ac00
+permit ip host 10.133.40.124 mac host aabb.cc80.0600
+permit ip host 10.133.40.125 mac host aabb.cc80.0700
+permit ip host 10.133.40.126 mac host 0000.0c07.ac00
 
-permit ip host 10.131.80.252 mac host aabb.cc80.0600
-permit ip host 10.131.80.253 mac host aabb.cc80.0700
-permit ip host 10.131.80.254 mac host 0000.0c07.ac00
+permit ip host 10.133.80.252 mac host aabb.cc80.0600
+permit ip host 10.133.80.253 mac host aabb.cc80.0700
+permit ip host 10.133.80.254 mac host 0000.0c07.ac00
 
 ip arp inspection filter HSRP_ARP_ACL vlan 10
 ip arp inspection filter HSRP_ARP_ACL vlan 20
@@ -1594,21 +1594,21 @@ ip dhcp snooping
 ip arp inspection vlan 10,20,40,80
 
 arp access-list ARP_ACL
-permit ip host 10.131.10.124 mac host aabb.cc80.0600
-permit ip host 10.131.10.125 mac host aabb.cc80.0700
-permit ip host 10.131.10.126 mac host 0000.0c07.ac00
+permit ip host 10.133.10.124 mac host aabb.cc80.0600
+permit ip host 10.133.10.125 mac host aabb.cc80.0700
+permit ip host 10.133.10.126 mac host 0000.0c07.ac00
 
-permit ip host 10.131.21.252 mac host aabb.cc80.0600
-permit ip host 10.131.21.253 mac host aabb.cc80.0700
-permit ip host 10.131.21.254 mac host 0000.0c07.ac00
+permit ip host 10.133.21.252 mac host aabb.cc80.0600
+permit ip host 10.133.21.253 mac host aabb.cc80.0700
+permit ip host 10.133.21.254 mac host 0000.0c07.ac00
 
-permit ip host 10.131.40.124 mac host aabb.cc80.0600
-permit ip host 10.131.40.125 mac host aabb.cc80.0700
-permit ip host 10.131.40.126 mac host 0000.0c07.ac00
+permit ip host 10.133.40.124 mac host aabb.cc80.0600
+permit ip host 10.133.40.125 mac host aabb.cc80.0700
+permit ip host 10.133.40.126 mac host 0000.0c07.ac00
 
-permit ip host 10.131.80.252 mac host aabb.cc80.0600
-permit ip host 10.131.80.253 mac host aabb.cc80.0700
-permit ip host 10.131.80.254 mac host 0000.0c07.ac00
+permit ip host 10.133.80.252 mac host aabb.cc80.0600
+permit ip host 10.133.80.253 mac host aabb.cc80.0700
+permit ip host 10.133.80.254 mac host 0000.0c07.ac00
 
 ip arp inspection filter HSRP_ARP_ACL vlan 10
 ip arp inspection filter HSRP_ARP_ACL vlan 20
@@ -1651,21 +1651,21 @@ ip dhcp snooping
 ip arp inspection vlan 10,20,40,80
 
 arp access-list ARP_ACL
-permit ip host 10.131.10.124 mac host aabb.cc80.0600
-permit ip host 10.131.10.125 mac host aabb.cc80.0700
-permit ip host 10.131.10.126 mac host 0000.0c07.ac00
+permit ip host 10.133.10.124 mac host aabb.cc80.0600
+permit ip host 10.133.10.125 mac host aabb.cc80.0700
+permit ip host 10.133.10.126 mac host 0000.0c07.ac00
 
-permit ip host 10.131.21.252 mac host aabb.cc80.0600
-permit ip host 10.131.21.253 mac host aabb.cc80.0700
-permit ip host 10.131.21.254 mac host 0000.0c07.ac00
+permit ip host 10.133.21.252 mac host aabb.cc80.0600
+permit ip host 10.133.21.253 mac host aabb.cc80.0700
+permit ip host 10.133.21.254 mac host 0000.0c07.ac00
 
-permit ip host 10.131.40.124 mac host aabb.cc80.0600
-permit ip host 10.131.40.125 mac host aabb.cc80.0700
-permit ip host 10.131.40.126 mac host 0000.0c07.ac00
+permit ip host 10.133.40.124 mac host aabb.cc80.0600
+permit ip host 10.133.40.125 mac host aabb.cc80.0700
+permit ip host 10.133.40.126 mac host 0000.0c07.ac00
 
-permit ip host 10.131.80.252 mac host aabb.cc80.0600
-permit ip host 10.131.80.253 mac host aabb.cc80.0700
-permit ip host 10.131.80.254 mac host 0000.0c07.ac00
+permit ip host 10.133.80.252 mac host aabb.cc80.0600
+permit ip host 10.133.80.253 mac host aabb.cc80.0700
+permit ip host 10.133.80.254 mac host 0000.0c07.ac00
 
 ip arp inspection filter HSRP_ARP_ACL vlan 10
 ip arp inspection filter HSRP_ARP_ACL vlan 20
@@ -1732,10 +1732,10 @@ ip dhcp snooping
 ip arp inspection vlan 10,20,40,80
 
 arp access-list ARP_ACL
-permit ip host 10.131.10.254 mac host aabb.cc00.0a10
-permit ip host 10.131.22.254 mac host aabb.cc00.0a10
-permit ip host 10.131.40.124 mac host aabb.cc00.0a10
-permit ip host 10.131.80.252 mac host aabb.cc00.0a10
+permit ip host 10.133.10.254 mac host aabb.cc00.0a10
+permit ip host 10.133.22.254 mac host aabb.cc00.0a10
+permit ip host 10.133.40.124 mac host aabb.cc00.0a10
+permit ip host 10.133.80.252 mac host aabb.cc00.0a10
 
 ip arp inspection filter HSRP_ARP_ACL vlan 10
 ip arp inspection filter HSRP_ARP_ACL vlan 20
@@ -1843,7 +1843,7 @@ clock summer-time BST recurring last Sun Mar 1:00 last Sun Oct 2:00
 ntp authenticate
 ntp authentication-key 1 md5 outoftime
 ntp trusted-key 1
-ntp server 10.131.2.1 key 1 prefer
+ntp server 10.133.2.1 key 1 prefer
 ntp server 1.1.1.1
 ntp update-calendar
 ntp source l0
@@ -1855,7 +1855,7 @@ clock summer-time BST recurring last Sun Mar 1:00 last Sun Oct 2:00
 ntp authenticate
 ntp authentication-key 1 md5 outoftime
 ntp trusted-key 1
-ntp server 10.131.2.1 key 1 prefer
+ntp server 10.133.2.1 key 1 prefer
 ntp server 1.1.1.1
 ntp update-calendar
 ntp source vlan 30
@@ -2297,4 +2297,142 @@ all:
           ansible_user: auto
           ansible_password: otua
           ansible_connection: local
+~~~
+## LDAP (Examples)
+LDAP enables users to log into Linux systems using a central database. It is not used for Cisco devices.
+### Debian LDAP Client
+#### Packages:
+~~~
+libpam-ldapd nslcd sudo ldap-utils libldap-2.5-0 libldap-common libnss-ldap
+~~~
+#### BASH Modify PAM to use LDAP
+PAM is a module that allows for authentication and authorization for users. It will now create a home directory for the user.
+~~~
+echo "libpam-runtime libpam-runtime/profiles multiselect unix, ldap, create-home" | debconf-set-selections
+pam-auth-update --package
+echo "session required pam_mkhomedir.so skel=/etc/skel umask=077" >> /etc/pam.d/common-session
+~~~
+#### /etc/nsswitch.conf
+~~~
+passwd:         compat ldap
+group:          compat ldap
+shadow:         compat ldap
+~~~
+#### /etc/ldap.conf
+ldap://127.0.0.1 changes to the ldap server address
+~~~
+uri ldap://127.0.0.1
+base dc=tapeitup,dc=private
+binddn cn=admin,dc=tapeitup,dc=private
+bindpw ldap
+~~~
+#### Restart services
+~~~
+systemctl restart ssh
+systemctl restart freeradius
+systemctl restart nslcd
+~~~
+### Debian LDAP Server
+#### Packages:
+~~~
+slapd ldapscripts apache2 php libapache2-mod-php phpldapadmin 
+~~~
+
+A LDIF file is used in modifying the OpenLDAP server's configuration. 
+
+#### /root/logging.ldif
+This LDIF does two things:
+Sets the logging level to stats, so the server will log statistical information.
+Configures the password hashing method to use SSHA for storing user passwords securely.
+~~~
+dn: cn=config
+changetype: modify
+replace: olcLogLevel
+olcLogLevel: stats
+
+dn: cn=config
+changetype: modify
+add: olcPasswordHash
+olcPasswordHash: {SSHA}
+~~~
+#### /root/base.ldif
+This LDIF create users and groups and general configuration for a simple LDAP server.
+~~~
+dn: ou=People,dc=tapeitup,dc=private
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,dc=tapeitup,dc=private
+objectClass: organizationalUnit
+ou: Groups
+
+# Network Admin Group
+dn: cn=network_admin,ou=Groups,dc=tapeitup,dc=private
+objectClass: posixGroup
+cn: network_admin
+gidNumber: 10001
+
+# Sales Group
+dn: cn=sales,ou=Groups,dc=tapeitup,dc=private
+objectClass: posixGroup
+cn: sales
+gidNumber: 10002
+
+# User John
+dn: uid=john,ou=People,dc=tapeitup,dc=private
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: john
+sn: none
+givenName: john
+uid: john
+uidNumber: 1001
+gidNumber: 10001
+homeDirectory: /home/john
+loginShell: /bin/bash
+mail: john@tapeitup.private
+userPassword: {SSHA}VrHa6dK8wDewHUmn1begyCJNmq9SIwt1
+
+# User Dave
+dn: uid=dave,ou=People,dc=tapeitup,dc=private
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dave
+sn: none
+givenName: dave
+uid: dave
+uidNumber: 1002
+gidNumber: 10002
+homeDirectory: /home/dave
+loginShell: /bin/bash
+mail: dave@tapeitup.private
+userPassword: {SSHA}CU6BdjNWkngd4snNvl4k6A6jBHPbNmAw
+~~~
+#### BASH Apply LDIF dynamic configuration
+~~~
+ldapadd -x -D cn=admin,dc={topology.domain_name_a},dc={topology.domain_name_b} -w ldap -f /root/base.ldif"
+ldapadd -x -D cn=admin,dc={topology.domain_name_a},dc={topology.domain_name_b} -w ldap -f /root/logging.ldif"
+~~~
+#### /etc/phpldapadmin/config.php
+This configures a web gui interface using apache. Its not necessary, but it's' user friendly.
+~~~
+<?php
+$config->custom->appearance["friendly_attrs"] = array(
+    "facsimileTelephoneNumber" => "Fax",
+    "gid"                      => "Group",
+    "mail"                     => "Email",
+    "telephoneNumber"          => "Telephone",
+    "uid"                      => "User Name",
+    "userPassword"             => "Password"
+);
+
+$servers = new Datastore();
+$servers->newServer("ldap_pla");
+$servers->setValue("server","name","My LDAP Server");
+$servers->setValue("server","host","192.168.2.231");
+$servers->setValue("server","base",array("dc=tapeitup,dc=private"));
+$servers->setValue("login","bind_id","cn=admin,dc=tapeitup,dc=private");
+?>
 ~~~

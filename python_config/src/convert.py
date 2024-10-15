@@ -62,3 +62,16 @@ def ipv4_broadcast(addr,cidr):
 	net = ip_int | bits
 	# To make each octet, shift it right then use AND to cut off anything more than last 8
 	return f"{(net >> 24) & 0xff}.{(net >> 16) & 0xff}.{(net >> 8) & 0xff}.{net & 0xff}"
+
+def get_escaped_string(string):
+	return string.replace('"', '\\"').replace('$', '\\$')
+
+def get_chunky_hex(string):
+	hex_string = string.encode("utf-8").hex()
+	LOGGER.debug(f"hex_string: {hex_string}")
+	chunk_size = 100
+	result = []
+	for i in range(0, len(hex_string), chunk_size):
+		result += [hex_string[i:i+chunk_size]]
+	LOGGER.debug(f"result: {result}")
+	return result

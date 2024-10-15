@@ -87,6 +87,15 @@ def SW6_Structures(topology: Topology):
 			access_segment.get_vlan("internal-services"),
 		]
 	)
+	node_SW6_i13=Interface(
+		name="e2/0",
+		trunk=True,
+		vlans=[
+			access_segment.get_vlan("management"),
+			access_segment.get_vlan("guest-services"),
+			access_segment.get_vlan("internal-services"),
+		]
+	)
 	node_SW6 = Node(
 		hostname="SW6",
 		local_user="auto",
@@ -106,6 +115,7 @@ def SW6_Structures(topology: Topology):
 	node_SW6.add_interface(node_SW6_i10)
 	node_SW6.add_interface(node_SW6_i11)
 	node_SW6.add_interface(node_SW6_i12)
+	node_SW6.add_interface(node_SW6_i13)
 	topology.add_node(node_SW6)
 	access_segment.nodes.append(node_SW6)
 def SW6_relations(topology: Topology):
@@ -114,6 +124,7 @@ def SW6_relations(topology: Topology):
 	topology.get_node("SW6").get_interface("e1/2").connect_to(topology.get_node("SW3").get_interface("e1/1"))
 	topology.get_node("SW6").get_interface("e0/0").connect_to(topology.get_node("SW4").get_interface("e0/3"))
 	topology.get_node("SW6").get_interface("e1/1").connect_to(topology.get_node("SW4").get_interface("e2/0"))
+	topology.get_node("SW6").get_interface("e2/0").connect_to(topology.get_node("prox1").get_interface("enp2s0"))
 	topology.get_node("SW6").get_interface("e5/3").connect_to(topology.exit_interface_oob)
 	topology.get_node("SW6").get_interface("port 1").connect_to(topology.get_node("SW4").get_interface("port 1"))
 	topology.get_node("SW6").get_interface("port 2").connect_to(topology.get_node("SW3").get_interface("port 1"))

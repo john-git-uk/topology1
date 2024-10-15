@@ -203,9 +203,9 @@ UsePAM yes
 ###### /root/networkconfig.sh
 ~~~
 #!/bin/bash
-ip addr add 10.131.70.251/24 dev eth1
+ip addr add 10.133.70.251/24 dev eth1
 ip link set eth1 up
-ip route add default via 10.131.70.254
+ip route add default via 10.133.70.254
 ip addr add 192.168.250.101/24 dev eth2
 ip link set eth2 up
 ~~~
@@ -237,7 +237,7 @@ pass:sevenwsad
 ~~~
 crypto key generate rsa modulus 2048 label R2.tapeitup.private
 crypto pki trustpoint trustedCA
-  enrollment url https://10.131.2.1
+  enrollment url https://10.133.2.1
   rsakeypair R2.tapeitup.private
   subject-name CN=R2,O=tapeitup.private
   revocation-check none
@@ -253,12 +253,12 @@ Unfortunately I haven't found a way to change the NAS-Identifier using libpam-ra
 aaa new-model
 ip radius source-interface Loopback0
 
-radius server aaa_server1
- address ipv4 10.131.70.251 auth-port 1812 acct-port 1813
- key radiuskey
+radius server aaa-server-1
+ address ipv4 10.133.60.251 auth-port 1812 acct-port 1813
+ key R1radiuskey
  exit
 aaa group server radius aaa_group
- server name aaa_server1
+ server name aaa-server-1
  exit
 
 aaa authentication login vty_method group aaa_group
@@ -267,7 +267,7 @@ aaa authorization exec default group aaa_group
 radius-server attribute 32 include-in-access-req format "Net-Cisco-B@4]-%h"
 
 line vty 0 4
- login auth vty_method
+login auth vty_method
 ~~~
 ### FreeRadius
 #### users
@@ -320,23 +320,23 @@ DEFAULT Group != "network_admin", NAS-IP-Address == "127.0.0.1",
     Reply-Message := "Access Denied: You do not have the appropriate permissions",
     Auth-Type := Reject
 
-DEFAULT Group == "network_admin", NAS-IP-Address == "10.131.70.251",
+DEFAULT Group == "network_admin", NAS-IP-Address == "10.133.70.251",
     Service-Type = Administrative-User,
     Reply-Message = "Admin Access Granted"
     
-DEFAULT Group != "network_admin", NAS-IP-Address == "10.131.70.251",
+DEFAULT Group != "network_admin", NAS-IP-Address == "10.133.70.251",
     Reply-Message := "Access Denied: You do not have the appropriate permissions",
     Auth-Type := Reject
 ~~~
 #### clients.conf
 ~~~
 client R1.tapeitup.private {
-	ipaddr = 10.131.2.1
+	ipaddr = 10.133.2.1
   	secret = radiuskey
 	shortname = R1
 }
 client SW3.tapeitup.private {
-	ipaddr = 10.131.2.53
+	ipaddr = 10.133.2.53
   	secret = radiuskey
 	shortname = SW3
 }
@@ -359,7 +359,6 @@ sudo systemctl restart sshd
 user:root
 pass:toorp
 ## EAP-TLS
-
 ## Restconf/Netconf (incomplete)
 #### Bug
 Unfortunately due to a bug in this IOS version the clock has to be changed to generate self signed certificates.
