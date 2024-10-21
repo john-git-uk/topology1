@@ -166,6 +166,7 @@ def configure_ldap_server_1(ldap_server_1):
 	output,error = execute_proxnode_commands(prox1, ldap_server_1, commands)
 
 def ldap_server_1_sshd_content(ldap_server_1):
+	#region return string
 	return f"""
 SyslogFacility AUTH
 LogLevel VERBOSE
@@ -180,7 +181,9 @@ AcceptEnv LANG LC_*
 Subsystem sftp /usr/lib/openssh/sftp-server
 ListenAddress {ldap_server_1.oob_interface.ipv4_address}
 """
+	#endregion
 def ldap_server_1_ldap_base_content(ldap_server_1):
+	#region return string
 	topology = ldap_server_1.topology_a_part_of
 	if topology is None:
 		raise ValueError("topology is None")
@@ -237,8 +240,9 @@ loginShell: /bin/bash
 mail: dave@tapeitup.private
 userPassword: {{SSHA}}CU6BdjNWkngd4snNvl4k6A6jBHPbNmAw
 """
-
+	#endregion
 def ldap_server_1_php_webgui_content(ldap_server_1):
+	#region return string
 	return f"""
 <?php
 $config->custom->appearance["friendly_attrs"] = array(
@@ -258,8 +262,9 @@ $servers->setValue("server","base",array("dc={ldap_server_1.topology_a_part_of.d
 $servers->setValue("login","bind_id","cn=admin,dc={ldap_server_1.topology_a_part_of.domain_name_a},dc={ldap_server_1.topology_a_part_of.domain_name_b}");
 ?>
 """
-	
+	#endregion
 def ldap_server_1_logging_ldif_content(ldap_server_1):
+	#region return string
 	return f"""
 dn: cn=config
 changetype: modify
@@ -271,16 +276,21 @@ changetype: modify
 add: olcPasswordHash
 olcPasswordHash: {{SSHA}}
 """
+	#endregion
 def ldap_server_1_nslcd_content(ldap_server_1):
+	#region return string
 	return f"""
 uri ldap://127.0.0.1
 base dc=tapeitup,dc=private
 binddn cn=admin,dc=tapeitup,dc=private
 bindpw ldap
 """
+	#endregion
 def ldap_server_1_nsswitch_content(ldap_server_1):
+	#region return string
 	return f"""
 passwd:         compat ldap
 group:          compat ldap
 shadow:         compat ldap
 """
+	#endregion

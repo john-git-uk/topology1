@@ -165,6 +165,7 @@ def radius_server_1_authorize_content(radius_server_1: Node):
 		raise ValueError("container is None")
 	if prox1 is None:
 		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
+	#region return string
 	return '''
 "john"	Cleartext-Password := "nhoj"
 	Reply-Message = "Radius %{User-Name}",
@@ -225,7 +226,7 @@ DEFAULT	Hint == "CSLIP"
 DEFAULT	Hint == "SLIP"
 	Framed-Protocol = SLIP
 '''
-
+	#endregion
 def radius_server_1_clients_content(radius_server_1: Node):
 	topology = None
 	prox1 = None
@@ -241,6 +242,7 @@ def radius_server_1_clients_content(radius_server_1: Node):
 		raise ValueError("container is None")
 	if prox1 is None:
 		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
+	#region return string
 	return f"""
 client localhost{{
 ipaddr = 127.0.0.1
@@ -258,13 +260,16 @@ client SW3.tapeitup.private {{
 	shortname = SW3
 }}
 	"""
+	#endregion
 def radius_server_1_pam_radius_auth_content(radius_server_1: Node):
+	#region return string
 	return """
 127.0.0.1    beantruck             1
 other-server    other-secret       3
 """
+	#endregion
 def radius_server_1_sshd_content(radius_server_1: Node): # This is for making radius requests for Linux ssh auth not ldap? Probably not needed
-	
+	#region return string
 	return """
 auth    required    pam_radius_auth.so
 @include common-auth
@@ -283,8 +288,10 @@ session    required     pam_env.so user_readenv=1 envfile=/etc/default/locale
 session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so open
 @include common-password
 """
+	#endregion
 
 def radius_server_1_sshd_config_content(radius_server_1: Node):
+	#region return string
 	return f"""
 SyslogFacility AUTH
 LogLevel VERBOSE
@@ -299,6 +306,7 @@ AcceptEnv LANG LC_*
 Subsystem sftp /usr/lib/openssh/sftp-server
 ListenAddress {radius_server_1.oob_interface.ipv4_address}
 """
+	#endregion
 def radius_server_1_nslcd_content(radius_server_1):
 	topology = None
 	prox1 = None
@@ -315,15 +323,19 @@ def radius_server_1_nslcd_content(radius_server_1):
 	if prox1 is None:
 		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
 	ldap_server_1 = topology.get_node("ldap-server-1") # TODO: Assumed there is only one ldap server
+	#region return string
 	return f"""
 uri ldap://{ldap_server_1.get_interface("eth1").ipv4_address}
 base dc={topology.domain_name_a},dc={topology.domain_name_b}
 binddn cn=admin,dc={topology.domain_name_a},dc={topology.domain_name_b}
 bindpw ldap
 """
+	#endregion
 def radius_server_1_nsswitch_content(radius_server_1):
+	#region return string
 	return f"""
 passwd:         compat ldap
 group:          compat ldap
 shadow:         compat ldap
 """
+	#endregion
