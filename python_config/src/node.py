@@ -54,12 +54,37 @@ class Node(BaseModel):
 	wan_config_commands: List[str] = []
 	ntp_config_commands: List[str] = []
 	def add_interface(self, iface: Interface):
+		if self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe":
+			if iface.interface_type == "mactap":
+				LOGGER.critical(f"Cannot add mac tap interface to {self.hostname} due to not being compatible with Cisco IOS")
+				exit(1)
+			elif iface.interface_type == "bridge":
+				LOGGER.critical(f"Cannot add bridge interface to {self.hostname} due to not being supported with Cisco IOS")
+				exit(1)
+		elif self.machine_data.device_type == "debian" or self.machine_data.device_type == "proxmox":
+			if iface.interface_type == "port-channel":
+				LOGGER.critical(f"Cannot add port-channel interface to {self.hostname} due to not being supported with Debian")
+				exit(1)
+			elif iface.interface_type == "vlan":
+				LOGGER.critical(f"Cannot add vlan type interface to {self.hostname} due to not being supported with Debian")
+				exit(1)
+			elif iface.interface_type == "tunnel":
+				LOGGER.critical(f"Cannot add tunnel interface to {self.hostname} due to not being supported with Debian")
+				exit(1)
+			elif iface.interface_type == "fast ethernet":
+				iface.interface_type = "ethernet"
+			elif iface.interface_type == "gigabit ethernet":
+				iface.interface_type = "ethernet"
+		else:
+			LOGGER.critical(f"Cannot add interface to {self.hostname} due to unimplemented machine data type selection")
 		self.__interfaces.append(iface)
 		iface.node_a_part_of=self
-	def get_interface(self, name: str):
+	def get_interface(self, type: str, name: str):
 		for iface in self.__interfaces:
 			if iface.name == name:
-				return iface
+				if iface.interface_type == type:
+					return iface
+		LOGGER.warning(f"Interface {name} of type {type} not found on {self.hostname}")
 	def get_interface_no(self, index: int):
 		if index < 0 or index >= len(self.__interfaces):
 			raise IndexError("Interface index out of range.")
@@ -90,7 +115,7 @@ class Node(BaseModel):
 			
 			for index_a in range (self.get_interface_count()):
 				interface = self.get_interface_no(index_a)
-				LOGGER.debug(f"Configuring interface {interface.name}")
+				LOGGER.debug(f"Configuring interface {interface.interface_type} {interface.name}")
 				# Is it a port channel?
 				if len(interface.interfaces) > 0:
 					# Go into members and set the channel group
@@ -101,13 +126,13 @@ class Node(BaseModel):
 							first=False
 						else:
 							interface_group  += ","
-						interface_group += member.name
+						interface_group += f"{member.interface_type} {member.name}"
 					self.interface_config_commands += [
 					'interface r '+interface_group,
 					'channel-group '+str(interface.interfaces[0].channel_group)+" mode active",
 					'no shutdown'
 					]
-				self.interface_config_commands += ["interface " +interface.name]
+				self.interface_config_commands += [f"interface {interface.interface_type} {interface.name}"]
 				# Is it a subinterface?
 				# If it contains a period, it's a subinterface
 				if interface.name.find(".") > 0:
@@ -121,7 +146,7 @@ class Node(BaseModel):
 				if interface.ipv4_address:
 					# Is the machine multilayer?
 					# It is not applicable to "vlan" interfaces
-					if self.machine_data.category == "multilayer" and (interface.name.find("vlan") == -1) and (interface.name.find("loop") == -1):
+					if self.machine_data.category == "multilayer" and (interface.interface_type == "vlan") and (interface.interface_type == "loopback"):
 						self.interface_config_commands += ["no switchport"]
 					temp_network=ipaddress.IPv4Network(f"0.0.0.0/{interface.ipv4_cidr}")
 					self.interface_config_commands += [
@@ -161,7 +186,7 @@ class Node(BaseModel):
 			
 
 			# Send the commands to file for review
-			out_path = Path("../python_config/output/interfaces/")
+			out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "interfaces"
 			out_path.mkdir(exist_ok=True, parents=True)
 			with open(os.path.join(out_path,self.hostname+'_interfaces.txt'), 'w') as f:
 				for command in self.interface_config_commands:
@@ -200,7 +225,7 @@ class Node(BaseModel):
 		output = connection.send_config_set(self.interface_config_commands)
 		
 		# Send the commands to file for review
-		out_path = Path("../python_config/output/logs/netmiko/")
+		out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "logs" / "netmiko"
 		out_path.mkdir(exist_ok=True, parents=True)
 		with open(os.path.join(out_path,self.hostname+'_interfaces.log'), 'w') as f:
 			print(output, file=f)
@@ -241,15 +266,15 @@ class Node(BaseModel):
 			self.ssh_stub_config_commands.append("crypto key generate rsa modulus 2048 label ssh")
 			self.ssh_stub_config_commands.append("ip ssh version 2")
 		
-			self.ssh_stub_config_commands.append(f"interface {self.oob_interface.name}")
+			self.ssh_stub_config_commands.append(f"interface {self.oob_interface.interface_type} {self.oob_interface.name}")
 			# What if it is an etherchannel or subinterface?
 			if(len(self.oob_interface.vlans) != 0):
-				LOGGER.error(f"Vlans are not supported for oob interface {self.oob_interface.name} on {self.hostname}")
+				LOGGER.error(f"Vlans are not supported for oob interface {self.oob_interface.interface_type} {self.oob_interface.name} on {self.hostname}")
 				return
 			if(len(self.oob_interface.interfaces) != 0):
-				LOGGER.error(f"Port-channel groups are currently unsupported for oob interface {self.oob_interface.name} on {self.hostname}")
+				LOGGER.error(f"Port-channel groups are currently unsupported for oob interface {self.oob_interface.interface_type} {self.oob_interface.name} on {self.hostname}")
 				return
-			if self.machine_data.category == "multilayer" and (self.oob_interface.name.find("vlan") == -1) and (self.oob_interface.name.find("loop") == -1):
+			if self.machine_data.category == "multilayer" and (self.oob_interface.interface_type == "vlan") and (self.oob_interface.interface_type == "loop"):
 				self.ssh_stub_config_commands.append("no switchport")
 
 			temp_network=ipaddress.IPv4Network(f"0.0.0.0/{self.oob_interface.ipv4_cidr}")
@@ -276,7 +301,7 @@ class Node(BaseModel):
 		#	print(printable)
 		
 		# Send the commands to file for review
-		out_path = Path("../python_config/output/stubs/")
+		out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "stubs"
 		out_path.mkdir(exist_ok=True, parents=True)
 		with open(os.path.join(out_path,self.hostname+'_stub.txt'), 'w') as f:
 			for command in self.ssh_stub_config_commands:
@@ -365,7 +390,7 @@ class Node(BaseModel):
 							'spanning-tree vlan '+str(vlan.number)+' root secondary'
 						]
 				# Send the commands to file for review
-				out_path = Path("../python_config/output/stp_vlan/")
+				out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "stp_vlan"
 				out_path.mkdir(exist_ok=True, parents=True)
 				with open(os.path.join(out_path,self.hostname+'_stp_vlan.txt'), 'w') as f:
 					for command in self.stp_vlan_config_commands:
@@ -384,16 +409,16 @@ class Node(BaseModel):
 					return
 				# For each node interfaces
 				for interface in self.__interfaces:
-					LOGGER.debug(f"Generating fhrp config for {self.hostname} working on interface {interface.name}")
+					LOGGER.debug(f"Generating fhrp config for {self.hostname} working on interface {interface.interface_type} {interface.name}")
 					# That is a SVI
-					if(interface.name.startswith("vlan")):
+					if(interface.interface_type == "vlan"):
 						# Get the vlan from interface name
-						vlan = access_segment.get_vlan_nom(int(interface.name.split(" ")[1]))
+						vlan = access_segment.get_vlan_nom(int(interface.name))
 						if(vlan == None):
-							LOGGER.error(f"{interface.name} not found for {self.hostname}")
+							LOGGER.error(f"vlan {interface.name} not found for {self.hostname}")
 							return
 						self.fhrp_config_commands += [
-							'interface '+interface.name,
+							f'interface {interface.interface_type} {interface.name}',
 							'standby 0 ip '+str(vlan.fhrp0_ipv4_address),
 							'standby 0 preempt delay rel 60',
 							'standby 0 timers msec 200 msec 650',
@@ -404,7 +429,7 @@ class Node(BaseModel):
 						else:
 							self.fhrp_config_commands += ['standby 0 priority 111']
 						# Send the commands to file for review
-						out_path = Path("../python_config/output/fhrp/")
+						out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "fhrp"
 						out_path.mkdir(exist_ok=True, parents=True)
 						with open(os.path.join(out_path,self.hostname+'_fhrp.txt'), 'w') as f:
 							for command in self.fhrp_config_commands:
@@ -468,6 +493,7 @@ class Node(BaseModel):
 
 				# Send the commands to file for review
 				out_path = Path("../python_config/output/routing_base/")
+				out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "routing_base"
 				out_path.mkdir(exist_ok=True, parents=True)
 				with open(os.path.join(out_path,self.hostname+'_routing_base.txt'), 'w') as f:
 					for command in self.ospf_static_base_config_commands:
@@ -482,7 +508,7 @@ class Node(BaseModel):
 			dhcp_server="R3"
 		dhcp_helper=None
 		if(self.hostname == "SW4"):
-			dhcp_helper=self.topology_a_part_of.get_node("R1").get_interface("loop 0")
+			dhcp_helper=self.topology_a_part_of.get_node("R1").get_interface("loopback","0")
 		###############################################
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer" or self.machine_data.category == "router"):
@@ -524,11 +550,11 @@ class Node(BaseModel):
 					for interface in self.__interfaces:
 						if(interface.ipv4_address is None):
 							continue
-						self.dhcp_config_commands += [f"interface {interface.name}"]
+						self.dhcp_config_commands += [f"interface {interface.interface_type} {interface.name}"]
 						self.dhcp_config_commands += [f"ip dhcp helper address {dhcp_helper.ipv4_address}"]
 				
 				# Send the commands to file for review
-				out_path = Path("../python_config/output/dhcp/")
+				out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "dhcp"
 				out_path.mkdir(exist_ok=True, parents=True)
 				with open(os.path.join(out_path,self.hostname+'_dhcp.txt'), 'w') as f:
 					for command in self.dhcp_config_commands:
@@ -554,25 +580,25 @@ class Node(BaseModel):
 					f'30 permit ip 10.133.0.0 {cidr_to_wildmask(16)} any',
 					f'10000 deny ip any any',
 					"exit",
-					f'ip nat inside source list NAT interface {self.get_wan_interface().name} overload'
+					f'ip nat inside source list NAT interface {self.get_wan_interface().interface_type} {self.get_wan_interface().name} overload'
 				]
 				
 				for interface in self.__interfaces:
 					if(interface.ipv4_address is None):
 						continue
-					if(interface.name.startswith("loop")):
+					if(interface.interface_type == "loop"):
 						continue
-					if(interface.name.startswith("tunnel")):
+					if(interface.interface_type == "tunnel"):
 						continue
 					if(interface == self.get_wan_interface()):
 						self.wan_config_commands += [
-							f'interface {interface.name}',
+							f'interface {interface.interface_type} {interface.name}',
 							f'ip nat outside',
 							f'exit',
 						]
 					else:
 						self.wan_config_commands += [
-							f'interface {interface.name}',
+							f'interface {interface.interface_type} {interface.name}',
 							f'ip nat inside',
 							f'exit',
 						]
@@ -616,7 +642,7 @@ class Node(BaseModel):
 				]
 
 				for tunnel in self.__interfaces:
-					if tunnel.name.startswith("tunnel"):
+					if tunnel.interface_type == "tunnel":
 						# Find ospf neighbour and validate data
 						ospf_neighbour=None
 						if(tunnel.ipv4_address is None):
@@ -629,17 +655,17 @@ class Node(BaseModel):
 							LOGGER.critical(f"{self.hostname} - {tunnel.name} has no tunnel destination, cannot configure VPN, skipping node config...")
 							return
 						for neigh in tunnel.tunnel_destination.node_a_part_of.__interfaces:
-							if(neigh.name.startswith("loop") and neigh.name.endswith("0")):
+							if(neigh.interface_type == "loopback" and neigh.name == "0"):
 								if(neigh.ipv4_address is None):
-									LOGGER.critical(f"{neigh.name} has no ipv4 address, cannot configure VPN, skipping node config...")
+									LOGGER.critical(f"{neigh.interface_type} {neigh.name} has no ipv4 address, cannot configure VPN, skipping node config...")
 									return
 								if(neigh.ipv4_cidr is None):
-									LOGGER.critical(f"{neigh.name} has no ipv4 cidr, cannot configure VPN, skipping node config...")
+									LOGGER.critical(f"{neigh.interface_type} {neigh.name} has no ipv4 cidr, cannot configure VPN, skipping node config...")
 									return
 								ospf_neighbour=neigh.ipv4_address
 
 						self.wan_config_commands += [
-							f"interface {tunnel.name}",
+							f"interface {tunnel.interface_type} {tunnel.name}",
 							f"ip address {tunnel.ipv4_address} {cidr_to_netmask(tunnel.ipv4_cidr)}",
 							f"tunnel source {self.get_wan_interface().ipv4_address}",
 							"tunnel mode ipsec ipv4",
@@ -656,7 +682,7 @@ class Node(BaseModel):
 						]
 
 						# Send the commands to file for review
-						t_path = Path("../python_config/output/wan/")
+						t_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "wan"
 						t_path.mkdir(exist_ok=True, parents=True)
 						with open(os.path.join(t_path,self.hostname+'_wan.txt'), 'w') as f:
 							for command in self.wan_config_commands:
@@ -696,16 +722,16 @@ class Node(BaseModel):
 			# TODO: Hardcoded
 			found_interface = False
 			for interface in self.__interfaces:
-				if interface.name=="vlan 30":
+				if (interface.name == "30") and (interface.interface_type == "vlan"):
 					self.ntp_config_commands += [
-					f'ntp source {interface.name}'
+					f'ntp source {interface.interface_type} {interface.name}'
 					]
 					found_interface = True
 					break
 				
-				if interface.name=="loop 0":
+				if (interface.name=="0") and (interface.interface_type == "loopback"):
 					self.ntp_config_commands += [
-					f'ntp source {interface.name}'
+					f'ntp source {interface.interface_type} {interface.name}'
 					]
 					found_interface = True
 					break
@@ -713,7 +739,7 @@ class Node(BaseModel):
 				LOGGER.error (f"Could not find interface for ntp source for {self.hostname}")
 
 			# Send the commands to file for review
-			t_path = Path("../python_config/output/ntp/")
+			t_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "ntp"
 			t_path.mkdir(exist_ok=True, parents=True)
 			with open(os.path.join(t_path,self.hostname+'_ntp.txt'), 'w') as f:
 				for command in self.ntp_config_commands:
@@ -727,9 +753,9 @@ class Node(BaseModel):
 		for interface in self.__interfaces:
 			if(interface.ipv4_address is None):
 				continue
-			if(interface.name.startswith("loop")):
+			if(interface.interface_type == "loopback"):
 				continue
-			if(interface.name.startswith("vlan")):
+			if(interface.interface_type == "vlan"):
 				continue
 			if(interface.channel_group is not None):
 				continue

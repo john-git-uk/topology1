@@ -1,7 +1,7 @@
 from __future__ import annotations
 import logging
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Literal
 import ipaddress
 LOGGER = logging.getLogger('my_logger')
 class Topology(BaseModel):

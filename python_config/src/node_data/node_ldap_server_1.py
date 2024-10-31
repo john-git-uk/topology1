@@ -2,7 +2,7 @@ from __future__ import annotations
 import paramiko
 from handle_debian import *
 import logging
-from convert import get_escaped_string, get_chunky_hex
+from convert import get_escaped_string, get_chunky_hex, base64_encode_string
 from interface import Interface
 from node import Node
 from handle_proxmox import Container, execute_proxnode_commands, start_container, wait_for_container_ping_debian, wait_for_container_running
@@ -19,12 +19,14 @@ def ldap_server_1_structures(topology: Topology):
 
 	ldap_server1_i1 = Interface(
 		name="eth0",
+		interface_type="ethernet",
 		ipv4_address="192.168.2.231",
 		ipv4_cidr=24
 	)
 
 	ldap_server1_i2 = Interface(
 		name="eth1",
+		interface_type="ethernet",
 		ipv4_address="10.133.60.250",
 		ipv4_cidr=24
 	)
@@ -63,11 +65,8 @@ def ldap_server_1_relations(topology: Topology):
 	if(ldap_server_1 is None):
 		raise Exception("ldap_server_1 is None")
 
-	ldap_server_1.get_interface("eth0").connect_to(prox1.get_interface("oob_hitch"))
-	ldap_server_1.get_interface("eth1").connect_to(prox1.get_interface("vmbr60"))
-
-def base64_encode_string(command):
-    return base64.b64encode(command.encode()).decode()
+	ldap_server_1.get_interface("ethernet","eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
+	ldap_server_1.get_interface("ethernet","eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
 
 def packages_time_ldap_server_1(ldap_server_1):
 	topology = None

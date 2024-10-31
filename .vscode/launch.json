@@ -1,0 +1,15 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Python Debugger: main.py",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${workspaceFolder}/python_config/src/main.py",
+			"console": "integratedTerminal",
+			"cwd": "${workspaceFolder}/python_config/src",
+            "python": "${workspaceFolder}/python_config/linux_venv/bin/python3",
+			"justMyCode": false
+		}
+	]
+}

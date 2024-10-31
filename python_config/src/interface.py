@@ -25,10 +25,11 @@ class Interface(BaseModel):
 	node_a_part_of: Optional["Node"] = None
 	neighbour: Optional["Interface"] = None
 	name: str
+	interface_type: Literal["ethernet", "fast ethernet", "gigabit ethernet", "bridge", "vlan", "port-channel", "tunnel", "loopback", "mactap"]
 	description: Optional[str]=None
 	ospf_participant: bool=False
 	ospf_passive: bool=False,
-	interfaces: List["Interface"]=[]
+	interfaces: List["Interface"]=[] # For port-channel
 	# TODO: Was channel group zero actually undefined or was it used by cisco?
 	channel_group: Optional[int]=None
 	ipv4_address: Optional[ipaddress.IPv4Address]=None

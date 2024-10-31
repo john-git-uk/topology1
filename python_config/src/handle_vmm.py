@@ -8,6 +8,7 @@ import libvirt
 import os
 from pathlib import Path
 import time
+from project_globals import GLOBALS
 VIR_DOMAIN_STATE_LOOKUP = {
 	libvirt.VIR_DOMAIN_NOSTATE: 'No State',
 	libvirt.VIR_DOMAIN_RUNNING: 'Running',
@@ -131,7 +132,8 @@ def send_bash(command: str, machine: Node):
 	escaped_password = re.escape(machine.local_password)
 	#escaped_command = re.escape(command) # This is not needed
 	escaped_command = (command)
-	log_path = Path("../python_config/output/logs/")
+
+	log_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "logs"
 	log_path.mkdir(exist_ok=True, parents=True)
 	with open(os.path.join(log_path,"pexpect_raw.log"), 'w') as pexpect_log_file:
 		child = pexpect.spawn('/bin/bash', encoding='utf-8', timeout=10)# Enable comprehensive logging to the file
@@ -201,9 +203,9 @@ def send_bash(command: str, machine: Node):
 		LOGGER.debug("pexpect process closed gracefully.")
 
 		LOGGER.debug(f"Command Output:\n{output}")
-		# Save the output to a file
 		
-		out_path = Path("../python_config/output/")
+		# Save the output to a file
+		out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "logs"
 		out_path.mkdir(exist_ok=True, parents=True)
 		with open(os.path.join(os.path.abspath(out_path),'vmm_command_result.log'), 'w') as output_file:
 			output_file.write(output)

@@ -20,19 +20,22 @@ def SW1_Structures(topology: Topology):
 		raise ValueError("Machine data not found")
 		
 	node_SW1_i1=Interface(
-		name="e0/0",
+		name="0/0",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("sales")],
 		ospf_participant=False,
 	)
 	node_SW1_i2=Interface(
-		name="e0/1",
+		name="0/1",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("sales")],
 		ospf_participant=False,
 	)
 	node_SW1_i3=Interface(
-		name="e0/2",
+		name="0/2",
+		interface_type="ethernet",
 		trunk=True,
 		vlans=[
 			access_segment.get_vlan("sales"),
@@ -44,7 +47,8 @@ def SW1_Structures(topology: Topology):
 		ospf_participant=False,
 	)
 	node_SW1_i4=Interface(
-		name="e0/3",
+		name="0/3",
+		interface_type="ethernet",
 		trunk=True,
 		vlans=[
 			access_segment.get_vlan("sales"),
@@ -56,7 +60,8 @@ def SW1_Structures(topology: Topology):
 		ospf_participant=False,
 	)
 	node_SW1_i5=Interface(
-		name="e1/0",
+		name="1/0",
+		interface_type="ethernet",
 		trunk=True,
 		vlans=[
 			access_segment.get_vlan("sales"),
@@ -68,67 +73,78 @@ def SW1_Structures(topology: Topology):
 		ospf_participant=False,
 	)
 	node_SW1_i6=Interface(
-		name="e1/1",
+		name="1/1",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("sales")],
 		ospf_participant=False,
 	)
 	node_SW1_i7=Interface(
-		name="e1/2",
+		name="1/2",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("sales")],
 		ospf_participant=False,
 	)
 	node_SW1_i8=Interface(
-		name="e1/3",
+		name="1/3",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("sales")],
 		ospf_participant=False,
 	)
 	node_SW1_i9=Interface(
-		name="e2/0",
+		name="2/0",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("guest")],
 		ospf_participant=False,
 	)
 	node_SW1_i10=Interface(
-		name="e2/1",
+		name="2/1",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("guest")],
 		ospf_participant=False,
 	)
 	node_SW1_i11=Interface(
-		name="e2/2",
+		name="2/2",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("guest")],
 		ospf_participant=False,
 	)
 	node_SW1_i12=Interface(
-		name="e2/3",
+		name="2/3",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("guest")],
 		ospf_participant=False,
 	)
 	node_SW1_i13=Interface(
-		name="e3/0",
+		name="3/0",
+		interface_type="ethernet",
 		trunk=False,
 		ospf_participant=False,
 	)
 	node_SW1_i14=Interface(
-		name="vlan 30",
+		name="30",
+		interface_type="vlan",
 		ipv4_address="10.133.30.2",
 		ipv4_cidr=25,
 		ospf_participant=False,
 	)
 	node_SW1_i15=Interface(
-		name="e3/3",
+		name="3/3",
+		interface_type="ethernet",
 		description="out of band",
 		ipv4_address="192.168.250.51",
 		ipv4_cidr=24,
 		ospf_participant=False,
 	)
 	node_SW1_i16=Interface(  # noqa: F841
-		name="loop 0",
+		name="0",
+		interface_type="loopback",
 		description="",
 		ipv4_address="10.133.2.11",
 		ipv4_cidr=32,
@@ -159,7 +175,7 @@ def SW1_Structures(topology: Topology):
 	access_segment.nodes.append(node_SW1)
 def SW1_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
-	topology.get_node("SW1").get_interface("e0/2").connect_to(topology.get_node("SW2").get_interface("e0/2"))
-	topology.get_node("SW1").get_interface("e0/3").connect_to(topology.get_node("SW3").get_interface("e2/0"))
-	topology.get_node("SW1").get_interface("e1/0").connect_to(topology.get_node("SW4").get_interface("e1/1"))
-	topology.get_node("SW1").get_interface("e3/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW1").get_interface("ethernet","0/2").connect_to(topology.get_node("SW2").get_interface("ethernet","0/2"))
+	topology.get_node("SW1").get_interface("ethernet","0/3").connect_to(topology.get_node("SW3").get_interface("ethernet","2/0"))
+	topology.get_node("SW1").get_interface("ethernet","1/0").connect_to(topology.get_node("SW4").get_interface("ethernet","1/1"))
+	topology.get_node("SW1").get_interface("ethernet","3/3").connect_to(topology.exit_interface_oob)

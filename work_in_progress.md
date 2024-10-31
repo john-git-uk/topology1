@@ -353,6 +353,49 @@ UsePAM yes
 ~~~
 sudo systemctl restart sshd
 ~~~
+## LDAP RADIUS Query
+~~~
+apt-get install freeradius-ldap
+~~~
+#### /etc/freeradius/3.0/mods-available/ldap
+~~~
+ldap {
+    server = "ldap://ldap.example.com"
+    identity = "cn=admin,dc=example,dc=com"
+    password = "your_admin_password"
+    basedn = "dc=example,dc=com"
+    filter = "(uid=%{%{Stripped-User-Name}:-%{User-Name}})"
+    ldap_connections_number = 5
+    timeout = 4
+    timelimit = 3
+    net_timeout = 1
+    # Set whether to use the userPassword field for authentication
+    password_attribute = "userPassword"
+    start_tls = no
+    tls_require_cert = "allow"
+    compare_check_items = yes
+    access_attr_used_for_allow = yes
+}
+~~~
+~~~
+sudo ln -s /etc/freeradius/3.0/mods-available/ldap /etc/freeradius/3.0/mods-enabled/ldap
+~~~
+#### /etc/freeradius/3.0/sites-enabled/default
+~~~
+authorize {
+    ...
+    ldap
+    ...
+}
+authenticate {
+    ...
+    Auth-Type LDAP {
+        ldap
+    }
+    ...
+}
+~~~
+
 
 **service freeradius restart**
 ## proxmox

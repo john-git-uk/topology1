@@ -13,7 +13,8 @@ def R1_Structures(topology: Topology):
 		raise ValueError("Machine data not found")
 	
 	node_R1_i1=Interface(
-		name="g1",
+		name="1",
+		interface_type="gigabit ethernet",
 		description="Connected to SW3",
 		ipv4_address="10.133.2.64",
 		ipv4_cidr=31,
@@ -23,7 +24,8 @@ def R1_Structures(topology: Topology):
 		#ipv6_cidr=127
 	)
 	node_R1_i2=Interface(
-		name="g2",
+		name="2",
+		interface_type="gigabit ethernet",
 		description="Connected to ISP",
 		ipv4_address="10.111.10.10",
 		ipv4_cidr=31,
@@ -33,7 +35,8 @@ def R1_Structures(topology: Topology):
 		ipv6_cidr=127
 	)
 	node_R1_i3=Interface(
-		name="g3",
+		name="3",
+		interface_type="gigabit ethernet",
 		description="Connected to SW4",
 		ipv4_address="10.133.2.72",
 		ipv4_cidr=31,
@@ -43,7 +46,8 @@ def R1_Structures(topology: Topology):
 		#ipv6_cidr=127
 	)
 	node_R1_i4=Interface(
-		name="g4",
+		name="4",
+		interface_type="gigabit ethernet",
 		description="Out of band",
 		ipv4_address="192.168.250.1",
 		ipv4_cidr=24,
@@ -52,7 +56,8 @@ def R1_Structures(topology: Topology):
 		#ipv6_cidr=127
 	)
 	node_R1_i5=Interface(
-		name="loop 0",
+		name="0",
+		interface_type="loopback",
 		description="l0",
 		ipv4_address="10.133.2.1",
 		ipv4_cidr=32,
@@ -62,7 +67,8 @@ def R1_Structures(topology: Topology):
 		#ipv6_cidr=127
 	)
 	node_R1_i6=Interface(
-		name="tunnel 0",
+		name="0",
+		interface_type="tunnel",
 		description="tunnel to R3 via IPsec",
 		ipv4_address="10.133.2.68",
 		ipv4_cidr=31,
@@ -87,9 +93,9 @@ def R1_Structures(topology: Topology):
 	topology.add_node(node_R1)
 def R1_relations(topology: Topology):
 	LOGGER.debug("Loading R1 Relations")
-	topology.get_node("R1").get_interface("g1").connect_to(topology.get_node("SW3").get_interface("e4/0"))
-	topology.get_node("R1").get_interface("g2").connect_to(topology.get_node("ISP").get_interface("e0/0"))
-	topology.get_node("R1").get_interface("g3").connect_to(topology.get_node("SW4").get_interface("e2/1"))
-	topology.get_node("R1").get_interface("g4").connect_to(topology.exit_interface_oob)
-	topology.get_node("R1").get_interface("tunnel 0").tunnel_destination=(topology.get_node("R3").get_interface("e0/0"))
-	topology.get_node("R1").get_interface("tunnel 0").connect_to(topology.get_node("R3").get_interface("tunnel 0"))
+	topology.get_node("R1").get_interface("gigabit ethernet","1").connect_to(topology.get_node("SW3").get_interface("ethernet","4/0"))
+	topology.get_node("R1").get_interface("gigabit ethernet","2").connect_to(topology.get_node("ISP").get_interface("ethernet","0/0"))
+	topology.get_node("R1").get_interface("gigabit ethernet","3").connect_to(topology.get_node("SW4").get_interface("ethernet","2/1"))
+	topology.get_node("R1").get_interface("gigabit ethernet","4").connect_to(topology.exit_interface_oob)
+	topology.get_node("R1").get_interface("tunnel","0").tunnel_destination=(topology.get_node("R3").get_interface("ethernet","0/0"))
+	topology.get_node("R1").get_interface("tunnel","0").connect_to(topology.get_node("R3").get_interface("tunnel","0"))

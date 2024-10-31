@@ -3,6 +3,7 @@ import ipaddress
 import logging
 import os
 from machine_data import get_machine_data
+
 LOGGER = logging.getLogger('my_logger')
 
 def main_structures(topology: Topology):
@@ -21,6 +22,7 @@ def main_structures(topology: Topology):
 	#)
 	topology_exit_main=Interface(
 		name="eth_int0",
+		interface_type="ethernet",
 		description="",
 		ipv4_address="10.111.111.111",
 		ipv4_cidr=31,
@@ -29,6 +31,7 @@ def main_structures(topology: Topology):
 	)
 	topology_exit_oob=Interface(
 		name="oob", # This is a fake interface
+		interface_type="ethernet",
 		description="",
 		ipv4_address="192.168.250.254",
 		ipv4_cidr=24,
@@ -174,11 +177,13 @@ def main_structures(topology: Topology):
 	### This is old docker node
 	radius_server_interface_eth1=Interface(  # noqa: F841
 		name="eth1",
+		interface_type="ethernet",
 		ipv4_address="10.133.70.251",
 		ipv4_cidr=24
 	)
 	radius_server_interface_eth2=Interface(
 		name="eth2",
+		interface_type="ethernet",
 		ipv4_address="192.168.250.101",
 		ipv4_cidr=24
 	)
@@ -205,11 +210,13 @@ def main_structures(topology: Topology):
 	### This is old docker node
 	ldap_server_interface_eth1=Interface(  # noqa: F841
 		name="eth1",
+		interface_type="ethernet",
 		ipv4_address="10.133.70.250",
 		ipv4_cidr=24
 	)
 	ldap_server_interface_eth2=Interface(
 		name="eth2",
+		interface_type="ethernet",
 		ipv4_address="192.168.250.102",
 		ipv4_cidr=24
 	)
@@ -242,11 +249,13 @@ def main_structures(topology: Topology):
 	### This is old docker node
 	aaa_server_interface_eth1=Interface(  # noqa: F841
 		name="eth1",
+		interface_type="ethernet",
 		ipv4_address="10.133.70.251",
 		ipv4_cidr=24
 	)
 	aaa_server_interface_eth2=Interface(
 		name="eth2",
+		interface_type="ethernet",
 		ipv4_address="192.168.250.101",
 		ipv4_cidr=24
 	)
@@ -272,24 +281,29 @@ def main_structures(topology: Topology):
 	############################################################################
 	prox1_interface_oob_hitch = Interface (
 		name= "oob_hitch",
+		interface_type="bridge",
 		ipv4_address= "192.168.2.239",
 		ipv4_cidr= 24,
 	)
 	prox1_interface_vmbr60 = Interface (
 		name= "vmbr60",
+		interface_type="bridge",
 		ipv4_address= "10.133.60.245",
 		ipv4_cidr= 24,
 	)
 	prox1_interface_vmbr70 = Interface (
 		name= "vmbr70",
+		interface_type="bridge",
 		ipv4_address= "10.133.70.245",
 		ipv4_cidr= 24,
 	)
 	prox1_interface_enp1s0 = Interface (
 		name= "enp1s0",
+		interface_type="ethernet",
 	)
 	prox1_interface_enp2s0 = Interface (
 		name= "enp2s0",
+		interface_type="ethernet",
 	)
 	prox1=Node(
 		hostname="prox1",
@@ -322,27 +336,27 @@ def main_relations(topology: Topology):
 	if(outreach is None):
 		LOGGER.error("No outreach access segment found")
 		return
-	main.get_vlan("sales").fhrp0_priority=topology.get_node("SW3").get_interface("vlan 10")
-	main.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("l0")
-	outreach.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("l0")
+	main.get_vlan("sales").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","10")
+	main.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
+	outreach.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
 
-	main.get_vlan("guest").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 20")
-	main.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("l0")
-	outreach.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("l0")
+	main.get_vlan("guest").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","20")
+	main.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
+	outreach.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
 
-	main.get_vlan("management").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 30")
-	main.get_vlan("supervisor").fhrp0_priority=topology.get_node("SW3").get_interface("vlan 40")
-	main.get_vlan("guest-services").fhrp0_priority=topology.get_node("SW3").get_interface("vlan 60")
-	main.get_vlan("internal-services").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 70")
-	main.get_vlan("accounting").fhrp0_priority=topology.get_node("SW4").get_interface("vlan 80")
+	main.get_vlan("management").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","30")
+	main.get_vlan("supervisor").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","40")
+	main.get_vlan("guest-services").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","60")
+	main.get_vlan("internal-services").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","70")
+	main.get_vlan("accounting").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","80")
 
-	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("e0/1.10")
-	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("e0/1.20")
-	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("e0/1.40")
+	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.10")
+	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.20")
+	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.40")
 	
-	topology.ntp_master=topology.get_node("R1").get_interface("loop 0")
+	topology.ntp_master=topology.get_node("R1").get_interface("loopback", "0")
 	topology.ntp_public=ipaddress.IPv4Address("1.1.1.1")
 
-	topology.get_node("prox1").get_interface("enp1s0").connect_to(topology.exit_interface_oob)
-	topology.get_node("prox1").get_interface("enp2s0").connect_to(topology.get_node("SW6").get_interface("e2/0"))
+	topology.get_node("prox1").get_interface("ethernet","enp1s0").connect_to(topology.exit_interface_oob)
+	topology.get_node("prox1").get_interface("ethernet","enp2s0").connect_to(topology.get_node("SW6").get_interface("ethernet","2/0"))
 	# TODO: Add the other interfaces for prox1

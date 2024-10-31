@@ -72,7 +72,8 @@ def load_topology():
 	#Interface.update_forward_refs()
 	#Node.update_forward_refs()
 	#Topology.update_forward_refs()
-
+	Topology.model_rebuild()
+	
 	topology = Topology()
 	main_structures(topology)
 	LOGGER.debug("Topology main loaded")
@@ -180,11 +181,11 @@ def simple_function_prompt(topology:  Topology):
 				from node_data.node_dns_server_1 import configure_dns_server_1, packages_time_dns_server_1
 
 				#packages_time_ldap_server_1(topology.get_node("ldap-server-1"))
-				configure_ldap_server_1(topology.get_node("ldap-server-1"))
+				#configure_ldap_server_1(topology.get_node("ldap-server-1"))
 				#packages_time_radius_server_1(topology.get_node("radius-server-1"))
 				#configure_radius_server_1(topology.get_node("radius-server-1"))
 				#packages_time_dns_server_1(topology.get_node("dns-server-1"))
-				#configure_dns_server_1(topology.get_node("dns-server-1"))
+				configure_dns_server_1(topology.get_node("dns-server-1"))
 			elif(selected_function_index == 4):
 				pass
 			elif(selected_function_index == 5):
@@ -216,7 +217,7 @@ def main():
 
 	# Create handlers
 	stream_handler = logging.StreamHandler()  # Logs to terminal (stdout)
-	out_path = Path("../python_config/output/logs/")
+	out_path = Path(GLOBALS.app_path).parent.resolve() / "output/logs"
 	out_path.mkdir(exist_ok=True, parents=True)
 	file_handler = logging.FileHandler(os.path.join(os.path.abspath(out_path),'main.log'))  # Logs to file
 

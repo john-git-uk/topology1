@@ -18,6 +18,7 @@ VIR_DOMAIN_STATE_LOOKUP = {
 LOGGER = logging.getLogger('my_logger')
 class Globals:
 	def __init__(self):
+		self.app_path = None
 		self.hypervisor_ssh_host = None
 		self.hypervisor_ssh_username = None
 		self.hypervisor_ssh_password = None
@@ -26,7 +27,16 @@ class Globals:
 		self.lab_username = None
 		self.lab_password = None
 		self.telnet_transfer_path = None
-
+		self.init_error_free_path()
+	def init_error_free_path(self):
+		if(os.path.exists("../main.py")):
+			self.app_path = Path(os.path.abspath("../"))
+		if(os.path.exists("../src/main.py")):
+			self.app_path = Path(os.path.abspath("../src"))
+		if(os.path.exists("../python_config/src/main.py")):
+			self.app_path = Path(os.path.abspath("../python_config/src"))
+		if(os.path.exists("../topology1/python_config/src/main.py")):
+			self.app_path = Path(os.path.abspath("../topology1/python_config/src"))
 	def write(self):
 		LOGGER.error("Writing globals is not implemented yet. Exiting.")
 		exit()
@@ -131,9 +141,11 @@ class Globals:
 		LOGGER.info("Attempting to find repo_globals.ini")
 		# Loop through 1, 2, and 3 directories up
 		current_dir = Path.cwd()
-		for i in range(1, 4):
-			# Get the parent directory i levels up
-			parent_dir = current_dir.parents[i-1]
+		for i in range(0, 3):
+			parent_dir = current_dir
+			if i != 0:
+				# Get the parent directory i levels up
+				parent_dir = current_dir.parents[i-1]
 
 			# Check if the file exists in this directory
 			repo_globals_file_path = parent_dir / 'repo_globals.ini'

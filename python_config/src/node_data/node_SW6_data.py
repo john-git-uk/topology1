@@ -20,55 +20,66 @@ def SW6_Structures(topology: Topology):
 		raise ValueError("Machine data not found")
 		
 	node_SW6_i1=Interface(
-		name="e0/0",
+		name="0/0",
+		interface_type="ethernet",
 		channel_group=2
 	)
 	node_SW6_i2=Interface(
-		name="e0/1",
+		name="0/1",
+		interface_type="ethernet",
 		channel_group=1
 	)
 	node_SW6_i3=Interface(
-		name="e0/2",
+		name="0/2",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("management")]
 	)
 	node_SW6_i4=Interface(
-		name="e0/3",
+		name="0/3",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("internal-services")]
 	)
 	node_SW6_i5=Interface(
-		name="e1/0",
+		name="1/0",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("guest-services")]
 	)
 	node_SW6_i6=Interface(
-		name="e1/1",
+		name="1/1",
+		interface_type="ethernet",
 		channel_group=2
 	)
 	node_SW6_i7=Interface(
-		name="e1/2",
+		name="1/2",
+		interface_type="ethernet",
 		channel_group=1
 	)
 	node_SW6_i8=Interface(
-		name="e1/3",
+		name="1/3",
+		interface_type="ethernet",
 		trunk=False,
 		vlans=[access_segment.get_vlan("guest-services")]
 	)
 	node_SW6_i9=Interface(
-		name="e5/3",
+		name="5/3",
+		interface_type="ethernet",
 		description="out of band",
 		ipv4_address="192.168.250.56",
 		ipv4_cidr=24
 	)
 	node_SW6_i10=Interface(
-		name="loop 0",
+		name="0",
+		interface_type="loopback",
 		description="",
 		ipv4_address="10.133.2.18",
 		ipv4_cidr=32
 	)
 	node_SW6_i11=Interface(
-		name="port 1",
+		name="1",
+		interface_type="port-channel",
 		interfaces=[node_SW6_i2, node_SW6_i7],
 		trunk=True,
 		vlans=[
@@ -78,7 +89,8 @@ def SW6_Structures(topology: Topology):
 		]
 	)
 	node_SW6_i12=Interface(
-		name="port 2",
+		name="2",
+		interface_type="port-channel",
 		interfaces=[node_SW6_i1, node_SW6_i6],
 		trunk=True,
 		vlans=[
@@ -88,7 +100,8 @@ def SW6_Structures(topology: Topology):
 		]
 	)
 	node_SW6_i13=Interface(
-		name="e2/0",
+		name="2/0",
+		interface_type="ethernet",
 		trunk=True,
 		vlans=[
 			access_segment.get_vlan("management"),
@@ -120,11 +133,11 @@ def SW6_Structures(topology: Topology):
 	access_segment.nodes.append(node_SW6)
 def SW6_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
-	topology.get_node("SW6").get_interface("e0/1").connect_to(topology.get_node("SW3").get_interface("e1/0"))
-	topology.get_node("SW6").get_interface("e1/2").connect_to(topology.get_node("SW3").get_interface("e1/1"))
-	topology.get_node("SW6").get_interface("e0/0").connect_to(topology.get_node("SW4").get_interface("e0/3"))
-	topology.get_node("SW6").get_interface("e1/1").connect_to(topology.get_node("SW4").get_interface("e2/0"))
-	topology.get_node("SW6").get_interface("e2/0").connect_to(topology.get_node("prox1").get_interface("enp2s0"))
-	topology.get_node("SW6").get_interface("e5/3").connect_to(topology.exit_interface_oob)
-	topology.get_node("SW6").get_interface("port 1").connect_to(topology.get_node("SW4").get_interface("port 1"))
-	topology.get_node("SW6").get_interface("port 2").connect_to(topology.get_node("SW3").get_interface("port 1"))
+	topology.get_node("SW6").get_interface("ethernet","0/1").connect_to(topology.get_node("SW3").get_interface("ethernet","1/0"))
+	topology.get_node("SW6").get_interface("ethernet","1/2").connect_to(topology.get_node("SW3").get_interface("ethernet","1/1"))
+	topology.get_node("SW6").get_interface("ethernet","0/0").connect_to(topology.get_node("SW4").get_interface("ethernet","0/3"))
+	topology.get_node("SW6").get_interface("ethernet","1/1").connect_to(topology.get_node("SW4").get_interface("ethernet","2/0"))
+	topology.get_node("SW6").get_interface("ethernet","2/0").connect_to(topology.get_node("prox1").get_interface("ethernet","np2s0"))
+	topology.get_node("SW6").get_interface("ethernet","5/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW6").get_interface("port-channel","1").connect_to(topology.get_node("SW4").get_interface("port-channel","1"))
+	topology.get_node("SW6").get_interface("port-channel","2").connect_to(topology.get_node("SW3").get_interface("port-channel","1"))

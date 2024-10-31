@@ -17,11 +17,13 @@ def radius_server_1_structures(topology: Topology):
 
 	radius_server1_i1 = Interface(
 		name="eth0",
+		interface_type="ethernet",
 		ipv4_address="192.168.2.230",
 		ipv4_cidr=24
 	)
 	radius_server1_i2 = Interface(
 		name="eth1",
+		interface_type="ethernet",
 		ipv4_address="10.133.60.251",
 		ipv4_cidr=24
 	)
@@ -61,8 +63,8 @@ def radius_server_1_relations(topology: Topology):
 	if(radius_server_1 is None):
 		raise Exception("radius_server_1 is None")
 	
-	radius_server_1.get_interface("eth0").connect_to(prox1.get_interface("oob_hitch"))
-	radius_server_1.get_interface("eth1").connect_to(prox1.get_interface("vmbr60"))
+	radius_server_1.get_interface("ethernet","eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
+	radius_server_1.get_interface("ethernet","eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
 
 def packages_time_radius_server_1(radius_server_1: Node):
 	topology = None

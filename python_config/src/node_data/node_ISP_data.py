@@ -14,7 +14,8 @@ def ISP_Structures(topology: Topology):
 		raise ValueError("Machine data not found")
 		
 	node_ISP_i1=Interface(
-		name="e0/0",
+		name="0/0",
+		interface_type="ethernet",
 		description="Connected to R1",
 		ipv4_address="10.111.10.11",
 		ipv4_cidr=31,
@@ -22,7 +23,8 @@ def ISP_Structures(topology: Topology):
 		ipv6_cidr=127
 	)
 	node_ISP_i2=Interface(
-		name="e0/1",
+		name="0/1",
+		interface_type="ethernet",
 		description="Connected to R2",
 		ipv4_address="10.111.10.21",
 		ipv4_cidr=31,
@@ -30,7 +32,8 @@ def ISP_Structures(topology: Topology):
 		ipv6_cidr=127
 	)
 	node_ISP_i3=Interface(
-		name="e0/2",
+		name="0/2",
+		interface_type="ethernet",
 		description="Connected to R3",
 		ipv4_address="10.111.10.31",
 		ipv4_cidr=31,
@@ -46,7 +49,8 @@ def ISP_Structures(topology: Topology):
 	#	ipv6_cidr=127
 	#)
 	node_ISP_i5=Interface(
-		name="e1/0",
+		name="1/0",
+		interface_type="ethernet",
 		description="Connected to alprouter",
 		ipv4_address="10.111.111.110",
 		ipv4_cidr=31,
@@ -69,8 +73,8 @@ def ISP_Structures(topology: Topology):
 	topology.add_node(node_ISP)
 def ISP_relations(topology: Topology):
 	LOGGER.debug("Loading ISP Relations")
-	topology.get_node("ISP").get_interface("e0/0").connect_to(topology.get_node("R1").get_interface("g2"))
-	topology.get_node("ISP").get_interface("e0/1").connect_to(topology.get_node("R2").get_interface("e0/0"))
-	topology.get_node("ISP").get_interface("e0/2").connect_to(topology.get_node("R3").get_interface("e0/0"))
+	topology.get_node("ISP").get_interface("ethernet","0/0").connect_to(topology.get_node("R1").get_interface("gigabit ethernet","2"))
+	topology.get_node("ISP").get_interface("ethernet","0/1").connect_to(topology.get_node("R2").get_interface("ethernet","0/0"))
+	topology.get_node("ISP").get_interface("ethernet","0/2").connect_to(topology.get_node("R3").get_interface("ethernet","0/0"))
 	#topology.get_node("ISP").get_interface("e0/3").connect_to(topology.exit_interface_main)
-	topology.get_node("ISP").get_interface("e1/0").connect_to(topology.exit_interface_main)
+	topology.get_node("ISP").get_interface("ethernet","1/0").connect_to(topology.exit_interface_main)

@@ -20,27 +20,33 @@ def SW4_Structures(topology: Topology):
 		raise ValueError("Machine data not found")
 
 	node_SW4_i1=Interface(
-		name="e0/0",
+		name="0/0",
+		interface_type="ethernet",
 		channel_group=2
 	)
 	node_SW4_i2=Interface(
-		name="e0/1",
+		name="0/1",
+		interface_type="ethernet",
 		channel_group=2
 	)
 	node_SW4_i3=Interface(
-		name="e0/2",
+		name="0/2",
+		interface_type="ethernet",
 		channel_group=2
 	)
 	node_SW4_i4=Interface(
-		name="e0/3",
+		name="0/3",
+		interface_type="ethernet",
 		channel_group=1
 	)
 	node_SW4_i5=Interface(
-		name="e2/0",
+		name="2/0",
+		interface_type="ethernet",
 		channel_group=1
 	)
 	node_SW4_i6=Interface(
-		name="e1/0",
+		name="1/0",
+		interface_type="ethernet",
 		trunk=True,
 		vlans=[
 			access_segment.get_vlan("sales"),
@@ -51,7 +57,8 @@ def SW4_Structures(topology: Topology):
 		]
 	)
 	node_SW4_i7=Interface(
-		name="e1/1",
+		name="1/1",
+		interface_type="ethernet",
 		description="Connected to SW1",
 		trunk=True,
 		vlans=[
@@ -61,7 +68,8 @@ def SW4_Structures(topology: Topology):
 		]
 	)
 	node_SW4_i8=Interface(
-		name="e1/2",
+		name="1/2",
+		interface_type="ethernet",
 		description="Connected to SW5",
 		trunk=True,
 		vlans=[
@@ -72,56 +80,64 @@ def SW4_Structures(topology: Topology):
 		]
 	)
 	node_SW4_i9=Interface(
-		name="vlan 10",
+		name="10",
+		interface_type="vlan",
 		ipv4_address="10.133.10.125",
 		ipv4_cidr=25,
 		ospf_participant=True,
 		ospf_passive=True,
 	)
 	node_SW4_i10=Interface(
-		name="vlan 20",
+		name="20",
+		interface_type="vlan",
 		ipv4_address="10.133.21.253",
 		ipv4_cidr=23,
 		ospf_participant=True,
 		ospf_passive=True,
 	)
 	node_SW4_i11=Interface(
-		name="vlan 30",
+		name="30",
+		interface_type="vlan",
 		ipv4_address="10.133.30.4",
 		ipv4_cidr=25,
 		ospf_participant=True,
 		ospf_passive=False,
 	)
 	node_SW4_i12=Interface(
-		name="vlan 40",
+		name="40",
+		interface_type="vlan",
 		ipv4_address="10.133.40.125",
 		ipv4_cidr=25,
 		ospf_participant=True,
 		ospf_passive=True,
 	)
 	node_SW4_i13=Interface(
-		name="vlan 60",
+		name="60",
+		interface_type="vlan",
 		ipv4_address="10.133.60.253",
 		ipv4_cidr=24,
 		ospf_participant=True,
 		ospf_passive=True,
 	)
 	node_SW4_i14=Interface(
-		name="vlan 70",
+		name="70",
+		interface_type="vlan",
 		ipv4_address="10.133.70.253",
 		ipv4_cidr=24,
 		ospf_participant=True,
 		ospf_passive=True,
 	)
 	node_SW4_i15=Interface(
-		name="vlan 80",
+		name="80",
+		interface_type="vlan",
 		ipv4_address="10.133.80.253",
 		ipv4_cidr=24,
 		ospf_participant=True,
 		ospf_passive=True,
 	)
 	node_SW4_i16=Interface(
-		name="e1/3",
+		name="1/3",
+		interface_type="ethernet",
 		description="Connected to R2",
 		ipv4_address="10.133.2.67",
 		ipv4_cidr=31,
@@ -129,7 +145,8 @@ def SW4_Structures(topology: Topology):
 		ospf_passive=False,
 	)
 	node_SW4_i17=Interface(
-		name="e2/1",
+		name="2/1",
+		interface_type="ethernet",
 		description="Connected to R1",
 		ipv4_address="10.133.2.73",
 		ipv4_cidr=31,
@@ -137,7 +154,8 @@ def SW4_Structures(topology: Topology):
 		ospf_passive=False,
 	)
 	node_SW4_i18=Interface(
-		name="e5/3",
+		name="5/3",
+		interface_type="ethernet",
 		description="out of band",
 		ipv4_address="192.168.250.54",
 		ipv4_cidr=24,
@@ -145,14 +163,16 @@ def SW4_Structures(topology: Topology):
 		ospf_passive=True,
 	)
 	node_SW4_i19=Interface(
-		name="loop 0",
+		name="0",
+		interface_type="loopback",
 		ipv4_address="10.133.2.14",
 		ipv4_cidr=32,
 		ospf_participant=True,
 		ospf_passive=True,
 	)
 	node_SW4_i20=Interface(
-		name="port 1",
+		name="1",
+		interface_type="port-channel",
 		interfaces=[node_SW4_i4, node_SW4_i5],
 		trunk=True,
 		vlans=[
@@ -163,7 +183,8 @@ def SW4_Structures(topology: Topology):
 		ospf_participant=False,
 	)
 	node_SW4_i21=Interface(
-		name="port 2",
+		name="2",
+		interface_type="port-channel",
 		interfaces=[node_SW4_i1, node_SW4_i2, node_SW4_i3],
 		trunk=True,
 		vlans=[
@@ -212,16 +233,16 @@ def SW4_Structures(topology: Topology):
 	access_segment.fhrp.append(node_SW4)
 def SW4_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
-	topology.get_node("SW4").get_interface("e0/0").connect_to(topology.get_node("SW3").get_interface("e0/0"))
-	topology.get_node("SW4").get_interface("e0/1").connect_to(topology.get_node("SW3").get_interface("e0/1"))
-	topology.get_node("SW4").get_interface("e0/2").connect_to(topology.get_node("SW3").get_interface("e0/2"))
-	topology.get_node("SW4").get_interface("e0/3").connect_to(topology.get_node("SW6").get_interface("e0/0"))
-	topology.get_node("SW4").get_interface("e2/0").connect_to(topology.get_node("SW6").get_interface("e1/1"))
-	topology.get_node("SW4").get_interface("e1/0").connect_to(topology.get_node("SW2").get_interface("e0/0"))
-	topology.get_node("SW4").get_interface("e1/1").connect_to(topology.get_node("SW1").get_interface("e1/0"))
-	topology.get_node("SW4").get_interface("e1/2").connect_to(topology.get_node("SW5").get_interface("e0/1"))
-	topology.get_node("SW4").get_interface("e1/3").connect_to(topology.get_node("R2").get_interface("e0/0"))
-	topology.get_node("SW4").get_interface("e2/1").connect_to(topology.get_node("R1").get_interface("g3"))
-	topology.get_node("SW4").get_interface("e5/3").connect_to(topology.exit_interface_oob)
-	topology.get_node("SW4").get_interface("port 1").connect_to(topology.get_node("SW6").get_interface("port 2"))
-	topology.get_node("SW4").get_interface("port 2").connect_to(topology.get_node("SW3").get_interface("port 2"))
+	topology.get_node("SW4").get_interface("ethernet","0/0").connect_to(topology.get_node("SW3").get_interface("ethernet","0/0"))
+	topology.get_node("SW4").get_interface("ethernet","0/1").connect_to(topology.get_node("SW3").get_interface("ethernet","0/1"))
+	topology.get_node("SW4").get_interface("ethernet","0/2").connect_to(topology.get_node("SW3").get_interface("ethernet","0/2"))
+	topology.get_node("SW4").get_interface("ethernet","0/3").connect_to(topology.get_node("SW6").get_interface("ethernet","0/0"))
+	topology.get_node("SW4").get_interface("ethernet","2/0").connect_to(topology.get_node("SW6").get_interface("ethernet","1/1"))
+	topology.get_node("SW4").get_interface("ethernet","1/0").connect_to(topology.get_node("SW2").get_interface("ethernet","0/0"))
+	topology.get_node("SW4").get_interface("ethernet","1/1").connect_to(topology.get_node("SW1").get_interface("ethernet","1/0"))
+	topology.get_node("SW4").get_interface("ethernet","1/2").connect_to(topology.get_node("SW5").get_interface("ethernet","0/1"))
+	topology.get_node("SW4").get_interface("ethernet","1/3").connect_to(topology.get_node("R2").get_interface("ethernet","0/0"))
+	topology.get_node("SW4").get_interface("ethernet","2/1").connect_to(topology.get_node("R1").get_interface("gigabit ethernet","3"))
+	topology.get_node("SW4").get_interface("ethernet","5/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW4").get_interface("port-channel","1").connect_to(topology.get_node("SW6").get_interface("port-channel","2"))
+	topology.get_node("SW4").get_interface("port-channel","2").connect_to(topology.get_node("SW3").get_interface("port-channel","2"))

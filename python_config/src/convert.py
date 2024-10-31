@@ -1,6 +1,7 @@
 
 import ipaddress
 import logging
+import base64
 LOGGER = logging.getLogger('my_logger')
 def cidr_to_netmask(cidr):
 	# shift 1 left (inserting zeros) for cidr count
@@ -75,3 +76,6 @@ def get_chunky_hex(string):
 		result += [hex_string[i:i+chunk_size]]
 	LOGGER.debug(f"result: {result}")
 	return result
+
+def base64_encode_string(stringg):
+    return base64.b64encode(stringg.encode()).decode()
