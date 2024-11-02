@@ -46,7 +46,7 @@ def main_structures(topology: Topology):
 	fake_node.add_interface(topology_exit_oob)
 	topology.domain_name_a = "tapeitup"
 	topology.domain_name_b = "private"
-	topology.dns_ipv4_address=ipaddress.IPv4Address("8.8.8.8")
+	topology.dns_upstream.append(ipaddress.ip_address("8.8.8.8"))
 	topology.exit_interface_main=topology_exit_main
 	topology.exit_interface_oob=topology_exit_oob
 	topology.add_node(fake_node)
@@ -205,7 +205,7 @@ def main_structures(topology: Topology):
 		{"source": radius_server.config_path+"/sshd_config", "dest": "/etc/ssh/sshd_config"},
 		{"source": radius_server.config_path+"/starter.sh", "dest": "/sbin/scripts/starter.sh"},
 	]
-	topology.add_node(radius_server)
+	#topology.add_node(radius_server)
 	############################################################################
 	### This is old docker node
 	ldap_server_interface_eth1=Interface(  # noqa: F841
@@ -244,7 +244,7 @@ def main_structures(topology: Topology):
 		{"source": ldap_server.config_path+"/ldap_build.sh", "dest": "/etc/nsswitch.conf"},
 		{"source": ldap_server.config_path+"/logging.ldif", "dest": "/root/logging.ldif"}
 	]
-	topology.add_node(ldap_server)
+	#topology.add_node(ldap_server)
 	############################################################################
 	### This is old docker node
 	aaa_server_interface_eth1=Interface(  # noqa: F841
@@ -277,7 +277,7 @@ def main_structures(topology: Topology):
 		{"source": aaa_server.config_path+"/sshd_config", "dest": "/etc/ssh/sshd_config"},
 		{"source": aaa_server.config_path+"/starter.sh", "dest": "/sbin/scripts/starter.sh"},
 	]
-	topology.add_node(aaa_server)
+	#topology.add_node(aaa_server)
 	############################################################################
 	prox1_interface_oob_hitch = Interface (
 		name= "oob_hitch",
@@ -336,6 +336,7 @@ def main_relations(topology: Topology):
 	if(outreach is None):
 		LOGGER.error("No outreach access segment found")
 		return
+	topology.dns_private.append((topology.get_node("dns-server-1")).get_interface("ethernet","eth1"))
 	main.get_vlan("sales").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","10")
 	main.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
 	outreach.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
@@ -355,7 +356,7 @@ def main_relations(topology: Topology):
 	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.40")
 	
 	topology.ntp_master=topology.get_node("R1").get_interface("loopback", "0")
-	topology.ntp_public=ipaddress.IPv4Address("1.1.1.1")
+	topology.ntp_public=ipaddress.ip_address("1.1.1.1")
 
 	topology.get_node("prox1").get_interface("ethernet","enp1s0").connect_to(topology.exit_interface_oob)
 	topology.get_node("prox1").get_interface("ethernet","enp2s0").connect_to(topology.get_node("SW6").get_interface("ethernet","2/0"))

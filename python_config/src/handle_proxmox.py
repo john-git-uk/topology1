@@ -15,6 +15,7 @@ from proxmoxer import ProxmoxAPI
 from pydantic import BaseModel
 from typing import Optional, List
 import paramiko
+from project_globals import GLOBALS
 class Container(BaseModel):
 	ctid: int
 	template: str
@@ -91,15 +92,24 @@ def execute_proxnode_commands(proxmox, node, commands):
 
 	output = []
 	error = []
-	for command in commands:
-		LOGGER.debug("#### sending command: "+f'pct exec {my_container.ctid} -- sh -c "{command}"')
-		stdin, stdout, stderr = ssh.exec_command(f'pct exec {my_container.ctid} -- sh -c "{command}"')
-		output += [stdout.read().decode()]
-		error += [stderr.read().decode()]
+	# Send the commands to file for review
+	t_path = Path(GLOBALS.app_path).parent.resolve() / "output" / proxmox.hostname
+	t_path.mkdir(exist_ok=True, parents=True)
+	with open(os.path.join(t_path,'proxnode_command_log.txt'), 'a') as f:
+		for command in commands:
+			print(f'pct exec {my_container.ctid} -- sh -c "{command}"', file=f)
+			LOGGER.debug("#### sending command: "+f'pct exec {my_container.ctid} -- sh -c "{command}"')
+			stdin, stdout, stderr = ssh.exec_command(f'pct exec {my_container.ctid} -- sh -c "{command}"')
+			output += [stdout.read().decode()]
+			error += [stderr.read().decode()]
 	LOGGER.debug("######################## output ########################")
-	LOGGER.debug(str(output))
+	for line in output:
+		if line:
+			LOGGER.debug(line)
 	LOGGER.debug("######################## error ########################")
-	LOGGER.debug(str(error))
+	for line in error:
+		if line:
+			LOGGER.warning(line)
 	ssh.close()
 
 	return output, error
@@ -144,8 +154,8 @@ def test_create_container(proxmox, container:  Container):
 
 	proxmoxapi = ProxmoxAPI(str(proxmox.oob_interface.ipv4_address), user='root@pam', password='toorp', verify_ssl=False)
 
-	interface_eth0 = container.node_data.get_interface("eth0")
-	interface_eth1 = container.node_data.get_interface("eth1")
+	interface_eth0 = container.node_data.get_interface("ethernet","eth0")
+	interface_eth1 = container.node_data.get_interface("ethernet","eth1")
 	if(interface_eth0.ipv4_address is None):
 		raise ValueError(f"Interface eth0 on node {container.node_data.hostname} is not configured and is required for test function")
 	if(interface_eth1.ipv4_address is None):
@@ -215,12 +225,12 @@ def prox1_relations(prox1: Node):
 	if(dns_server_1 is None):
 		raise Exception("dns_server_1 is None")
 
-	ldap_server_1.get_interface("eth0").connect_to(prox1.get_interface("oob_hitch"))
-	ldap_server_1.get_interface("eth1").connect_to(prox1.get_interface("vmbr60"))
-	radius_server_1.get_interface("eth0").connect_to(prox1.get_interface("oob_hitch"))
-	radius_server_1.get_interface("eth1").connect_to(prox1.get_interface("vmbr60"))
-	dns_server_1.get_interface("eth0").connect_to(prox1.get_interface("oob_hitch"))
-	dns_server_1.get_interface("eth1").connect_to(prox1.get_interface("vmbr60"))
+	ldap_server_1.get_interface("eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
+	ldap_server_1.get_interface("eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
+	radius_server_1.get_interface("eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
+	radius_server_1.get_interface("eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
+	dns_server_1.get_interface("eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
+	dns_server_1.get_interface("eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
 
 def wait_for_container_running(proxmox, container: Container, retries=30):
 	bootloop = 0

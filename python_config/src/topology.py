@@ -16,13 +16,14 @@ class Topology(BaseModel):
 		}
 	domain_name_a: Optional[str]="local"
 	domain_name_b: Optional[str]=None
-	dns_ipv4_address: Optional[ipaddress.IPv4Address]=None
 	exit_interface_main: Optional[Interface]=None
 	exit_interface_oob: Optional[Interface]=None
 	exit_interface_real_wap: Optional[Interface]=None
 	ntp_master: Optional[Interface]=None
 	ntp_public: Optional[ipaddress.IPv4Address]=None
 	ntp_password: Optional[str]="outoftime"
+	dns_private: List[Interface]=[]
+	dns_upstream: List[ipaddress]=[]
 	#vlans: List[VLAN]=[]
 	nodes: List[Node]=[]
 	access_segments: List[AccessSegment]=[]

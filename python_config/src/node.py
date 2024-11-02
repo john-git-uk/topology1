@@ -543,7 +543,8 @@ class Node(BaseModel):
 								'network '+str(vlan.ipv4_netid)+' /'+str(vlan.ipv4_cidr),
 								'default-router '+str(gateway),
 								'domain-name '+self.topology_a_part_of.domain_name_a+'.'+self.topology_a_part_of.domain_name_b,
-								'dns-server '+str(self.topology_a_part_of.dns_ipv4_address),
+								# TODO: Add dns servers
+								'dns-server '+str(self.topology_a_part_of.dns_private[0].ipv4_address),
 								'exit'
 							]
 				if(dhcp_helper is not None):

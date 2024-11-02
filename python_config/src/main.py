@@ -180,12 +180,12 @@ def simple_function_prompt(topology:  Topology):
 				from node_data.node_radius_server_1 import configure_radius_server_1, packages_time_radius_server_1
 				from node_data.node_dns_server_1 import configure_dns_server_1, packages_time_dns_server_1
 
-				#packages_time_ldap_server_1(topology.get_node("ldap-server-1"))
-				#configure_ldap_server_1(topology.get_node("ldap-server-1"))
-				#packages_time_radius_server_1(topology.get_node("radius-server-1"))
-				#configure_radius_server_1(topology.get_node("radius-server-1"))
-				#packages_time_dns_server_1(topology.get_node("dns-server-1"))
+				packages_time_dns_server_1(topology.get_node("dns-server-1"))
 				configure_dns_server_1(topology.get_node("dns-server-1"))
+				packages_time_ldap_server_1(topology.get_node("ldap-server-1"))
+				configure_ldap_server_1(topology.get_node("ldap-server-1"))
+				packages_time_radius_server_1(topology.get_node("radius-server-1"))
+				configure_radius_server_1(topology.get_node("radius-server-1"))
 			elif(selected_function_index == 4):
 				pass
 			elif(selected_function_index == 5):

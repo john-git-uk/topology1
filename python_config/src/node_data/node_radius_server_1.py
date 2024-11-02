@@ -252,12 +252,12 @@ secret = beantruck
 shortname = localhost
 }}
 client R1.tapeitup.private {{
-	ipaddr = {topology.get_node("R1").get_interface("loop 0").ipv4_address}
+	ipaddr = {topology.get_node("R1").get_interface("loopback","0").ipv4_address}
 	secret = R1radiuskey
 	shortname = R1
 }}
 client SW3.tapeitup.private {{
-	ipaddr = {topology.get_node("SW3").get_interface("loop 0").ipv4_address}
+	ipaddr = {topology.get_node("SW3").get_interface("loopback", "0").ipv4_address}
 	secret = SW3radiuskey
 	shortname = SW3
 }}
@@ -327,7 +327,7 @@ def radius_server_1_nslcd_content(radius_server_1):
 	ldap_server_1 = topology.get_node("ldap-server-1") # TODO: Assumed there is only one ldap server
 	#region return string
 	return f"""
-uri ldap://{ldap_server_1.get_interface("eth1").ipv4_address}
+uri ldap://{ldap_server_1.get_interface("ethernet","eth1").ipv4_address}
 base dc={topology.domain_name_a},dc={topology.domain_name_b}
 binddn cn=admin,dc={topology.domain_name_a},dc={topology.domain_name_b}
 bindpw ldap
