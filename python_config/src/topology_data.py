@@ -11,6 +11,7 @@ def main_structures(topology: Topology):
 	from interface import Interface
 	from vlan import VLAN
 	from access_segment import AccessSegment
+	from access_control import Access_Control
 	
 	#alpouter_eth_out0=Interface(
 	#	name="eth_out0", # This is a fake interface
@@ -20,36 +21,66 @@ def main_structures(topology: Topology):
 	#	#ipv6_address=ipaddress.IPv6Address(),
 	#	#ipv6_cidr=128
 	#)
-	topology_exit_main=Interface(
-		name="eth_int0",
+	#topology_exit_main=Interface(
+	#	name="eth_int0",
+	#	interface_type="ethernet",
+	#	description="",
+	#	ipv4_address="10.111.111.111",
+	#	ipv4_cidr=31,
+	#	ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fff6"),
+	#	ipv6_cidr=128
+	#)
+	exit_r1=Interface(
+		name="exit_r1",
 		interface_type="ethernet",
-		description="",
-		ipv4_address="10.111.111.111",
+		description="Connected to R1",
+		ipv4_address="10.111.10.11",
 		ipv4_cidr=31,
-		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fff6"),
-		ipv6_cidr=128
+		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::ffff"),
+		ipv6_cidr=127
 	)
-	topology_exit_oob=Interface(
-		name="oob", # This is a fake interface
+	exit_r2=Interface(
+		name="exit_r2",
+		interface_type="ethernet",
+		description="Connected to R2",
+		ipv4_address="10.111.10.21",
+		ipv4_cidr=31,
+		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fffd"),
+		ipv6_cidr=127
+	)
+	exit_r3=Interface(
+		name="exit_r3",
+		interface_type="ethernet",
+		description="Connected to R3",
+		ipv4_address="10.111.10.31",
+		ipv4_cidr=31,
+		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fffb"),
+		ipv6_cidr=127
+	)
+	exit_oob=Interface(
+		name="exit_oob", # This is a fake interface for debian pc
 		interface_type="ethernet",
 		description="",
 		ipv4_address="192.168.250.254",
 		ipv4_cidr=24,
 	)
-	fake_node=Node(
-		hostname="fake",
-		machine_data=get_machine_data("alpine"),
-		local_user="",
-		local_password="",
-	)
-	fake_node.add_interface(topology_exit_main)
-	fake_node.add_interface(topology_exit_oob)
+	#fake_node=Node(
+	#	hostname="fake",
+	#	machine_data=get_machine_data("alpine"),
+	#	local_user="",
+	#	local_password="",
+	#)
+	#fake_node.add_interface(topology_exit_main)
+	#fake_node.add_interface(topology_exit_oob)
 	topology.domain_name_a = "tapeitup"
 	topology.domain_name_b = "private"
 	topology.dns_upstream.append(ipaddress.ip_address("8.8.8.8"))
-	topology.exit_interface_main=topology_exit_main
-	topology.exit_interface_oob=topology_exit_oob
-	topology.add_node(fake_node)
+	#topology.exit_interface_main=topology_exit_main
+	topology.exit_interfaces.append(exit_r1)
+	topology.exit_interfaces.append(exit_r2)
+	topology.exit_interfaces.append(exit_r3)
+	topology.exit_interfaces.append(exit_oob)
+	#topology.add_node(fake_node)
 	main_access_segment = AccessSegment(
 		name="main",
 	)
@@ -173,156 +204,76 @@ def main_structures(topology: Topology):
 	outreach_access_segment.vlans.append(ovlan_20)
 	outreach_access_segment.vlans.append(ovlan_30)
 	outreach_access_segment.vlans.append(ovlan_40)
-	############################################################################
-	### This is old docker node
-	radius_server_interface_eth1=Interface(  # noqa: F841
-		name="eth1",
-		interface_type="ethernet",
-		ipv4_address="10.133.70.251",
-		ipv4_cidr=24
+	
+	# Management
+	acc1 = Access_Control(
+		vlans = [
+			vlan_30,
+			ovlan_30,
+		],
 	)
-	radius_server_interface_eth2=Interface(
-		name="eth2",
-		interface_type="ethernet",
-		ipv4_address="192.168.250.101",
-		ipv4_cidr=24
+	# Guests
+	acc2 = Access_Control(
+		vlans = [
+			vlan_20,
+			ovlan_20,
+			vlan_60,
+		],
+		allowlist = [
+			ipaddress.ip_network("0.0.0.0/0"),
+		]
 	)
-	radius_server=Node(
-		hostname="radius_server",
-		machine_data=get_machine_data("debian"),
-		local_user="root",
-		local_password="",
-		interfaces=[],
-		hypervisor_telnet_port=0,
-		oob_interface=radius_server_interface_eth2,
+	# Sales
+	acc3 = Access_Control(
+		vlans = [
+			vlan_10,
+			ovlan_10,
+			vlan_60,
+		],
+		allowlist = [
+			ipaddress.ip_network("0.0.0.0/0"),
+		]
 	)
-	radius_server.config_path=os.path.abspath("../node_config/server/radius_server")
-	LOGGER.debug("radius_server.config_path: "+radius_server.config_path)
-	radius_server.config_copying_paths = [
-		{"source": radius_server.config_path+"/clients.conf", "dest": "/etc/freeradius/3.0/clients.conf"},
-		{"source": radius_server.config_path+"/authorize", "dest": "/etc/freeradius/3.0/mods-config/files/authorize"},
-		{"source": radius_server.config_path+"/networkconfig.sh", "dest": "/sbin/scripts/networkconfig.sh"},
-		{"source": radius_server.config_path+"/sshd_config", "dest": "/etc/ssh/sshd_config"},
-		{"source": radius_server.config_path+"/starter.sh", "dest": "/sbin/scripts/starter.sh"},
-	]
-	#topology.add_node(radius_server)
-	############################################################################
-	### This is old docker node
-	ldap_server_interface_eth1=Interface(  # noqa: F841
-		name="eth1",
-		interface_type="ethernet",
-		ipv4_address="10.133.70.250",
-		ipv4_cidr=24
+	# Supervisor
+	acc4 = Access_Control(
+		vlans = [
+			vlan_40,
+			ovlan_40,
+			vlan_60,
+		],
+		allowlist = [
+			ipaddress.ip_network("0.0.0.0/0"),
+		]
 	)
-	ldap_server_interface_eth2=Interface(
-		name="eth2",
-		interface_type="ethernet",
-		ipv4_address="192.168.250.102",
-		ipv4_cidr=24
+	# Accounting
+	acc5 = Access_Control(
+		vlans = [
+			vlan_80,
+			ovlan_40,
+			vlan_60,
+		],
+		allowlist = [
+			ipaddress.ip_network("0.0.0.0/0"),
+		]
 	)
-	ldap_server=Node(
-		hostname="ldap_server",
-		machine_data=get_machine_data("debian"),
-		local_user="root",
-		local_password="",
-		interfaces=[],
-		hypervisor_telnet_port=0,
-		oob_interface=ldap_server_interface_eth2,
+	# Internal Services (no internet)
+	acc6 = Access_Control(
+		vlans = [
+			vlan_10,
+			ovlan_10,
+			vlan_40,
+			ovlan_40,
+			vlan_80,
+			vlan_70,
+		],
 	)
-	ldap_server.config_path=os.path.abspath("../node_config/server/ldap_server")
-	ldap_server.config_copying_paths = [
-		{"source": ldap_server.config_path+"/runonce.conf", "dest": "/sbin/scripts/runonce.sh"},
-		{"source": ldap_server.config_path+"/networkconfig.sh", "dest": "/sbin/scripts/networkconfig.sh"},
-		{"source": ldap_server.config_path+"/sshd_config", "dest": "/etc/ssh/sshd_config"},
-		{"source": ldap_server.config_path+"/starter.sh", "dest": "/sbin/scripts/starter.sh"},
-		{"source": ldap_server.config_path+"/config.php", "dest": "/etc/phpldapadmin/config.php"},
-		{"source": ldap_server.config_path+"/base.ldif", "dest": "/root/base.ldif"},
-		{"source": ldap_server.config_path+"/ldap_setup.sh", "dest": "/sbin/scripts/ldap_setup.sh"},
-		{"source": ldap_server.config_path+"/ldap_build.sh", "dest": "/sbin/scripts/ldap_build.sh"},
-		{"source": ldap_server.config_path+"/ldap_build.sh", "dest": "/sbietc/nslcd.conf"},
-		{"source": ldap_server.config_path+"/ldap_build.sh", "dest": "/etc/nslcd.conf"},
-		{"source": ldap_server.config_path+"/ldap_build.sh", "dest": "/etc/nsswitch.conf"},
-		{"source": ldap_server.config_path+"/logging.ldif", "dest": "/root/logging.ldif"}
-	]
-	#topology.add_node(ldap_server)
-	############################################################################
-	### This is old docker node
-	aaa_server_interface_eth1=Interface(  # noqa: F841
-		name="eth1",
-		interface_type="ethernet",
-		ipv4_address="10.133.70.251",
-		ipv4_cidr=24
-	)
-	aaa_server_interface_eth2=Interface(
-		name="eth2",
-		interface_type="ethernet",
-		ipv4_address="192.168.250.101",
-		ipv4_cidr=24
-	)
-	aaa_server=Node(
-		hostname="aaa_server",
-		machine_data=get_machine_data("ubuntu"),
-		local_user="root",
-		local_password="",
-		interfaces=[],
-		hypervisor_telnet_port=0,
-		oob_interface=aaa_server_interface_eth2,
-	)
-	aaa_server.config_path=os.path.abspath("../node_config/server/aaa_server")
-	aaa_server.config_copying_paths = [
-		{"source": aaa_server.config_path+"/clients.conf", "dest": "/etc/freeradius/3.0/clients.conf"},
-		{"source": aaa_server.config_path+"/authorize", "dest": "/etc/freeradius/3.0/mods-config/files/authorize"},
-		{"source": aaa_server.config_path+"/tac_plus.conf", "dest": "/etc/tacacs+/tac_plus.conf"},
-		{"source": aaa_server.config_path+"/networkconfig.sh", "dest": "/sbin/scripts/networkconfig.sh"},
-		{"source": aaa_server.config_path+"/sshd_config", "dest": "/etc/ssh/sshd_config"},
-		{"source": aaa_server.config_path+"/starter.sh", "dest": "/sbin/scripts/starter.sh"},
-	]
-	#topology.add_node(aaa_server)
-	############################################################################
-	prox1_interface_oob_hitch = Interface (
-		name= "oob_hitch",
-		interface_type="bridge",
-		ipv4_address= "192.168.2.239",
-		ipv4_cidr= 24,
-	)
-	prox1_interface_vmbr60 = Interface (
-		name= "vmbr60",
-		interface_type="bridge",
-		ipv4_address= "10.133.60.245",
-		ipv4_cidr= 24,
-	)
-	prox1_interface_vmbr70 = Interface (
-		name= "vmbr70",
-		interface_type="bridge",
-		ipv4_address= "10.133.70.245",
-		ipv4_cidr= 24,
-	)
-	prox1_interface_enp1s0 = Interface (
-		name= "enp1s0",
-		interface_type="ethernet",
-	)
-	prox1_interface_enp2s0 = Interface (
-		name= "enp2s0",
-		interface_type="ethernet",
-	)
-	prox1=Node(
-		hostname="prox1",
-		machine_data=get_machine_data("proxmox"),
-		local_user="root",
-		local_password="toorp",
-		interfaces=[],
-		hypervisor_telnet_port=0,
-		oob_interface=prox1_interface_oob_hitch,
-	)
-	prox1.add_interface(prox1_interface_oob_hitch)
-	prox1.add_interface(prox1_interface_vmbr60)
-	prox1.add_interface(prox1_interface_vmbr70)
-	prox1.add_interface(prox1_interface_enp1s0)
-	prox1.add_interface(prox1_interface_enp2s0)
-	# TODO: Forget the other interfaces for now
-	prox1.config_path=os.path.abspath("../node_config/server/prox1")
-	prox1.config_copying_paths = []
-	topology.add_node(prox1)
+	topology.access_controls.append(acc1)
+	topology.access_controls.append(acc2)
+	topology.access_controls.append(acc3)
+	topology.access_controls.append(acc4)
+	topology.access_controls.append(acc5)
+	topology.access_controls.append(acc6)
+
 	return topology
 def main_relations(topology: Topology):
 	for seg in topology.access_segments:
@@ -339,14 +290,20 @@ def main_relations(topology: Topology):
 	topology.dns_private.append((topology.get_node("dns-server-1")).get_interface("ethernet","eth1"))
 	main.get_vlan("sales").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","10")
 	main.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
-	outreach.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
+	outreach.get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.10")
+	outreach.get_vlan("sales").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.10")
 
 	main.get_vlan("guest").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","20")
 	main.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
-	outreach.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
+	outreach.get_vlan("guest").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.20")
+	outreach.get_vlan("guest").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.20")
 
 	main.get_vlan("management").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","30")
+	outreach.get_vlan("management").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.30")
+
 	main.get_vlan("supervisor").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","40")
+	outreach.get_vlan("supervisor").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.40")
+	
 	main.get_vlan("guest-services").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","60")
 	main.get_vlan("internal-services").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","70")
 	main.get_vlan("accounting").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","80")
@@ -358,6 +315,8 @@ def main_relations(topology: Topology):
 	topology.ntp_master=topology.get_node("R1").get_interface("loopback", "0")
 	topology.ntp_public=ipaddress.ip_address("1.1.1.1")
 
-	topology.get_node("prox1").get_interface("ethernet","enp1s0").connect_to(topology.exit_interface_oob)
-	topology.get_node("prox1").get_interface("ethernet","enp2s0").connect_to(topology.get_node("SW6").get_interface("ethernet","2/0"))
-	# TODO: Add the other interfaces for prox1
+	topology.get_exit_interface('exit_r1').connect_to(topology.get_node("R1").get_interface('gigabit ethernet','2'))
+	topology.get_exit_interface('exit_r2').connect_to(topology.get_node("R2").get_interface('ethernet','0/1'))
+	topology.get_exit_interface('exit_r3').connect_to(topology.get_node("R3").get_interface('ethernet','0/0'))
+
+	topology.certificate_authorities.append(topology.get_node("R1").get_interface("loopback", "0"))

@@ -9,7 +9,7 @@ class MachineData(BaseModel):
 	ssh_support: bool
 	netconf_support: bool
 	restconf_support: bool
-	encryption: Optional[str] = None
+	ssh_options: Optional[list] = []
 	switch: Optional[bool] = None
 	multilayer: Optional[bool] = None
 def structure_machine_data():
@@ -23,7 +23,6 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=True,
 		restconf_support=True,
-		encryption=None
 	)
 	m2=MachineData(
 		name="vios-adventerprisek9-m.SPA.159-3.M6",
@@ -32,7 +31,7 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None
+		ssh_options=['KexAlgorithms=+diffie-hellman-group14-sha1', 'MACs=hmac-sha1', 'HostKeyAlgorithms=+ssh-rsa', 'PubkeyAcceptedKeyTypes=+ssh-rsa'],
 	)
 	m3=MachineData(
 		name="iosv-159-3-m6",
@@ -41,7 +40,7 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None,
+		ssh_options=['KexAlgorithms=+diffie-hellman-group14-sha1', 'MACs=hmac-sha1', 'HostKeyAlgorithms=+ssh-rsa', 'PubkeyAcceptedKeyTypes=+ssh-rsa'],
 		switch=False,
 		multilayer=False
 	)
@@ -52,7 +51,7 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None
+		ssh_options=['KexAlgorithms=+diffie-hellman-group14-sha1', 'MACs=hmac-sha1', 'HostKeyAlgorithms=+ssh-rsa', 'PubkeyAcceptedKeyTypes=+ssh-rsa'],
 	)
 	m5=MachineData(
 		name="iosvl2-2020",
@@ -61,7 +60,7 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None,
+		ssh_options=['KexAlgorithms=+diffie-hellman-group14-sha1', 'MACs=hmac-sha1', 'HostKeyAlgorithms=+ssh-rsa', 'PubkeyAcceptedKeyTypes=+ssh-rsa'],
 		switch=False,
 		multilayer=False
 	)
@@ -72,7 +71,6 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None,
 		switch=False,
 		multilayer=False
 	)
@@ -83,7 +81,6 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None,
 		multilayer=True
 	)
 	m_alpine=MachineData(
@@ -93,7 +90,6 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None,
 		multilayer=True
 	)
 	m_ubuntu=MachineData(
@@ -103,7 +99,6 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None,
 		multilayer=True
 	)
 	m_proxmox=MachineData(
@@ -113,7 +108,6 @@ def structure_machine_data():
 		ssh_support=True,
 		netconf_support=False,
 		restconf_support=False,
-		encryption=None,
 		multilayer=True
 	)
 	machine_data.append(m1)

@@ -3,6 +3,7 @@ from project_globals import GLOBALS
 from netmiko import ConnectHandler, BaseConnection
 import ipaddress
 import logging
+import re
 import os
 from pathlib import Path
 import importlib.util
@@ -53,6 +54,8 @@ class Node(BaseModel):
 	dhcp_config_commands: List[str] = []
 	wan_config_commands: List[str] = []
 	ntp_config_commands: List[str] = []
+	identity_interface: Optional[Interface]=None
+	access_segment: Optional[AccessSegment]=None
 	def add_interface(self, iface: Interface):
 		if self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe":
 			if iface.interface_type == "mactap":
@@ -71,9 +74,9 @@ class Node(BaseModel):
 			elif iface.interface_type == "tunnel":
 				LOGGER.critical(f"Cannot add tunnel interface to {self.hostname} due to not being supported with Debian")
 				exit(1)
-			elif iface.interface_type == "fast ethernet":
+			elif iface.interface_type == "fastethernet":
 				iface.interface_type = "ethernet"
-			elif iface.interface_type == "gigabit ethernet":
+			elif iface.interface_type == "gigabitethernet":
 				iface.interface_type = "ethernet"
 		else:
 			LOGGER.critical(f"Cannot add interface to {self.hostname} due to unimplemented machine data type selection")
@@ -97,22 +100,29 @@ class Node(BaseModel):
 		for container in self.__containers:
 			if container.node_data.hostname == name:
 				return container
+		LOGGER.warning(f"Container {name} not found on {self.hostname}")
 	def get_container_count(self):
 		return len(self.containers)
 	def get_container_no(self, index: int):
 		if index < 0 or index >= len(self.containers):
 			raise IndexError("Container index out of range.")
 		return self.containers[index]
-	def generate_interfaces_config(self):
-		LOGGER.info(f"Generating interfaces config for {self.hostname}")
-		if self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe":
-			self.interface_config_commands = []
-			access_segment = None
+	def get_access_segment(self):
+		if self.access_segment is None:
 			for seg in self.topology_a_part_of.access_segments:
 				for node in seg.nodes:
 					if node.hostname == self.hostname:
 						access_segment = seg
-			
+						return access_segment
+			LOGGER.warning(f"Access segment was requested but not found for {self.hostname}")
+		else:
+			return self.access_segment
+	def generate_interfaces_config(self):
+		topology = self.topology_a_part_of
+		LOGGER.info(f"Generating interfaces config for {self.hostname}")
+		if self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe":
+			self.interface_config_commands = []
+						
 			for index_a in range (self.get_interface_count()):
 				interface = self.get_interface_no(index_a)
 				LOGGER.debug(f"Configuring interface {interface.interface_type} {interface.name}")
@@ -136,7 +146,7 @@ class Node(BaseModel):
 				# Is it a subinterface?
 				# If it contains a period, it's a subinterface
 				if interface.name.find(".") > 0:
-					if access_segment is None:
+					if self.get_access_segment() is None:
 						LOGGER.error(f"Subinterface assigned node {self.hostname} has no access segment, skipping interface config generation")
 						return
 					# split the interface name on the period and get the 2nd part
@@ -156,7 +166,7 @@ class Node(BaseModel):
 				else:
 					# Does it have vlans?
 					if interface.vlans:
-						if access_segment is None:
+						if self.get_access_segment is None:
 							LOGGER.error(f"VLAN assigned node {self.hostname} has no access segment, skipping interface config generation")
 							return
 						# Is it a trunk?
@@ -184,6 +194,8 @@ class Node(BaseModel):
 					self.interface_config_commands += ["no shutdown"]
 						
 			
+			if len(self.interface_config_commands) == 0:
+				return
 
 			# Send the commands to file for review
 			out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "interfaces"
@@ -191,8 +203,172 @@ class Node(BaseModel):
 			with open(os.path.join(out_path,self.hostname+'_interfaces.txt'), 'w') as f:
 				for command in self.interface_config_commands:
 					print(command, file=f)
-		if self.machine_data.device_type == "debian":
+		if self.machine_data.device_type == "debian" or self.machine_data.device_type == "proxmox":
+			self.interface_config_commands = []
+			# Look for loopback interfaces and setup
+			for index_a in range (self.get_interface_count()):
+				interface = self.get_interface_no(index_a)
+				if interface.interface_type != "loopback":
+					continue
+				if interface.search('.'):
+					LOGGER.error(f"Loopback interface {interface.name} should not have a period in it's name")
+					return
+				self.interface_config_commands += [
+					f'auto {interface.name}'
+					f'iface {interface.name} inet static',
+					f'    address {interface.ipv4_address}',
+					f'    netmask {interface.ipv4_cidr}'
+				]
+			# Look for ethernet interfaces and setup
+			for index_a in range (self.get_interface_count()):
+				interface = self.get_interface_no(index_a)
+				if interface.interface_type != "ethernet":
+					continue
+				if re.search(r'\.', interface.name):
+					continue
+				self.interface_config_commands += [
+					f'auto {interface.name}'
+				]
+				if interface.ipv4_address:
+					self.interface_config_commands += [
+						f'iface {interface.name} inet static',
+						f'    address {interface.ipv4_address}',
+						f'    netmask {interface.ipv4_cidr}'
+					]
+				else:
+					self.interface_config_commands += [
+						f'iface {interface.name} inet manual',
+					]
+			# Look for subinterfaces and setup
+			for index_a in range (self.get_interface_count()):
+				interface = self.get_interface_no(index_a)
+				if re.search(r'\.', interface.name) == None:
+					continue
+				self.interface_config_commands += [
+					f'auto {interface.name}'
+				]
+				if interface.ipv4_address:
+					LOGGER.error(f"Subinterface {interface.name} on {self.hostname} should not have an ip, use a bridge.")
+					return
+				else:
+					self.interface_config_commands += [
+						f'iface {interface.name} inet manual',
+					]
+			# Look for bridges and setup
+			for index_a in range (self.get_interface_count()):
+				interface = self.get_interface_no(index_a)
+				if interface.interface_type != "bridge":
+					continue
+				if re.search(r'\.', interface.name):
+					LOGGER.error(f"Bridge interface {interface.name} should not have a period in it's name")
+					return
+				self.interface_config_commands += [
+					f'auto {interface.name}'
+				]
+				if interface.ipv4_address:
+					self.interface_config_commands += [
+						f'iface {interface.name} inet static',
+						f'    address {interface.ipv4_address}',
+						f'    netmask {interface.ipv4_cidr}',
+						f'    bridge_ports {interface.neighbour.name}'
+						f'    bridge_stp off'
+						f'    bridge_fd 0'
+					]
+				else:
+					LOGGER.error(f"Bridge interface {interface.name} should have an ipv4 address")
+					return
+				routes = []
+				# For each of our vlans. TODO: trunk is l2, is this redundant?
+				for vlan in interface.vlans:
+					# Checking all the access controls
+					for acc in topology.access_controls:
+						# Checking all the vlans in access control
+						for tar_vlan in acc.vlans:
+							# Is our vlan a member of this access control?
+							if id(vlan) == id(tar_vlan):
+								# Static to every other member
+								for dest_vlan in acc.vlans:
+									in_list = False
+									for route in routes:
+										if route == f'{dest_vlan.ipv4_netid}/{dest_vlan.ipv4_cidr}':
+											in_list = True
+											break
+									if not in_list:
+										routes.append(f'{dest_vlan.ipv4_netid}/{dest_vlan.ipv4_cidr}')
+						for allow in acc.allowlist:
+							in_list = False
+							for route in routes:
+								if route == f'{allow.network_address}/{allow.prefixlen}':
+									in_list = True
+									break
+							if not in_list:
+								routes.append(f'{allow.network_address}/{allow.prefixlen}')
+				for route in routes:
+					self.interface_config_commands += [f'    post-up ip route add {route} dev {interface.name}']
+				
+			# Send the commands to file for review
+			out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "interfaces"
+			out_path.mkdir(exist_ok=True, parents=True)
+			with open(os.path.join(out_path,self.hostname+'_interfaces.txt'), 'w') as f:
+				for command in self.interface_config_commands:
+					print(command, file=f)
+	def validate_interfaces_genie(self):
+		""" This function will validate the interfaces configured in the _data files exist on the device """
+		import subprocess
+
+		LOGGER.info(f"Validating interfaces config for {self.hostname}")
+		if(self.machine_data.device_type == "debian"
+		or self.machine_data.device_type == "ubuntu"
+		or self.machine_data.device_type == 'proxmox'
+		or self.machine_data.device_type == "alpine"):
 			pass
+		elif (self.machine_data.device_type == 'cisco_ios'
+		or self.machine_data.device_type == 'cisco_xe'):
+			
+			from genie.conf import Genie
+			from genie.libs.parser.utils import get_parser
+			from genie.testbed import load
+
+			# Load your testbed YAML file for device information
+			self.topology_a_part_of.make_genie_yaml()
+			testbed = load(GLOBALS.testbed_path)
+
+			# Connect to the device
+			device = testbed.devices[self.hostname]
+			
+			subprocess.run(f'ssh-keygen -f "~/.ssh/known_hosts" -R "{(str)(self.oob_interface.ipv4_address)}"', shell=True)
+			try:
+				device.connect()
+			except Exception as e:
+				LOGGER.error(f"Failed to connect to {self.hostname}: {e}")
+				return
+
+			# Send command and parse
+			genie_output = device.parse('show ip interface brief')
+
+			# For each interface
+			for index_a in range (self.get_interface_count()):
+				interface = self.get_interface_no(index_a)
+
+				# Skip interfaces that are not physical
+				if (interface.interface_type == "bridge"
+				or interface.interface_type == "subinterface"
+				or interface.interface_type == "loopback"
+				or interface.interface_type == "tunnel"
+				or interface.interface_type == "vlan"):
+					continue
+
+				# Check if the interface is in the output
+				found = False
+				for interface_name, interface_details in genie_output["interface"].items():
+					if interface_name.lower() == f'{interface.interface_type}{interface.name}'.lower():
+						found = True
+						break
+				if not found:
+					LOGGER.error(f"Interface {interface.name} not found on {self.hostname}")
+					return
+			LOGGER.info(f"Interfaces on {self.hostname} validated")
+			return
 	def apply_interfaces_config_netmiko(self):
 		LOGGER.info(f"Applying interfaces config for {self.hostname}")
 		if(self.machine_data.device_type == "debian" 
@@ -289,17 +465,18 @@ class Node(BaseModel):
 			self.ssh_stub_config_commands.append("line console 0")
 			self.ssh_stub_config_commands.append("exec-timeout 0 0")
 			self.ssh_stub_config_commands.append("exit")
+			if(len(self.topology_a_part_of.dns_private) != 0):
+				self.ssh_stub_config_commands.append(f'ip name-server {self.topology_a_part_of.dns_private[0].ipv4_address}')
+
 
 		elif(self.machine_data.device_type=="debian" or self.machine_data.device_type=="alpine"):
 			self.ssh_stub_config_commands = []
 			self.ssh_stub_config_commands.append(f'ip add add {self.oob_interface.ipv4_address}/{self.oob_interface.ipv4_cidr} dev {self.oob_interface.name}')
 			self.ssh_stub_config_commands.append(f'ip link set dev {self.oob_interface.name} up')
 		
-		
-		#print(f"########## SSH Config for {self.hostname}:")
-		#for printable in self.ssh_stub_config_commands:
-		#	print(printable)
-		
+		if len(self.ssh_stub_config_commands) == 0:
+			return
+
 		# Send the commands to file for review
 		out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "stubs"
 		out_path.mkdir(exist_ok=True, parents=True)
@@ -350,7 +527,7 @@ class Node(BaseModel):
 				if os.path.exists(files['source']):
 					LOGGER.debug(f"Found file {files['source']}")
 					LOGGER.debug(f"Attempting to transfer file {files['source']} to {files['dest']}")
-					module.telnet_transfer(GLOBALS.hypervisor_ssh_host, self.hypervisor_telnet_port, files['source'], files['dest'],"","")
+					module.telnet_transfer(GLOBALS.hypervisor_ipv4_address, self.hypervisor_telnet_port, files['source'], files['dest'],"","")
 				else:
 					logging.error(f"File {files['source']} not found")
 		else:
@@ -359,17 +536,9 @@ class Node(BaseModel):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer" or self.machine_data.category == "switch"):
 				LOGGER.info(f"Generating stp vlan config for {self.hostname}")
-				access_segment = None
-				for seg in self.topology_a_part_of.access_segments:
-					for node in seg.nodes:
-						if node.hostname == self.hostname:
-							access_segment = seg
-				if(access_segment is None):
-					LOGGER.error(f"No access segment found for VLAN assigned node {self.hostname}, skipping stp vlan config generation")
-					return
 				self.stp_vlan_config_commands = []
 				self.stp_vlan_config_commands += ['spanning-tree mode rapid-pvst']
-				for vlan in access_segment.vlans:
+				for vlan in self.get_access_segment().vlans:
 					if(vlan.name == "default"):
 						continue
 					self.stp_vlan_config_commands += [
@@ -389,6 +558,10 @@ class Node(BaseModel):
 							'spanning-tree vlan '+str(vlan.number)+' priority '+str(0),
 							'spanning-tree vlan '+str(vlan.number)+' root secondary'
 						]
+
+				if len(self.stp_vlan_config_commands) == 0:
+					return
+
 				# Send the commands to file for review
 				out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "stp_vlan"
 				out_path.mkdir(exist_ok=True, parents=True)
@@ -398,25 +571,27 @@ class Node(BaseModel):
 	def generate_fhrp_config(self):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer"):
-				LOGGER.info(f"Generating fhrp config for {self.hostname}")
-				access_segment = None
-				for seg in self.topology_a_part_of.access_segments:
-					for node in seg.fhrp:
-						if node.hostname == self.hostname:
-							access_segment = seg
-				if(access_segment is None):
+				if(self.get_access_segment() is None):
 					LOGGER.debug(f"{self.hostname} not part of FHRP system.")
 					return
+				LOGGER.info(f"Generating fhrp config for {self.hostname}")
+				
+				# TODO: Fix this hack
+				if self.hostname != 'SW3' and self.hostname != 'SW4':
+					return
+
 				# For each node interfaces
 				for interface in self.__interfaces:
-					LOGGER.debug(f"Generating fhrp config for {self.hostname} working on interface {interface.interface_type} {interface.name}")
 					# That is a SVI
 					if(interface.interface_type == "vlan"):
 						# Get the vlan from interface name
-						vlan = access_segment.get_vlan_nom(int(interface.name))
+						vlan = self.get_access_segment().get_vlan_nom(int(interface.name))
 						if(vlan == None):
 							LOGGER.error(f"vlan {interface.name} not found for {self.hostname}")
 							return
+						# If the vlan has no fhrp0_ipv4_address defined then skip
+						if(vlan.fhrp0_ipv4_address == None):
+							continue
 						self.fhrp_config_commands += [
 							f'interface {interface.interface_type} {interface.name}',
 							'standby 0 ip '+str(vlan.fhrp0_ipv4_address),
@@ -428,6 +603,10 @@ class Node(BaseModel):
 							self.fhrp_config_commands += ['standby 0 priority 200']
 						else:
 							self.fhrp_config_commands += ['standby 0 priority 111']
+
+						if len(self.fhrp_config_commands) == 0:
+							return
+
 						# Send the commands to file for review
 						out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "fhrp"
 						out_path.mkdir(exist_ok=True, parents=True)
@@ -438,19 +617,12 @@ class Node(BaseModel):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer" or self.machine_data.category == "router"):
 				LOGGER.info(f"Generating ospf static base config for {self.hostname}")
-				access_segment = None
-				for seg in self.topology_a_part_of.access_segments:
-					for node in seg.nodes:
-						if node.hostname == self.hostname:
-							access_segment = seg
-				#if(access_segment is None):
-				#	LOGGER.error(f"No access segment found for OSPF assigned node {self.hostname}, skipping ospf static base config generation")
-				#	return
+				
 				if(self.hostname == "ISP"):
 					LOGGER.error(f"ISP node is not currently supported for OSPF or static routing config generation, manual config required")
 					return
 				self.ospf_static_base_config_commands = []
-				# If it connects to ISP it is a WAN port (TODO: Make this rely on a better data entry)
+				
 				if(self.get_wan_interface() is not None):
 					self.ospf_static_base_config_commands += [
 						f'ip route 0.0.0.0 0.0.0.0 {str(self.get_wan_interface().neighbour.ipv4_address)}'
@@ -468,19 +640,16 @@ class Node(BaseModel):
 						if(interface.ipv4_address is None):
 							LOGGER.critical(f"Interface {interface.name} has no ip address, skipping ospf static base config generation")
 							return
-						if (not interface.name.startswith("vlan"))and(not interface.name.startswith("loop")):
+						if (interface.interface_type !="vlan")and(interface.interface_type != "loopback"):
 							if(interface.neighbour is None):
 								LOGGER.critical(f"Interface {interface.name} has no neighbour, skipping ospf static base config generation")
 								return
-							#if(interface.neighbour.ipv4_address is None):
-							#	LOGGER.critical(f"Interface {interface.name} has neighbour without ip address, skipping ospf static base config generation")
-							#	return
 						# If this interface has an ip address
 						# Advertise the network
 						ospf_commands += [f'network {str(ipv4_netid(interface.ipv4_address,interface.ipv4_cidr))} {str(cidr_to_wildmask(interface.ipv4_cidr))} area 0']
 					# If layer 3 check passive
 					if(interface.ospf_passive and interface.ipv4_address is not None):
-						ospf_commands += [f'passive-interface {interface.name}']
+						ospf_commands += [f'passive-interface {interface.interface_type} {interface.name}']
 				
 				ospf = False
 				for command in ospf_commands:
@@ -490,6 +659,9 @@ class Node(BaseModel):
 					ospf_commands = []
 					LOGGER.debug("no interfaces participating in ospf, no config required")
 				self.ospf_static_base_config_commands += ospf_commands
+
+				if len(self.ospf_static_base_config_commands) == 0:
+					return
 
 				# Send the commands to file for review
 				out_path = Path("../python_config/output/routing_base/")
@@ -508,18 +680,13 @@ class Node(BaseModel):
 			dhcp_server="R3"
 		dhcp_helper=None
 		if(self.hostname == "SW4"):
-			dhcp_helper=self.topology_a_part_of.get_node("R1").get_interface("loopback","0")
+			dhcp_helper=self.topology_a_part_of.get_node("SW3").get_interface("loopback","0")
 		###############################################
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer" or self.machine_data.category == "router"):
-				LOGGER.info(f"Generating dhcp config for {self.hostname}")
-				access_segment = None
-				for seg in self.topology_a_part_of.access_segments:
-					for node in seg.nodes:
-						if node.hostname == self.hostname:
-							access_segment = seg
+				LOGGER.info(f"Generating dhcp config for {self.hostname}")				
 				if(self.hostname == dhcp_server):
-					for vlan in access_segment.vlans:
+					for vlan in self.get_access_segment().vlans:
 						if (vlan.dhcp_exclusion_start is not None) and (vlan.dhcp_exclusion_end is not None):
 							if len(vlan.dhcp_exclusion_start) == 0:
 								continue
@@ -553,7 +720,8 @@ class Node(BaseModel):
 							continue
 						self.dhcp_config_commands += [f"interface {interface.interface_type} {interface.name}"]
 						self.dhcp_config_commands += [f"ip dhcp helper address {dhcp_helper.ipv4_address}"]
-				
+				if len(self.dhcp_config_commands) == 0:
+					return
 				# Send the commands to file for review
 				out_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "dhcp"
 				out_path.mkdir(exist_ok=True, parents=True)
@@ -573,10 +741,11 @@ class Node(BaseModel):
 				if(self.get_wan_interface() is None):
 					LOGGER.debug(f"{self.hostname} has no wan interface, skipping wan config generation")
 					return
+				# TODO: hardcoded subnetting
 				self.wan_config_commands = []
 				self.wan_config_commands += [
 					f'ip access-list extended NAT',
-					f'10 permit ip 10.133.0.0 {cidr_to_wildmask(16)} {ipv4_netid(self.topology_a_part_of.exit_interface_main.ipv4_address,24)} {cidr_to_wildmask(24)}',
+					#f'10 permit ip 10.133.0.0 {cidr_to_wildmask(16)} {ipv4_netid(self.topology_a_part_of.exit_interface_main.ipv4_address,24)} {cidr_to_wildmask(24)}',
 					f'20 deny ip 10.133.0.0 {cidr_to_wildmask(16)} 10.133.0.0 {cidr_to_wildmask(16)}',
 					f'30 permit ip 10.133.0.0 {cidr_to_wildmask(16)} any',
 					f'10000 deny ip any any',
@@ -682,6 +851,9 @@ class Node(BaseModel):
 							"exit",
 						]
 
+						if len(self.wan_config_commands) == 0:
+							return
+
 						# Send the commands to file for review
 						t_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "wan"
 						t_path.mkdir(exist_ok=True, parents=True)
@@ -720,24 +892,13 @@ class Node(BaseModel):
 			self.ntp_config_commands += [	
 				"ntp update-calendar"
 			]
-			# TODO: Hardcoded
-			found_interface = False
-			for interface in self.__interfaces:
-				if (interface.name == "30") and (interface.interface_type == "vlan"):
-					self.ntp_config_commands += [
-					f'ntp source {interface.interface_type} {interface.name}'
+			
+			self.ntp_config_commands += [
+					f'ntp source {self.get_identity_interface().interface_type} {self.get_identity_interface().name}'
 					]
-					found_interface = True
-					break
-				
-				if (interface.name=="0") and (interface.interface_type == "loopback"):
-					self.ntp_config_commands += [
-					f'ntp source {interface.interface_type} {interface.name}'
-					]
-					found_interface = True
-					break
-			if not found_interface:
-				LOGGER.error (f"Could not find interface for ntp source for {self.hostname}")
+			
+			if len(self.ntp_config_commands) == 0:
+				return
 
 			# Send the commands to file for review
 			t_path = Path(GLOBALS.app_path).parent.resolve() / "output" / "ntp"
@@ -746,10 +907,81 @@ class Node(BaseModel):
 				for command in self.ntp_config_commands:
 						print(command, file=f)
 			
+	def get_identity_interface(self):
+		if self.identity_interface != None:
+			return self.identity_interface
+		
+		# TODO: Linux could be improved but possibly only by non-standardised naming conventions
+		if self.machine_data.device_type == 'debian' \
+			or self.machine_data.device_type == 'proxmox' \
+			or self.machine_data.device_type == 'alpine':
+			self.identity_interface = self.__interfaces[0]
+			return self.__interfaces[0]
+
+		# The rest is just for Cisco devices
+		if self.machine_data.device_type != 'cisco_ios' and self.machine_data.device_type != 'cisco_xe':
+			LOGGER.error(f"Identity interface was requested for {self.hostname}"
+			+f" however device type is {self.machine_data.device_type} and only Debian or Alpine or Cisco devices are implemented")
+
+		LOGGER.debug(f"Finding identity interface for {self.hostname}")
+		# Build list of loopbacks in any order
+		lowest = 65535
+		lowest_index = 65536
+		for count, interface in enumerate(self.__interfaces):
+			if(interface.interface_type != "loopback"):
+				continue
+			if int(interface.name) < lowest:
+				lowest = int(interface.name)
+				lowest_index = count
+		if lowest_index != 65536:
+			self.identity_interface = self.__interfaces[lowest_index]
+			return self.__interfaces[lowest_index]
+		if self.get_access_segment() != None:
+			# Check for manaagement vlan
+			svis = []
+			count = 0
+			management_vlan = 0
+			for vlanc in self.get_access_segment().vlans:
+				if vlanc.name == "management":
+					LOGGER.debug(f"Found management vlan: {vlanc.number}")
+			# If we have a management vlan, check for a management interface
+			if management_vlan != 0:
+				for interface in self.__interfaces:
+					if(interface.interface_type != "vlan"):
+						continue
+					if int(interface.name) == management_vlan:
+						LOGGER.debug(f"Found management vlan for {self.hostname} named {interface.interface_type} {interface.name}")
+						self.identity_interface = interface
+						return interface
+			else:
+				LOGGER.debug(f"No management vlan found")
+
+		LOGGER.warning(f"Struggling to find identity interface for {self.hostname}. Proceeding to set to interface with lowest IPv4.")
+		
+		# TODO: This should probably be checking if interface is up up, or just screem at the user
+		lowest = ipaddress.ip_address("255.255.255.255")
+		lowest_index = 65536
+		for count, interface in enumerate(self.__interfaces):
+			if(interface.ipv4_address is None):
+				continue
+			if(id(interface) == id(self.oob_interface)):
+				continue
+			if interface.ipv4_address < lowest:
+				lowest = interface.ipv4_address
+				lowest_index = count
+		if lowest_index != 65536:
+			self.identity_interface = self.__interfaces[lowest_index]
+			return self.__interfaces[lowest_index]
+		if self.identity_interface is None:
+			if self.oob_interface is not None:
+				LOGGER.error(f"The only vaild ipv4 interface for {self.hostname} was the oob interface after one was requested for id")
+				self.identity_interface = self.oob_interface
+				return self.oob_interface
+			else:
+				LOGGER.error(f"Could not find an ipv4 interface for {self.hostname} after one was requested for id")
+
 	def get_wan_interface(self):
-		# TODO: Make this data not rely on ISP node and rely on topology exits or site exits or something
 		# TODO: This assumes there is only one wan interface on a node
-		# TODO: Was channel group zero actually undefined or was it used by cisco?
 		LOGGER.debug(f"Finding wan interface for {self.hostname}")
 		for interface in self.__interfaces:
 			if(interface.ipv4_address is None):
@@ -760,6 +992,10 @@ class Node(BaseModel):
 				continue
 			if(interface.channel_group is not None):
 				continue
-			if(interface.neighbour.node_a_part_of.hostname == "ISP"):
-				return interface
+			if id(interface) == id(self.oob_interface):
+				continue
+			for exit in self.topology_a_part_of.exit_interfaces:
+				if(id(interface.neighbour) == id(exit)):
+					return interface
+		LOGGER.error(f"Failed to find wan interface for {self.hostname}")
 		return None

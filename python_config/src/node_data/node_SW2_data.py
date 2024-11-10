@@ -4,6 +4,7 @@ from node import Node
 from topology import Topology
 from machine_data import get_machine_data
 import logging
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def SW2_Structures(topology: Topology):
 	LOGGER.debug("Loading SW1 Structures")
@@ -132,18 +133,19 @@ def SW2_Structures(topology: Topology):
 		ospf_participant=False,
 	)
 	node_SW2_i14=Interface(
-		name="0",
-		interface_type="loopback",
+		name="30",
+		interface_type="vlan",
 		description="",
-		ipv4_address="10.133.2.12",
-		ipv4_cidr=32,
+		ipv4_address="10.133.30.2",
+		ipv4_cidr=25,
 	)
 	node_SW2=Node(
 		hostname="SW2",
-		local_user="auto",
-		local_password="otua",
+		local_user=GLOBALS.sw2_username,
+		local_password=GLOBALS.sw2_password,
 		machine_data=machine_data,
-		oob_interface=node_SW2_i13
+		oob_interface=node_SW2_i13,
+		identity_interface=node_SW2_i14,
 	)
 	node_SW2.add_interface(node_SW2_i1)
 	node_SW2.add_interface(node_SW2_i2)
@@ -162,10 +164,11 @@ def SW2_Structures(topology: Topology):
 
 	topology.add_node(node_SW2)
 	access_segment.nodes.append(node_SW2)
+	node_SW2.access_segment=access_segment
 
 def SW2_relations(topology: Topology):
 	LOGGER.debug("Loading SW2 Relations")
 	topology.get_node("SW2").get_interface("ethernet","0/0").connect_to(topology.get_node("SW4").get_interface("ethernet","1/0"))
 	topology.get_node("SW2").get_interface("ethernet","0/2").connect_to(topology.get_node("SW1").get_interface("ethernet","0/2"))
 	topology.get_node("SW2").get_interface("ethernet","0/3").connect_to(topology.get_node("SW3").get_interface("ethernet","3/0"))
-	topology.get_node("SW2").get_interface("ethernet","3/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW2").get_interface("ethernet","3/3").connect_to(topology.get_exit_interface('exit_oob'))

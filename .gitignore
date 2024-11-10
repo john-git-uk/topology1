@@ -1,5 +1,6 @@
 output/
 secrets.env
+config.ini
 repo_globals.ini
 *handle_lab.py
 *linux_venv/

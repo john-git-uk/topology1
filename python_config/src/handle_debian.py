@@ -33,17 +33,33 @@ def push_file_hex_commands(node, dest_file, chmod, content):
 		commands.append(f"echo -n '{chunk}' | xxd -r -p >> {dest_file}")
 	return commands
 	
-def reachability_check(node, target):
-	# Add reachability check for debian.org before running other commands
-    print(f"#### Checking reachability of debian.org from container {my_container.ctid}")
-    stdin, stdout, stderr = ssh.exec_command(f"pct exec {my_container.ctid} -- ping -c 4 debian.org")
-    ping_output = stdout.read().decode()
-    ping_error = stderr.read().decode()
+def container_repo_reachability_check(container):
+	if container is None:
+		raise ValueError("handle_debian container_repo_reachability_check: passed container is None")
+	if container.node_data is None:
+		raise ValueError("handle_debian container_repo_reachability_check: passed node is None")
+		node = container.node_data
+	if node.topology_a_part_of is None:
+		raise ValueError("handle_debian container_repo_reachability_check: passed node has no topology?")
+	if node.machine_data.device_type != "debian":
+		ValueError(f"Node {node.hostname} is not a debian node!")
+	proxmox = None
+	for find_proxmox in topology.nodes:
+		if proxmox.machine_data.device_type == "proxmox":
+			proxmox = find_proxmox
+	if proxmox is None:
+		raise ValueError(f"handle_debian container_repo_reachability_check: unable to find matching proxmox node for {node.hostname}")
 
-    # Check the result of the ping command
-    if "0% packet loss" in ping_output:
-        print("#### debian.org is reachable!")
-    else:
-        print("#### debian.org is NOT reachable!")
-        print(f"#### Ping Output: {ping_output}")
-        print(f"#### Ping Error: {ping_error}")
+	# Add reachability check for debian.org before running other commands
+	print(f"Checking reachability of debian.org from container {my_container.ctid}")
+	stdin, stdout, stderr = ssh.exec_command(f"pct exec {my_container.ctid} -- ping -c 4 debian.org")
+	ping_output = stdout.read().decode()
+	ping_error = stderr.read().decode()
+
+	# Check the result of the ping command
+	if "0% packet loss" in ping_output:
+		print("#### debian.org is reachable!")
+	else:
+		print("#### debian.org is NOT reachable!")
+		print(f"#### Ping Output: {ping_output}")
+		print(f"#### Ping Error: {ping_error}")

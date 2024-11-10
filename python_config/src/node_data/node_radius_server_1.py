@@ -6,9 +6,16 @@ from convert import get_escaped_string
 from interface import Interface
 from node import Node
 from handle_proxmox import Container, execute_proxnode_commands, start_container, wait_for_container_ping_debian, wait_for_container_running
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def radius_server_1_structures(topology: Topology):
 	from machine_data import get_machine_data
+	for segs in topology.access_segments:
+		if(segs.name == "main"):
+			access_segment = segs
+	if(access_segment is None):
+		LOGGER.error("Access segment main not found")
+		return
 
 	prox1 = None
 	prox1 = topology.get_node("prox1")
@@ -31,8 +38,9 @@ def radius_server_1_structures(topology: Topology):
 		hostname="radius-server-1",
 		machine_data=get_machine_data("debian"),
 		oob_interface=radius_server1_i1,
-		local_user="root",
-		local_password="12345",
+		identity_interface=radius_server1_i2,
+		local_user=GLOBALS.radius_server_1_username,
+		local_password=GLOBALS.radius_server_1_password,
 		hypervisor_telnet_port=0,
 	)
 	radius_server1_container = Container(
@@ -50,6 +58,8 @@ def radius_server_1_structures(topology: Topology):
 	radius_server1.add_interface(radius_server1_i2)
 	prox1.topology_a_part_of.add_node(radius_server1)
 	prox1.add_container(radius_server1_container)
+	access_segment.nodes.append(radius_server1)
+	radius_server1.access_segment=access_segment
 
 def radius_server_1_relations(topology: Topology):
 	prox1 = None

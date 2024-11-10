@@ -4,6 +4,7 @@ from node import Node
 from topology import Topology
 from machine_data import get_machine_data
 import logging
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def SW4_Structures(topology: Topology):
 	LOGGER.debug("Loading SW4 Structures")
@@ -201,10 +202,11 @@ def SW4_Structures(topology: Topology):
 	)
 	node_SW4=Node(
 		hostname="SW4",
-		local_user="auto",
-		local_password="otua",
+		local_user=GLOBALS.sw4_username,
+		local_password=GLOBALS.sw4_password,
 		machine_data=machine_data,
-		oob_interface=node_SW4_i18
+		oob_interface=node_SW4_i18,
+		identity_interface=node_SW4_i19,
 	)
 	node_SW4.add_interface(node_SW4_i1)
 	node_SW4.add_interface(node_SW4_i2)
@@ -231,6 +233,7 @@ def SW4_Structures(topology: Topology):
 	topology.add_node(node_SW4)
 	access_segment.nodes.append(node_SW4)
 	access_segment.fhrp.append(node_SW4)
+	node_SW4.access_segment=access_segment
 def SW4_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
 	topology.get_node("SW4").get_interface("ethernet","0/0").connect_to(topology.get_node("SW3").get_interface("ethernet","0/0"))
@@ -243,6 +246,6 @@ def SW4_relations(topology: Topology):
 	topology.get_node("SW4").get_interface("ethernet","1/2").connect_to(topology.get_node("SW5").get_interface("ethernet","0/1"))
 	topology.get_node("SW4").get_interface("ethernet","1/3").connect_to(topology.get_node("R2").get_interface("ethernet","0/0"))
 	topology.get_node("SW4").get_interface("ethernet","2/1").connect_to(topology.get_node("R1").get_interface("gigabit ethernet","3"))
-	topology.get_node("SW4").get_interface("ethernet","5/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW4").get_interface("ethernet","5/3").connect_to(topology.get_exit_interface('exit_oob'))
 	topology.get_node("SW4").get_interface("port-channel","1").connect_to(topology.get_node("SW6").get_interface("port-channel","2"))
 	topology.get_node("SW4").get_interface("port-channel","2").connect_to(topology.get_node("SW3").get_interface("port-channel","2"))

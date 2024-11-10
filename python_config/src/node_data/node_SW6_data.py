@@ -4,6 +4,7 @@ from node import Node
 from topology import Topology
 from machine_data import get_machine_data
 import logging
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def SW6_Structures(topology: Topology):
 	LOGGER.debug("Loading SW6 Structures")
@@ -71,11 +72,11 @@ def SW6_Structures(topology: Topology):
 		ipv4_cidr=24
 	)
 	node_SW6_i10=Interface(
-		name="0",
-		interface_type="loopback",
+		name="30",
+		interface_type="vlan",
 		description="",
-		ipv4_address="10.133.2.18",
-		ipv4_cidr=32
+		ipv4_address="10.133.30.6",
+		ipv4_cidr=25
 	)
 	node_SW6_i11=Interface(
 		name="1",
@@ -111,10 +112,11 @@ def SW6_Structures(topology: Topology):
 	)
 	node_SW6 = Node(
 		hostname="SW6",
-		local_user="auto",
-		local_password="otua",
+		local_user=GLOBALS.sw6_username,
+		local_password=GLOBALS.sw6_password,
 		machine_data=machine_data,
-		oob_interface=node_SW6_i9
+		oob_interface=node_SW6_i9,
+		identity_interface=node_SW6_i10
 	)
 	node_SW6.add_interface(node_SW6_i1)
 	node_SW6.add_interface(node_SW6_i2)
@@ -131,13 +133,15 @@ def SW6_Structures(topology: Topology):
 	node_SW6.add_interface(node_SW6_i13)
 	topology.add_node(node_SW6)
 	access_segment.nodes.append(node_SW6)
+	node_SW6.access_segment = access_segment
+	
 def SW6_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
 	topology.get_node("SW6").get_interface("ethernet","0/1").connect_to(topology.get_node("SW3").get_interface("ethernet","1/0"))
 	topology.get_node("SW6").get_interface("ethernet","1/2").connect_to(topology.get_node("SW3").get_interface("ethernet","1/1"))
 	topology.get_node("SW6").get_interface("ethernet","0/0").connect_to(topology.get_node("SW4").get_interface("ethernet","0/3"))
 	topology.get_node("SW6").get_interface("ethernet","1/1").connect_to(topology.get_node("SW4").get_interface("ethernet","2/0"))
-	topology.get_node("SW6").get_interface("ethernet","2/0").connect_to(topology.get_node("prox1").get_interface("ethernet","np2s0"))
-	topology.get_node("SW6").get_interface("ethernet","5/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW6").get_interface("ethernet","2/0").connect_to(topology.get_node("prox1").get_interface("ethernet","enp2s0"))
+	topology.get_node("SW6").get_interface("ethernet","5/3").connect_to(topology.get_exit_interface('exit_oob'))
 	topology.get_node("SW6").get_interface("port-channel","1").connect_to(topology.get_node("SW4").get_interface("port-channel","1"))
 	topology.get_node("SW6").get_interface("port-channel","2").connect_to(topology.get_node("SW3").get_interface("port-channel","1"))

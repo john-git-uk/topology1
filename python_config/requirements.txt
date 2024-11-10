@@ -9,3 +9,5 @@ proxmoxer
 PiHole-api
 aiohttp
 asyncio
+pyats[full]
+napalm

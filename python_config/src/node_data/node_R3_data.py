@@ -4,6 +4,7 @@ from node import Node
 from topology import Topology
 from machine_data import get_machine_data
 import logging
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def R3_Structures(topology: Topology):
 	LOGGER.debug("Loading R3 Structures")
@@ -114,11 +115,11 @@ def R3_Structures(topology: Topology):
 	)
 	node_R3=Node(
 		hostname="R3",
-		local_user="auto",
-		local_password="otua",
+		local_user=GLOBALS.r3_username,
+		local_password=GLOBALS.r3_password,
 		machine_data=machine_data,
-		oob_interface=node_R3_i7
-
+		oob_interface=node_R3_i7,
+		identity_interface=node_R3_i8,
 	)
 	node_R3.add_interface(node_R3_i1)
 	node_R3.add_interface(node_R3_i2)
@@ -131,16 +132,17 @@ def R3_Structures(topology: Topology):
 	node_R3.add_interface(node_R3_i9)
 	node_R3.add_interface(node_R3_i10)
 	access_segment.nodes.append(node_R3)
+	node_R3.access_segment=access_segment
 	topology.add_node(node_R3)
 def R3_relations(topology: Topology):
 	LOGGER.debug("Loading R3 Relations")
-	topology.get_node("R3").get_interface("ethernet","0/0").connect_to(topology.get_node("ISP").get_interface("ethernet","0/2"))
+	topology.get_node("R3").get_interface("ethernet","0/0").connect_to(topology.get_exit_interface("exit_r3"))
 	topology.get_node("R3").get_interface("ethernet","0/1").connect_to(topology.get_node("SW7").get_interface("ethernet","0/0"))
 	topology.get_node("R3").get_interface("ethernet","0/1.10").connect_to(topology.get_node("SW7").get_interface("ethernet","0/0"))
 	topology.get_node("R3").get_interface("ethernet","0/1.20").connect_to(topology.get_node("SW7").get_interface("ethernet","0/0"))
 	topology.get_node("R3").get_interface("ethernet","0/1.30").connect_to(topology.get_node("SW7").get_interface("ethernet","0/0"))
 	topology.get_node("R3").get_interface("ethernet","0/1.40").connect_to(topology.get_node("SW7").get_interface("ethernet","0/0"))
-	topology.get_node("R3").get_interface("ethernet","0/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("R3").get_interface("ethernet","0/3").connect_to(topology.get_exit_interface('exit_oob'))
 	topology.get_node("R3").get_interface("tunnel","0").tunnel_destination=topology.get_node("R1").get_interface("gigabit ethernet","2")
 	topology.get_node("R3").get_interface("tunnel","1").tunnel_destination=topology.get_node("R2").get_interface("ethernet","0/1")
 	topology.get_node("R3").get_interface("tunnel","0").connect_to(topology.get_node("R1").get_interface("tunnel","0"))

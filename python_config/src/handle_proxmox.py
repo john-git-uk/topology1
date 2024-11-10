@@ -102,12 +102,25 @@ def execute_proxnode_commands(proxmox, node, commands):
 			stdin, stdout, stderr = ssh.exec_command(f'pct exec {my_container.ctid} -- sh -c "{command}"')
 			output += [stdout.read().decode()]
 			error += [stderr.read().decode()]
-	LOGGER.debug("######################## output ########################")
-	for line in output:
-		if line:
-			LOGGER.debug(line)
-	LOGGER.debug("######################## error ########################")
+
+	if (True): # Log terminal output?
+		not_blank = []
+		for line in output:
+			if line:
+				not_blank.append(line)
+		if(len(not_blank) > 0):
+			LOGGER.debug("### proxmox container stdout ###")
+		for line in not_blank:
+			if line:
+				LOGGER.debug(line)
+
+	not_blank = []
 	for line in error:
+		if line and line.strip() != "." and line != ".\n" and line != "+":
+			not_blank.append(line)
+	if (len(not_blank) > 0):
+		LOGGER.warning("### proxmox container has stderr ###")
+	for line in not_blank:
 		if line:
 			LOGGER.warning(line)
 	ssh.close()
@@ -205,32 +218,6 @@ def test_create_container(proxmox, container:  Container):
 		LOGGER.error(f"Error creating container {container.node_data.hostname}: {e}")
 		return
 	LOGGER.info(f"Container {container.node_data.hostname} creation response: {response}")
-
-def prox1_relations(prox1: Node):
-	ldap_server_1 = None
-	radius_server_1 = None
-	dns_server_1 = None
-	for container in prox1.containers:
-		if container.node_data.hostname == "ldap-server-1":
-			ldap_server_1 = container.node_data
-		if container.node_data.hostname == "radius-server-1":
-			radius_server_1 = container.node_data
-		if container.node_data.hostname == "dns-server-1":
-			dns_server_1 = container.node_data
-	
-	if(ldap_server_1 is None):
-		raise Exception("ldap_server_1 is None")
-	if(radius_server_1 is None):
-		raise Exception("radius_server_1 is None")
-	if(dns_server_1 is None):
-		raise Exception("dns_server_1 is None")
-
-	ldap_server_1.get_interface("eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
-	ldap_server_1.get_interface("eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
-	radius_server_1.get_interface("eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
-	radius_server_1.get_interface("eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
-	dns_server_1.get_interface("eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
-	dns_server_1.get_interface("eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
 
 def wait_for_container_running(proxmox, container: Container, retries=30):
 	bootloop = 0

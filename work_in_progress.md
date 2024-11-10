@@ -222,8 +222,11 @@ I use R1 as a certificate authority for the domain. A certificate authority sign
 
 #### R1 Config
 ~~~
-ip http serv
+ip http server
 aaa new-model
+
+access-list 93 permit 10.133.0.0 0.0.255.255
+ip http access-class 93
 
 crypto pki serv CA
   issuer-name CN=CA,O=tapeitup.private
@@ -237,11 +240,67 @@ pass:sevenwsad
 ~~~
 crypto key generate rsa modulus 2048 label R2.tapeitup.private
 crypto pki trustpoint trustedCA
-  enrollment url https://10.133.2.1
+  enrollment url http://10.133.2.1
   rsakeypair R2.tapeitup.private
   subject-name CN=R2,O=tapeitup.private
   revocation-check none
 exit
+crypto pki authenticate trustedCA
+crypto pki enroll trustedCA
+~~~
+
+#### Debian Config
+Print the certificate on R1 using **show crypto pki certificate pem CA**
+
+~~~
+rm -f /usr/local/share/ca-certificates/CA.crt
+echo "-----BEGIN CERTIFICATE-----
+MIIDLjCCAhagAwIBAgIBATANBgkqhkiG9w0BAQsFADAoMRkwFwYDVQQKExB0YXBl
+aXR1cC5wcml2YXRlMQswCQYDVQQDEwJDQTAeFw0yNDExMDQwMjA2NTJaFw0yNzEx
+MDQwMjA2NTJaMCgxGTAXBgNVBAoTEHRhcGVpdHVwLnByaXZhdGUxCzAJBgNVBAMT
+AkNBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmqg54goqOr6g1cIV
+cY4KNHx+G7PXkndHymiYFwQ/ZPObGY/Ytat26gF8M5q1jZhEApB+FL58hfAg0/I7
+7bEimEe99Zno5S+fbrgJ/b5RU0OCgCsHVt7fAw+0bm5JRH6MCqK4rN0f8qhTdJbo
+snN7x6j3sPdj3r7WnHSe9FfapVecgon6X+wjQdKEjfHNVJ05TAxecVptkT8JjOuk
+2P98CX1CiqJC7bjmEXm2X0ebq/ozbEccRt2tKkh/tB+lMNxuwr8zR8Z6oND6/CDK
+hRi++9sa1duxJO0UVUbUD1Gxz98TTithnFpFjq1+VNDiyBr1OLu3Kn+hEGCJR5Ua
+5/eFcQIDAQABo2MwYTAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjAf
+BgNVHSMEGDAWgBQF9qKSWdCam2bMl636cdR2cNKErTAdBgNVHQ4EFgQUBfaiklnQ
+mptmzJet+nHUdnDShK0wDQYJKoZIhvcNAQELBQADggEBAHVMMljCZDpxd5i8DUdy
+NhHGov7AuvKBoelPkZGyz7Rrs7P4R76WVt4bmg2DWZ/EsTV7HC95XmXUJG1VjjkO
+o/iN0EZPoD6qynsLzSasSyzwBTNoSO50wIQlabwCq3Ik1texPccRFwgCHqWGJBGx
+Ja8PK8Xo5/b68aYYSIKDNeqbttj6R9ZdDTikQBiaZjcHIwEssDYl33ivI+qOgxqj
+8/gq+J4toku3tfcOupRLX4C9nWLzoNs0mwO2Y9AG4+SSvpwtt49u2bDvwNlNbBUb
+1vqlc4zeUIgzxAF/xqm5MIsC8QzwynC75NCrhYB1wKaFHKX5iwQp1NZnc763T+SJ
+TB0=
+-----END CERTIFICATE-----" > /usr/local/share/ca-certificates/CA.crt
+update-ca-certificates --fresh
+~~~
+## Cisco Certificate Authority Upgrade
+#### R1 Config
+~~~
+crypto key generate rsa modulus 2048 label HTTPS_Server_Key
+ip http secure-server
+crypto pki trustpoint HTTPS_Server_Cert
+ enrollment selfsigned
+ subject-name CN=CA-HTTPS,O=tapeitup.private
+ rsakeypair HTTPS_Server_Key
+exit
+crypto pki enroll HTTPS_Server_Cert
+ip http secure-trustpoint HTTPS_Server_Cert
+
+aaa new-model
+
+crypto pki serv CA
+  issuer-name CN=CA,O=tapeitup.private
+  grant auto
+  no shut
+
+access-list 93 permit 10.133.0.0 0.0.255.255
+ip http access-class 93
+~~~
+~~~
+crypto pki export HTTPS_Server_Cert pem terminal
 ~~~
 ## Radius (PAM)
 Cisco ports need to be set to standard. The default will remain local users. 

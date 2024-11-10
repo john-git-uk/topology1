@@ -8,9 +8,16 @@ from node import Node
 from handle_proxmox import Container, execute_proxnode_commands, start_container, wait_for_container_ping_debian, wait_for_container_running
 import time
 import base64
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def ldap_server_1_structures(topology: Topology):
 	from machine_data import get_machine_data
+	for segs in topology.access_segments:
+		if(segs.name == "main"):
+			access_segment = segs
+	if(access_segment is None):
+		LOGGER.error("Access segment main not found")
+		return
 
 	prox1 = None
 	prox1 = topology.get_node("prox1")
@@ -34,8 +41,9 @@ def ldap_server_1_structures(topology: Topology):
 		hostname="ldap-server-1",
 		machine_data=get_machine_data("debian"),
 		oob_interface=ldap_server1_i1,
-		local_user="root",
-		local_password="12345",
+		identity_interface=ldap_server1_i2,
+		local_user=GLOBALS.ldap_server_1_username,
+		local_password=GLOBALS.ldap_server_1_password,
 		hypervisor_telnet_port=0,
 	)
 	ldap_server1_container = Container(
@@ -53,6 +61,8 @@ def ldap_server_1_structures(topology: Topology):
 	ldap_server1.add_interface(ldap_server1_i2)
 	prox1.topology_a_part_of.add_node(ldap_server1)
 	prox1.add_container(ldap_server1_container)
+	access_segment.nodes.append(ldap_server1)
+	ldap_server1.access_segment = access_segment
 def ldap_server_1_relations(topology: Topology):
 	prox1 = None
 	prox1 = topology.get_node("prox1")
@@ -81,8 +91,6 @@ def packages_time_ldap_server_1(ldap_server_1):
 	container = prox1.get_container(ldap_server_1.hostname)
 	if container is None:
 		raise ValueError("container is None")
-	if prox1 is None:
-		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
 
 	if not wait_for_container_running(prox1, container, 30):
 		LOGGER.error(f"Container {ldap_server_1.hostname} did not start in time")
@@ -100,14 +108,6 @@ def packages_time_ldap_server_1(ldap_server_1):
 		'update-locale LANG=en_GB.UTF-8 LC_ALL=en_GB.UTF-8',
 		"echo 'LANG=\"en_GB.UTF-8\"' > /etc/default/locale",
 		"echo 'LC_ALL=\"en_GB.UTF-8\"' >> /etc/default/locale",
-		#f'echo "nslcd nslcd/ldap-uris string ldap://{ldap_server_1.get_interface('ethernet',"eth1").ipv4_address}:389/" | debconf-set-selections',
-		#'echo "slapd slapd/internal/generated_adminpw password ldap" | debconf-set-selections',
-		#'echo "slapd slapd/internal/adminpw password ldap" | debconf-set-selections',
-		#'echo "slapd slapd/password1 password ldap" | debconf-set-selections',
-		#'echo "slapd slapd/password2 password ldap" | debconf-set-selections',
-		#f'echo "slapd slapd/domain string {topology.domain_name_a}.{topology.domain_name_b}" | debconf-set-selections',
-		#f'echo "slapd shared/organization string {topology.domain_name_a}" | debconf-set-selections',
-		#'echo "slapd slapd/no_configuration boolean false" | debconf-set-selections',
 		f'echo {base64_encode_string(f"echo nslcd nslcd/ldap-uris string ldap://{ldap_server_1.get_interface('ethernet','eth1').ipv4_address}:389/ | debconf-set-selections")} | base64 -d | sh',
 		f'echo {base64_encode_string("echo slapd slapd/internal/generated_adminpw password ldap | debconf-set-selections")} | base64 -d | sh',
 		f'echo {base64_encode_string("echo slapd slapd/internal/adminpw password ldap | debconf-set-selections")} | base64 -d | sh',

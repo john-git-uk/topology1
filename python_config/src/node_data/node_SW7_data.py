@@ -4,6 +4,7 @@ from node import Node
 from topology import Topology
 from machine_data import get_machine_data
 import logging
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def SW7_Structures(topology: Topology):
 	LOGGER.debug("Loading SW7 Structures")
@@ -98,19 +99,13 @@ def SW7_Structures(topology: Topology):
 		ipv4_address="10.133.30.137",
 		ipv4_cidr=25
 	)
-	node_SW7_i13=Interface(
-		name="0",
-		interface_type="loopback",
-		description="",
-		ipv4_address="10.133.2.17",
-		ipv4_cidr=32
-	)
 	node_SW7 = Node(
 		hostname="SW7",
-		local_user="auto",
-		local_password="otua",
+		local_user=GLOBALS.sw7_username,
+		local_password=GLOBALS.sw7_password,
 		machine_data=machine_data,
-		oob_interface=node_SW7_i11
+		oob_interface=node_SW7_i11,
+		identity_interface=node_SW7_i12
 	)
 	node_SW7.add_interface(node_SW7_i1)
 	node_SW7.add_interface(node_SW7_i2)
@@ -124,10 +119,11 @@ def SW7_Structures(topology: Topology):
 	node_SW7.add_interface(node_SW7_i10)
 	node_SW7.add_interface(node_SW7_i11)
 	node_SW7.add_interface(node_SW7_i12)
-	node_SW7.add_interface(node_SW7_i13)
 	topology.add_node(node_SW7)
 	access_segment.nodes.append(node_SW7)
+	node_SW7.access_segment=access_segment
+	
 def SW7_relations(topology: Topology):
 	LOGGER.debug("Loading SW1 Relations")
 	topology.get_node("SW7").get_interface("ethernet","0/0").connect_to(topology.get_node("R3").get_interface("ethernet","0/1"))
-	topology.get_node("SW7").get_interface("ethernet","3/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW7").get_interface("ethernet","3/3").connect_to(topology.get_exit_interface('exit_oob'))

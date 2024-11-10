@@ -2,7 +2,7 @@
 from __future__ import annotations
 from topology import Topology
 from handle_vmm import test_interact_vmm
-from node_data.node_ISP_data import ISP_Structures, ISP_relations
+#from node_data.node_ISP_data import ISP_Structures, ISP_relations
 from node_data.node_R1_data import R1_Structures, R1_relations
 from node_data.node_R2_data import R2_Structures, R2_relations
 from node_data.node_R3_data import R3_Structures, R3_relations
@@ -13,6 +13,7 @@ from node_data.node_SW4_data import SW4_Structures, SW4_relations
 from node_data.node_SW5_data import SW5_Structures, SW5_relations
 from node_data.node_SW6_data import SW6_Structures, SW6_relations
 from node_data.node_SW7_data import SW7_Structures, SW7_relations
+from node_data.node_prox1_data import prox1_structures, prox1_relations
 from node_data.node_ldap_server_1 import ldap_server_1_structures, ldap_server_1_relations
 from node_data.node_radius_server_1 import radius_server_1_structures, radius_server_1_relations
 from node_data.node_dns_server_1 import dns_server_1_structures, dns_server_1_relations
@@ -77,8 +78,8 @@ def load_topology():
 	topology = Topology()
 	main_structures(topology)
 	LOGGER.debug("Topology main loaded")
-	ISP_Structures(topology)
-	LOGGER.debug("ISP Structures loaded")
+	#ISP_Structures(topology)
+	#LOGGER.debug("ISP Structures loaded")
 	R1_Structures(topology)
 	LOGGER.debug("R1 Structures loaded")
 	R2_Structures(topology)
@@ -99,6 +100,8 @@ def load_topology():
 	LOGGER.debug("SW6 Structures loaded")
 	SW7_Structures(topology)
 	LOGGER.debug("SW7 Structures loaded")
+	prox1_structures(topology)
+	LOGGER.debug("Prox1 Structures loaded")
 	ldap_server_1_structures(topology)
 	LOGGER.debug("LDAP Server 1 Structures loaded")
 	radius_server_1_structures(topology)
@@ -108,8 +111,8 @@ def load_topology():
 
 	main_relations(topology)
 	LOGGER.debug("Main Relations loaded")
-	ISP_relations(topology)
-	LOGGER.debug("ISP Relations loaded")
+	#ISP_relations(topology)
+	#LOGGER.debug("ISP Relations loaded")
 	R1_relations(topology)
 	LOGGER.debug("R1 Relations loaded")
 	R2_relations(topology)
@@ -130,6 +133,8 @@ def load_topology():
 	LOGGER.debug("SW6 Relations loaded")
 	SW7_relations(topology)
 	LOGGER.debug("SW7 Relations loaded")
+	prox1_relations(topology)
+	LOGGER.debug("Prox1 Relations loaded")
 	ldap_server_1_relations(topology)
 	LOGGER.debug("LDAP Server 1 Relations loaded")
 	radius_server_1_relations(topology)
@@ -147,7 +152,7 @@ def simple_function_prompt(topology:  Topology):
 		"Globals: Validate Data",#1
 		"Globals: Load Data",#2
 		"Configure prox1 containers",#3
-		"Unused",#4
+		"SSH: Validate Interfaces Exist",#4
 		"Unused",#5
 		"Topology: Generate Multiple Config for Cisco Nodes",#6
 		"Lab Handler: Import Virtual Console Telnet Ports from Lab API",#7
@@ -187,7 +192,9 @@ def simple_function_prompt(topology:  Topology):
 				packages_time_radius_server_1(topology.get_node("radius-server-1"))
 				configure_radius_server_1(topology.get_node("radius-server-1"))
 			elif(selected_function_index == 4):
-				pass
+				for node in topology.nodes:
+					LOGGER.debug(f"Validating interfaces for {node.hostname}")
+					node.validate_interfaces_genie()
 			elif(selected_function_index == 5):
 				pass
 			elif(selected_function_index == 6):

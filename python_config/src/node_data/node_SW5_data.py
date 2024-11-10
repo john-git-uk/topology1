@@ -4,6 +4,7 @@ from node import Node
 from topology import Topology
 from machine_data import get_machine_data
 import logging
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def SW5_Structures(topology: Topology):
 	LOGGER.debug("Loading SW5 Structures")
@@ -93,19 +94,20 @@ def SW5_Structures(topology: Topology):
 		ipv4_cidr=24
 	)
 	node_SW5_i11=Interface(
-		name="0",
-		interface_type="loopback",
+		name="30",
+		interface_type="vlan",
 		description="",
-		ipv4_address="10.133.2.5",
-		ipv4_cidr=32
+		ipv4_address="10.133.30.5",
+		ipv4_cidr=25
 	)
 
 	node_SW5=Node(
 		hostname="SW5",
-		local_user="auto",
-		local_password="otua",
+		local_user=GLOBALS.sw5_username,
+		local_password=GLOBALS.sw5_password,
 		machine_data=machine_data,
-		oob_interface=node_SW5_i10
+		oob_interface=node_SW5_i10,
+		identity_interface=node_SW5_i11
 	)
 	node_SW5.add_interface(node_SW5_i1)
 	node_SW5.add_interface(node_SW5_i2)
@@ -120,8 +122,10 @@ def SW5_Structures(topology: Topology):
 	node_SW5.add_interface(node_SW5_i11)
 	topology.add_node(node_SW5)
 	access_segment.nodes.append(node_SW5)
+	node_SW5.access_segment=access_segment
+	
 def SW5_relations(topology: Topology):
 	LOGGER.debug("Loading SW5 Relations")
 	topology.get_node("SW5").get_interface("ethernet","0/0").connect_to(topology.get_node("SW3").get_interface("ethernet","0/3"))
 	topology.get_node("SW5").get_interface("ethernet","0/1").connect_to(topology.get_node("SW4").get_interface("ethernet","1/2"))
-	topology.get_node("SW5").get_interface("ethernet","3/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("SW5").get_interface("ethernet","3/3").connect_to(topology.get_exit_interface('exit_oob'))

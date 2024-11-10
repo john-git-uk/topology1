@@ -25,7 +25,7 @@ class Interface(BaseModel):
 	node_a_part_of: Optional["Node"] = None
 	neighbour: Optional["Interface"] = None
 	name: str
-	interface_type: Literal["ethernet", "fast ethernet", "gigabit ethernet", "bridge", "vlan", "port-channel", "tunnel", "loopback", "mactap"]
+	interface_type: Literal["ethernet", "fastethernet", "gigabitethernet", "bridge", "vlan", "port-channel", "tunnel", "loopback", "mactap"]
 	description: Optional[str]=None
 	ospf_participant: bool=False
 	ospf_passive: bool=False,

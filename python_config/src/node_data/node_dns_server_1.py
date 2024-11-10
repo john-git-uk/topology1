@@ -11,9 +11,17 @@ import asyncio
 import pihole as ph
 import base64
 import time
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def dns_server_1_structures(topology: Topology):
 	from machine_data import get_machine_data
+
+	for segs in topology.access_segments:
+		if(segs.name == "main"):
+			access_segment = segs
+	if(access_segment is None):
+		LOGGER.error("Access segment main not found")
+		return
 
 	prox1 = None
 	prox1 = topology.get_node("prox1")
@@ -23,6 +31,7 @@ def dns_server_1_structures(topology: Topology):
 	dns_server1_i1 = Interface(
 		name="eth0",
 		interface_type="ethernet",
+		description="oob",
 		ipv4_address="192.168.2.229",
 		ipv4_cidr=24
 	)
@@ -32,12 +41,26 @@ def dns_server_1_structures(topology: Topology):
 		ipv4_address="10.133.60.249",
 		ipv4_cidr=24
 	)
+	dns_server1_i3 = Interface(
+		name="eth2",
+		interface_type="ethernet",
+		ipv4_address="10.133.70.249",
+		ipv4_cidr=24
+	)
+	dns_server1_i4 = Interface(
+		name="eth3",
+		description="management",
+		interface_type="ethernet",
+		ipv4_address="10.133.30.249",
+		ipv4_cidr=24
+	)
 	dns_server1 = Node(
 		hostname="dns-server-1",
 		machine_data=get_machine_data("debian"),
 		oob_interface=dns_server1_i1,
-		local_user="root",
-		local_password="12345",
+		identity_interface=dns_server1_i2,
+		local_user=GLOBALS.dns_server_1_username,
+		local_password=GLOBALS.dns_server_1_password,
 		hypervisor_telnet_port=0,
 	)
 	dns_server1_container = Container(
@@ -53,8 +76,12 @@ def dns_server_1_structures(topology: Topology):
 	)
 	dns_server1.add_interface(dns_server1_i1)
 	dns_server1.add_interface(dns_server1_i2)
+	dns_server1.add_interface(dns_server1_i3)
+	dns_server1.add_interface(dns_server1_i4)
 	prox1.topology_a_part_of.add_node(dns_server1)
 	prox1.add_container(dns_server1_container)
+	access_segment.nodes.append(dns_server1)
+	dns_server1.access_segment = access_segment
 
 def dns_server_1_relations(topology: Topology):
 	prox1 = None
@@ -70,6 +97,8 @@ def dns_server_1_relations(topology: Topology):
 
 	dns_server_1.get_interface("ethernet","eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
 	dns_server_1.get_interface("ethernet","eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
+	dns_server_1.get_interface("ethernet","eth2").connect_to(prox1.get_interface("bridge","vmbr70"))
+	dns_server_1.get_interface("ethernet","eth3").connect_to(prox1.get_interface("bridge","vmbr30"))
 
 def dns_server_1_config(dns_server_1: Node):
 	prox1 = None
@@ -139,7 +168,7 @@ def packages_time_dns_server_1(dns_server_1: Node):
 		+f"{dns_server_1.get_interface("ethernet",'eth1').ipv4_cidr}' >> /etc/pihole/setupVars.conf",
 		"echo 'QUERY_LOGGING=false' >> /etc/pihole/setupVars.conf",
 		"echo 'INSTALL_WEB_SERVER=true' >> /etc/pihole/setupVars.conf",
-		"echo 'WEBPASSWORD=12345' >> /etc/pihole/setupVars.conf",
+		f"echo 'WEBPASSWORD={GLOBALS.dns_web_api_password}' >> /etc/pihole/setupVars.conf",
 		f"echo 'PIHOLE_DNS_1={str(topology.dns_upstream[0])}' >> /etc/pihole/setupVars.conf",
 		"PIHOLE_SKIP_OS_CHECK=true bash basic-install.sh --unattended"
 	]
@@ -218,30 +247,12 @@ def configure_dns_server_1(dns_server_1: Node):
 					f'echo "address=/{int_str}.{node.hostname}.{topology.domain_name_a}.{topology.domain_name_b}/{interface.ipv4_address}" >> /etc/dnsmasq.d/local.conf'
 				)} | base64 -d | sh',
 			]
-		# Check for loopback interfaces and (use the first in the list?) TODO
-		if main_interface is None:
-			for i in range(node.get_interface_count()-1):
-				interface = node.get_interface_no(i)
-				if interface.ipv4_address is None:
-					continue
-				if interface.interface_type == "loopback":
-					main_interface = interface
-					break
-		# Check for VLAN 30 SVI
-		if main_interface is None:
-			for i in range(node.get_interface_count()-1):
-				interface = node.get_interface_no(i)
-				if interface.ipv4_address is None:
-					continue
-				if interface.name == "30" and interface.interface_type == "vlan":
-					main_interface = interface
-					break
-		if main_interface is None:
+		if node.get_identity_interface() is None:
 			LOGGER.warning(f"Could not find main interface for {node.hostname} DNS entry")
 			continue
 		commands += [
 			f'echo {base64_encode_string(
-				f'echo "address=/{node.hostname}.{topology.domain_name_a}.{topology.domain_name_b}/{main_interface.ipv4_address}" >> /etc/dnsmasq.d/local.conf'
+				f'echo "address=/{node.hostname}.{topology.domain_name_a}.{topology.domain_name_b}/{node.get_identity_interface().ipv4_address}" >> /etc/dnsmasq.d/local.conf'
 			)} | base64 -d | sh',
 		]
 	commands += [

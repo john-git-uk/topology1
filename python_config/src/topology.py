@@ -2,6 +2,8 @@ from __future__ import annotations
 import logging
 from pydantic import BaseModel
 from typing import Optional, List, Literal
+from access_control import Access_Control
+from project_globals import GLOBALS
 import ipaddress
 LOGGER = logging.getLogger('my_logger')
 class Topology(BaseModel):
@@ -16,26 +18,22 @@ class Topology(BaseModel):
 		}
 	domain_name_a: Optional[str]="local"
 	domain_name_b: Optional[str]=None
-	exit_interface_main: Optional[Interface]=None
-	exit_interface_oob: Optional[Interface]=None
-	exit_interface_real_wap: Optional[Interface]=None
+	#exit_interface_main: Optional[Interface]=None
+	#exit_interface_oob: Optional[Interface]=None
+	#exit_interface_real_wap: Optional[Interface]=None
+	exit_interfaces: List[Interface]=[]
 	ntp_master: Optional[Interface]=None
 	ntp_public: Optional[ipaddress.IPv4Address]=None
 	ntp_password: Optional[str]="outoftime"
 	dns_private: List[Interface]=[]
 	dns_upstream: List[ipaddress]=[]
-	#vlans: List[VLAN]=[]
+	certificate_authorities: List[Interface]=[]
 	nodes: List[Node]=[]
 	access_segments: List[AccessSegment]=[]
-	#def add_vlan(self, vlan: VLAN):
-	#	self.vlans.append(vlan)
+	access_controls: List[Access_Control]=[]
 	def add_node(self, node: Node):
 		self.nodes.append(node)
 		node.topology_a_part_of=self
-	#def get_vlan(self, name: str):
-	#	for vlan in self.vlans:
-	#		if vlan.name == name:
-	#			return vlan
 	def get_node(self, name: str):
 		for node in self.nodes:
 			if node.hostname == name:
@@ -44,6 +42,12 @@ class Topology(BaseModel):
 		for access_segment in self.access_segments:
 			if access_segment.name == name:
 				return access_segment
+	def get_exit_interface(self, name: str):
+		for interface in self.exit_interfaces:
+			if interface.name == name:
+				return interface
+		LOGGER.error(f"No topology exit interface found with name: {name}")
+		return None
 	def generate_nodes_interfaces_config(self):
 		try:
 			LOGGER.info("Generating interfaces config for all nodes")
@@ -110,16 +114,77 @@ class Topology(BaseModel):
 			LOGGER.info("Generating multi config for all nodes")
 			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
 			for node in self.nodes:
-				if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
+				#if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
 
-					node.generate_ssh_stub()
-					node.generate_interfaces_config()
-					node.generate_stp_vlan_config()
-					node.generate_fhrp_config()
-					node.generate_ospf_static_base_config()
-					node.generate_dhcp_config()
-					node.generate_wan_config()
-					node.generate_ntp_config()
+				node.generate_ssh_stub()
+				node.generate_interfaces_config()
+				node.generate_stp_vlan_config()
+				node.generate_fhrp_config()
+				node.generate_ospf_static_base_config()
+				node.generate_dhcp_config()
+				node.generate_wan_config()
+				node.generate_ntp_config()
 		except Exception as e:
 			LOGGER.error("Error generating multi config for all nodes: %s", e)
 			raise
+	def make_genie_yaml(self):
+		import yaml
+		data = {
+			"testbed": {
+				"name": "My_Network",
+				"credentials": {
+					"default": {
+						"username": "your_username",
+						"password": "your_password"
+					},
+					"enable": {
+						"password": "your_enable_password"
+					}
+				}
+			},
+			"devices":{}
+		}
+		
+		# add devices from topology.nodes
+		for node in self.nodes:
+			if node.machine_data.device_type == 'cisco_xe':
+				os='iosxe'
+			elif node.machine_data.device_type == 'cisco_ios':
+				os='ios'
+			else:
+				continue
+			if node.machine_data.category == 'router':
+				vtype = "router"
+			else:
+				vtype = "switch"
+			data["devices"][node.hostname] = {
+				"os": os,
+				"type": vtype,
+				"connections": {
+					"cli": {
+						"protocol": "ssh",
+						"ip": (str)(node.oob_interface.ipv4_address),
+						}
+					},
+					"credentials": {
+						"default": {
+							"username": node.local_user,
+							"password": node.local_password
+						},
+						"enable": {
+							"password": node.local_password
+						}
+					}
+				}
+			if len(node.machine_data.ssh_options) == 4:
+				data["devices"][node.hostname]["connections"]["cli"]["ssh_options"] = (
+					f"-o {node.machine_data.ssh_options[0]} -o {node.machine_data.ssh_options[1]}" 
+					+f" -o {node.machine_data.ssh_options[2]} -o {node.machine_data.ssh_options[3]}"
+				)
+
+
+		# Write the data to a YAML file
+		with open(GLOBALS.testbed_path, "w") as file:
+			yaml.dump(data, file, default_flow_style=False)
+
+		print("YAML file 'testbed.yaml' has been created.")

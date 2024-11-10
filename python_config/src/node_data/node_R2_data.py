@@ -4,6 +4,7 @@ from node import Node
 from topology import Topology
 from machine_data import get_machine_data
 import logging
+from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def R2_Structures(topology: Topology):
 	LOGGER.debug("Loading R2 Structures")
@@ -73,10 +74,11 @@ def R2_Structures(topology: Topology):
 
 	node_R2=Node(
 		hostname="R2",
-		local_user="auto",
-		local_password="otua",
+		local_user=GLOBALS.r2_username,
+		local_password=GLOBALS.r2_password,
 		machine_data=machine_data,
-		oob_interface=node_R2_i4
+		oob_interface=node_R2_i4,
+		identity_interface=node_R2_i5,
 	)
 	node_R2.add_interface(node_R2_i1)
 	node_R2.add_interface(node_R2_i2)
@@ -88,8 +90,8 @@ def R2_Structures(topology: Topology):
 def R2_relations(topology: Topology):
 	LOGGER.debug("Loading R2 Relations")
 	topology.get_node("R2").get_interface("ethernet","0/0").connect_to(topology.get_node("SW4").get_interface("ethernet","1/3"))
-	topology.get_node("R2").get_interface("ethernet","0/1").connect_to(topology.get_node("ISP").get_interface("ethernet","0/1"))
+	topology.get_node("R2").get_interface("ethernet","0/1").connect_to(topology.get_exit_interface("exit_r2"))
 	topology.get_node("R2").get_interface("ethernet","0/2").connect_to(topology.get_node("SW3").get_interface("ethernet","1/2"))
-	topology.get_node("R2").get_interface("ethernet","0/3").connect_to(topology.exit_interface_oob)
+	topology.get_node("R2").get_interface("ethernet","0/3").connect_to(topology.get_exit_interface('exit_oob'))
 	topology.get_node("R2").get_interface("tunnel","0").tunnel_destination=(topology.get_node("R3").get_interface("ethernet","0/0"))
 	topology.get_node("R2").get_interface("tunnel","0").connect_to(topology.get_node("R3").get_interface("tunnel","1"))
