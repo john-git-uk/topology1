@@ -35,6 +35,7 @@ class Printer_Subnet:
 			# If not subsubnet of our current subsubnet, insert as our subsubnet
 			new_subnet = Printer_Subnet(insertion_netid, descriptions=[description])
 			self.sub_subnets.append(new_subnet)
+	
 	def insert_host(self, ip: ipaddress.IPv4Address, cidr: int, description: str):
 		# If its in my subnet
 		if ip in (self.my_net_id):

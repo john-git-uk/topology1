@@ -34,20 +34,24 @@ class Topology(BaseModel):
 	def add_node(self, node: Node):
 		self.nodes.append(node)
 		node.topology_a_part_of=self
+	
 	def get_node(self, name: str):
 		for node in self.nodes:
 			if node.hostname == name:
 				return node
+	
 	def get_access_segment(self, name: str):
 		for access_segment in self.access_segments:
 			if access_segment.name == name:
 				return access_segment
+	
 	def get_exit_interface(self, name: str):
 		for interface in self.exit_interfaces:
 			if interface.name == name:
 				return interface
 		LOGGER.error(f"No topology exit interface found with name: {name}")
 		return None
+	
 	def generate_nodes_interfaces_config(self):
 		try:
 			LOGGER.info("Generating interfaces config for all nodes")
@@ -62,6 +66,7 @@ class Topology(BaseModel):
 		except Exception as e:
 			LOGGER.error(f"Error generating interfaces config for all nodes: {e}")
 			raise
+	
 	def generate_nodes_ssh_stubs(self):
 		try:
 			LOGGER.info("Generating ssh stubs for all nodes")
@@ -72,6 +77,7 @@ class Topology(BaseModel):
 		except Exception as e:
 			LOGGER.error("Error generating ssh stubs for all nodes: %s", e)
 			raise
+	
 	def choose_linux_node_for_telnet_config(self):
 		shortlist = []
 		for node in self.nodes:
@@ -89,13 +95,14 @@ class Topology(BaseModel):
 			else:
 				print("Invalid selection.")	
 		return None
+	
 	def generate_nodes_stp_vlan_config(self):
 		try:
 			LOGGER.info("Generating stp vlan config for all nodes")
 			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
 			for node in self.nodes:
 				if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
-					node.generate_stp_vlan_config()
+					node.cisco_stp_vlan_config()
 		except Exception as e:
 			LOGGER.error("Error generating stp vlan config for all nodes: %s", e)
 			raise
@@ -109,16 +116,17 @@ class Topology(BaseModel):
 		except Exception as e:
 			LOGGER.error("Error generating fhrp config for all nodes: %s", e)
 			raise
+	
 	def generate_multi_config(self):
 		try:
 			LOGGER.info("Generating multi config for all nodes")
 			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
 			for node in self.nodes:
-				#if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
-
+				if(node.machine_data.device_type != "cisco_ios" or node.machine_data.device_type != "cisco_xe"):
+					continue
 				node.generate_ssh_stub()
 				node.generate_interfaces_config()
-				node.generate_stp_vlan_config()
+				cisco_stp_vlan_config(node)
 				node.generate_fhrp_config()
 				node.generate_ospf_static_base_config()
 				node.generate_dhcp_config()
@@ -127,7 +135,9 @@ class Topology(BaseModel):
 		except Exception as e:
 			LOGGER.error("Error generating multi config for all nodes: %s", e)
 			raise
+	
 	def make_genie_yaml(self):
+		''' Function to generate a genie yaml file using topology data. Ginie needs this yaml file to connect to devices. '''
 		import yaml
 		data = {
 			"testbed": {
@@ -188,69 +198,3 @@ class Topology(BaseModel):
 			yaml.dump(data, file, default_flow_style=False)
 
 		print("YAML file 'testbed.yaml' has been created.")
-	def generate_human_ip_assignment_list(self):
-		iplist = {
-			'192.168.2.0/24' 'Reserved for out of lab operations',
-			'192.168.250.0/24' 'Reserved for out of band management',
-		}
-
-		subnets = []
-		member_int = []
-
-		# Build a list of vlans in topology
-		for acc in topology.access_segments:
-			for vlan in acc.vlans:
-				foundx = False
-				for vlamem in vlans:
-					if id(vlamem) == id(vlan):
-						continue
-				if not foundx:
-					vlans.append(vlan)
-
-		for node in self.nodes:
-			for intx in range (node.get_interface_count()):
-				interface = node.get_interface_by_index(intx)
-				if interface.ipv4_address == None:
-					continue
-				if interface.ipv4_cidr == None:
-					continue
-				# Check vlan list for membership
-				foundy = False
-				for vlan in vlans:
-					if interface.ipv4_address in ipaddress.IPv4Network(vlan.ipv4_address + "/" + str(vlan.ipv4_cidr)):
-						foundy = True
-						break
-					if foundy:
-						member_int[vlan.index].append(interface)
-					else:
-						pass
-
-	def organise_ips_into_subnets_safe(ip_list: List[Tuple[str, str]]) -> List[Dict]:
-		ip_desc_list = []
-		for ip_str, desc in ip_list:
-			try:
-				ip_obj = ipaddress.IPv4Address(ip_str)
-				ip_desc_list.append((ip_obj, desc))
-			except ipaddress.AddressValueError:
-				print(f"Invalid IP address: {ip_str}. Skipping.")
-				continue
-		
-		# Proceed as before
-		ip_desc_list.sort(key=lambda x: int(x[0]))
-		ips = [ip for ip, _ in ip_desc_list]
-		subnets = list(ipaddress.collapse_addresses(ips))
-		subnet_dict = {subnet: [] for subnet in subnets}
-		for ip, desc in ip_desc_list:
-			for subnet in subnets:
-				if ip in subnet:
-					subnet_dict[subnet].append((ip, desc))
-					break
-		sorted_subnets = sorted(subnet_dict.keys(), key=lambda x: int(x.network_address))
-		result = []
-		for subnet in sorted_subnets:
-			ips_in_subnet = subnet_dict[subnet]
-			ips_in_subnet.sort(key=lambda x: int(x[0]))
-			ips_in_subnet_str = [{'ip': str(ip), 'description': desc} for ip, desc in ips_in_subnet]
-			result.append({'subnet': str(subnet), 'ips': ips_in_subnet_str})
-		return result
-				
