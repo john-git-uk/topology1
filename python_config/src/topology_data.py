@@ -313,9 +313,9 @@ def main_relations(topology: Topology):
 	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.40")
 	
 	topology.ntp_master=topology.get_node("R1").get_interface("loopback", "0")
-	topology.ntp_public=ipaddress.ip_address("1.1.1.1")
+	topology.ntp_public=ipaddress.ip_address("176.58.109.199")
 
-	topology.get_exit_interface('exit_r1').connect_to(topology.get_node("R1").get_interface('gigabit ethernet','2'))
+	topology.get_exit_interface('exit_r1').connect_to(topology.get_node("R1").get_interface('ethernet','0/1'))
 	topology.get_exit_interface('exit_r2').connect_to(topology.get_node("R2").get_interface('ethernet','0/1'))
 	topology.get_exit_interface('exit_r3').connect_to(topology.get_node("R3").get_interface('ethernet','0/0'))
 

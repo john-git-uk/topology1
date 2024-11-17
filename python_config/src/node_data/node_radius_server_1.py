@@ -1,6 +1,7 @@
 from __future__ import annotations
 import paramiko
-from handle_debian import *
+from handle_debian import commands_packages_essential, commands_packages_radius_server, \
+ commands_packages_ldap_client, commands_config_radius_server, commands_config_ldap_client
 import logging
 from convert import get_escaped_string
 from interface import Interface
@@ -25,7 +26,7 @@ def radius_server_1_structures(topology: Topology):
 	radius_server1_i1 = Interface(
 		name="eth0",
 		interface_type="ethernet",
-		ipv4_address="192.168.2.230",
+		ipv4_address="192.168.250.230",
 		ipv4_cidr=24
 	)
 	radius_server1_i2 = Interface(
@@ -33,6 +34,19 @@ def radius_server_1_structures(topology: Topology):
 		interface_type="ethernet",
 		ipv4_address="10.133.60.251",
 		ipv4_cidr=24
+	)
+	radius_server1_i3 = Interface(
+		name="eth2",
+		interface_type="ethernet",
+		ipv4_address="10.133.70.251",
+		ipv4_cidr=24
+	)
+	radius_server1_i4 = Interface(
+		name="eth3",
+		description="management",
+		interface_type="ethernet",
+		ipv4_address="10.133.30.123",
+		ipv4_cidr=25
 	)
 	radius_server1 = Node(
 		hostname="radius-server-1",
@@ -56,6 +70,8 @@ def radius_server_1_structures(topology: Topology):
 	)
 	radius_server1.add_interface(radius_server1_i1)
 	radius_server1.add_interface(radius_server1_i2)
+	radius_server1.add_interface(radius_server1_i3)
+	radius_server1.add_interface(radius_server1_i4)
 	prox1.topology_a_part_of.add_node(radius_server1)
 	prox1.add_container(radius_server1_container)
 	access_segment.nodes.append(radius_server1)
@@ -75,8 +91,37 @@ def radius_server_1_relations(topology: Topology):
 	
 	radius_server_1.get_interface("ethernet","eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
 	radius_server_1.get_interface("ethernet","eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
+	radius_server_1.get_interface("ethernet","eth2").connect_to(prox1.get_interface("bridge","vmbr70"))
+	radius_server_1.get_interface("ethernet","eth3").connect_to(prox1.get_interface("bridge","vmbr30"))
 
-def packages_time_radius_server_1(radius_server_1: Node):
+def radius_server_1_config(node):
+	topology = None
+	prox1 = None
+	container = None
+	topology = node.topology_a_part_of
+	if topology is None:
+		raise ValueError("topology is None")
+	prox1 = topology.get_node("prox1")
+	if prox1 is None:
+		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
+	container = prox1.get_container(node.hostname)
+	if container is None:
+		raise ValueError("container is None")
+	
+	if not wait_for_container_running(prox1, container, 30):
+		LOGGER.error(f"Container {radius_server_1.hostname} did not start in time")
+		return
+	if not wait_for_container_ping_debian(prox1, container, 60):
+		LOGGER.error(f"Container {radius_server_1.hostname} cannot contact package source")
+		return
+	#####################################
+	output,error = execute_proxnode_commands(prox1, node, commands_packages_essential(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_packages_ldap_client(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_packages_radius_server(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_config_ldap_client(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_config_radius_server(node))
+
+def old_packages_time_radius_server_1(radius_server_1: Node):
 	topology = None
 	prox1 = None
 	container = None
@@ -89,9 +134,7 @@ def packages_time_radius_server_1(radius_server_1: Node):
 	container = prox1.get_container(radius_server_1.hostname)
 	if container is None:
 		raise ValueError("container is None")
-	if prox1 is None:
-		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
-
+	
 	if not wait_for_container_running(prox1, container, 30):
 		LOGGER.error(f"Container {radius_server_1.hostname} did not start in time")
 		return
@@ -99,17 +142,7 @@ def packages_time_radius_server_1(radius_server_1: Node):
 		LOGGER.error(f"Container {radius_server_1.hostname} cannot contact debian.org")
 		return
 
-	commands = ["ping -c 3 debian.org"]
-	ping_output,ping_error = execute_proxnode_commands(prox1, radius_server_1, commands)
-	ping_output_str = ''.join(ping_output)
-	# Check the result of the ping command
-	if "0% packet loss" in ping_output_str:
-		LOGGER.debug("#### debian.org is reachable!")
-	else:
-		LOGGER.error("#### debian.org is NOT reachable!")
-		LOGGER.debug(f"#### Ping Output: {ping_output}")
-		LOGGER.debug(f"#### Ping Error: {ping_error}")
-		return
+	###################################
 	
 	commands = []
 	commands += [
@@ -123,10 +156,11 @@ def packages_time_radius_server_1(radius_server_1: Node):
 		'env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends telnet curl openssh-client openssh-server nano '
 		+'vim-tiny iputils-ping build-essential net-tools freeradius freeradius-utils iproute2 libpam-radius-auth freeradius-ldap rsyslog xxd '
 		+'libpam-ldapd nslcd sudo libnss-ldap ldap-utils libldap-2.5-0 libldap-common',
+		'apt-get upgrade -y',
 	]
 	output,error = execute_proxnode_commands(prox1, radius_server_1, commands)
 
-def configure_radius_server_1(radius_server_1: Node):
+def old_configure_radius_server_1(radius_server_1: Node):
 	LOGGER.debug("#### Configuring radius-server-1")
 	topology = None
 	prox1 = None
@@ -162,7 +196,8 @@ def configure_radius_server_1(radius_server_1: Node):
 	commands += ["systemctl restart ssh", "systemctl restart freeradius", "systemctl restart nslcd"]
 
 	output,error = execute_proxnode_commands(prox1, radius_server_1, commands)
-def radius_server_1_authorize_content(radius_server_1: Node):
+	
+def old_radius_server_1_authorize_content(radius_server_1: Node):
 	topology = None
 	prox1 = None
 	container = None
@@ -239,7 +274,8 @@ DEFAULT	Hint == "SLIP"
 	Framed-Protocol = SLIP
 '''
 	#endregion
-def radius_server_1_clients_content(radius_server_1: Node):
+
+def old_radius_server_1_clients_content(radius_server_1: Node):
 	topology = None
 	prox1 = None
 	container = None
@@ -252,8 +288,6 @@ def radius_server_1_clients_content(radius_server_1: Node):
 	container = prox1.get_container(radius_server_1.hostname)
 	if container is None:
 		raise ValueError("container is None")
-	if prox1 is None:
-		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
 	#region return string
 	return f"""
 client localhost{{
@@ -273,14 +307,16 @@ client SW3.tapeitup.private {{
 }}
 	"""
 	#endregion
-def radius_server_1_pam_radius_auth_content(radius_server_1: Node):
+
+def old_radius_server_1_pam_radius_auth_content(radius_server_1: Node): # This is currently unused?
 	#region return string
 	return """
 127.0.0.1    beantruck             1
 other-server    other-secret       3
 """
 	#endregion
-def radius_server_1_sshd_content(radius_server_1: Node): # This is for making radius requests for Linux ssh auth not ldap? Probably not needed
+
+def old_radius_server_1_sshd_content(radius_server_1: Node): # This is for making radius requests for Linux ssh auth not ldap? Probably not needed
 	#region return string
 	return """
 auth    required    pam_radius_auth.so
@@ -302,7 +338,7 @@ session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_
 """
 	#endregion
 
-def radius_server_1_sshd_config_content(radius_server_1: Node):
+def old_radius_server_1_sshd_config_content(radius_server_1: Node):
 	#region return string
 	return f"""
 SyslogFacility AUTH
@@ -319,7 +355,8 @@ Subsystem sftp /usr/lib/openssh/sftp-server
 ListenAddress {radius_server_1.oob_interface.ipv4_address}
 """
 	#endregion
-def radius_server_1_nslcd_content(radius_server_1):
+
+def old_radius_server_1_nslcd_content(radius_server_1):
 	topology = None
 	prox1 = None
 	container = None
@@ -343,7 +380,8 @@ binddn cn=admin,dc={topology.domain_name_a},dc={topology.domain_name_b}
 bindpw ldap
 """
 	#endregion
-def radius_server_1_nsswitch_content(radius_server_1):
+
+def old_radius_server_1_nsswitch_content(radius_server_1):
 	#region return string
 	return f"""
 passwd:         compat ldap
@@ -351,3 +389,4 @@ group:          compat ldap
 shadow:         compat ldap
 """
 	#endregion
+

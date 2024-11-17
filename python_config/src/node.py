@@ -82,31 +82,39 @@ class Node(BaseModel):
 			LOGGER.critical(f"Cannot add interface to {self.hostname} due to unimplemented machine data type selection")
 		self.__interfaces.append(iface)
 		iface.node_a_part_of=self
+
 	def get_interface(self, type: str, name: str):
 		for iface in self.__interfaces:
 			if iface.name == name:
 				if iface.interface_type == type:
 					return iface
 		LOGGER.warning(f"Interface {name} of type {type} not found on {self.hostname}")
+
 	def get_interface_no(self, index: int):
 		if index < 0 or index >= len(self.__interfaces):
 			raise IndexError("Interface index out of range.")
 		return self.__interfaces[index]
+
 	def get_interface_count(self):
 		return len(self.__interfaces)
+
 	def add_container(self, container: Container):
 		self.__containers.append(container)
+
 	def get_container(self, name: str):
 		for container in self.__containers:
 			if container.node_data.hostname == name:
 				return container
 		LOGGER.warning(f"Container {name} not found on {self.hostname}")
+
 	def get_container_count(self):
-		return len(self.containers)
+		return len(self.__containers)
+
 	def get_container_no(self, index: int):
-		if index < 0 or index >= len(self.containers):
+		if index < 0 or index >= len(self.__containers):
 			raise IndexError("Container index out of range.")
-		return self.containers[index]
+		return self.__containers[index]
+
 	def get_access_segment(self):
 		if self.access_segment is None:
 			for seg in self.topology_a_part_of.access_segments:
@@ -117,6 +125,7 @@ class Node(BaseModel):
 			LOGGER.warning(f"Access segment was requested but not found for {self.hostname}")
 		else:
 			return self.access_segment
+
 	def generate_interfaces_config(self):
 		topology = self.topology_a_part_of
 		LOGGER.info(f"Generating interfaces config for {self.hostname}")
@@ -156,7 +165,7 @@ class Node(BaseModel):
 				if interface.ipv4_address:
 					# Is the machine multilayer?
 					# It is not applicable to "vlan" interfaces
-					if self.machine_data.category == "multilayer" and (interface.interface_type == "vlan") and (interface.interface_type == "loopback"):
+					if self.machine_data.category == "multilayer" and (interface.interface_type != "vlan") and (interface.interface_type != "loopback"):
 						self.interface_config_commands += ["no switchport"]
 					temp_network=ipaddress.IPv4Network(f"0.0.0.0/{interface.ipv4_cidr}")
 					self.interface_config_commands += [
@@ -312,6 +321,7 @@ class Node(BaseModel):
 			with open(os.path.join(out_path,self.hostname+'_interfaces.txt'), 'w') as f:
 				for command in self.interface_config_commands:
 					print(command, file=f)
+
 	def validate_interfaces_genie(self):
 		""" This function will validate the interfaces configured in the _data files exist on the device """
 		import subprocess
@@ -369,6 +379,7 @@ class Node(BaseModel):
 					return
 			LOGGER.info(f"Interfaces on {self.hostname} validated")
 			return
+
 	def apply_interfaces_config_netmiko(self):
 		LOGGER.info(f"Applying interfaces config for {self.hostname}")
 		if(self.machine_data.device_type == "debian" 
@@ -408,6 +419,7 @@ class Node(BaseModel):
 		
 		connection.disconnect()
 		LOGGER.info(f"Successfully disconnected from {self.hostname}")
+
 	def generate_ssh_stub(self):
 		if(self.machine_data is None):
 			LOGGER.warning(f"Node {self.hostname} has no machine data, skipping ssh stub config generation")
@@ -467,6 +479,11 @@ class Node(BaseModel):
 			self.ssh_stub_config_commands.append("exit")
 			if(len(self.topology_a_part_of.dns_private) != 0):
 				self.ssh_stub_config_commands.append(f'ip name-server {self.topology_a_part_of.dns_private[0].ipv4_address}')
+			if self.machine_data.device_type == 'cisco_xe':
+				self.ssh_stub_config_commands.append("ip cef")
+				self.ssh_stub_config_commands.append("ip domain lookup")
+			else:
+				self.ssh_stub_config_commands.append("ip domain-lookup")
 
 
 		elif(self.machine_data.device_type=="debian" or self.machine_data.device_type=="alpine"):
@@ -483,6 +500,7 @@ class Node(BaseModel):
 		with open(os.path.join(out_path,self.hostname+'_stub.txt'), 'w') as f:
 			for command in self.ssh_stub_config_commands:
 				print(command, file=f)
+
 	def config_using_telnet_vconsole(self):
 		logging.info(f"Attempting to upload config files to container {self.hostname} using telnet")
 		if self.hypervisor_telnet_port == 0:
@@ -532,6 +550,7 @@ class Node(BaseModel):
 					logging.error(f"File {files['source']} not found")
 		else:
 			logging.info("No config present for"+self.hostname+". Skipping...")
+
 	def generate_stp_vlan_config(self):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer" or self.machine_data.category == "switch"):
@@ -568,6 +587,7 @@ class Node(BaseModel):
 				with open(os.path.join(out_path,self.hostname+'_stp_vlan.txt'), 'w') as f:
 					for command in self.stp_vlan_config_commands:
 						print(command, file=f)
+
 	def generate_fhrp_config(self):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer"):
@@ -613,6 +633,7 @@ class Node(BaseModel):
 						with open(os.path.join(out_path,self.hostname+'_fhrp.txt'), 'w') as f:
 							for command in self.fhrp_config_commands:
 								print(command, file=f)
+
 	def generate_ospf_static_base_config(self):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			if(self.machine_data.category == "multilayer" or self.machine_data.category == "router"):
@@ -670,6 +691,7 @@ class Node(BaseModel):
 				with open(os.path.join(out_path,self.hostname+'_routing_base.txt'), 'w') as f:
 					for command in self.ospf_static_base_config_commands:
 						print(command, file=f)
+
 	def generate_dhcp_config(self):
 		# TODO: Make this part of data not hardcoded
 		###############################################
@@ -719,7 +741,10 @@ class Node(BaseModel):
 						if(interface.ipv4_address is None):
 							continue
 						self.dhcp_config_commands += [f"interface {interface.interface_type} {interface.name}"]
-						self.dhcp_config_commands += [f"ip dhcp helper address {dhcp_helper.ipv4_address}"]
+						if self.machine_data.device_type == "cisco_xe":
+							self.dhcp_config_commands += [f"ip helper-address {dhcp_helper.ipv4_address}"]
+						elif self.machine_data.device_type == "cisco_ios":
+							self.dhcp_config_commands += [f"ip dhcp helper address {dhcp_helper.ipv4_address}"]
 				if len(self.dhcp_config_commands) == 0:
 					return
 				# Send the commands to file for review
@@ -728,6 +753,7 @@ class Node(BaseModel):
 				with open(os.path.join(out_path,self.hostname+'_dhcp.txt'), 'w') as f:
 					for command in self.dhcp_config_commands:
 						print(command, file=f)
+
 	def generate_wan_config(self):
 		# TODO: Make this part of data not hardcoded
 		###############################################
@@ -860,6 +886,7 @@ class Node(BaseModel):
 						with open(os.path.join(t_path,self.hostname+'_wan.txt'), 'w') as f:
 							for command in self.wan_config_commands:
 									print(command, file=f)
+
 	def generate_ntp_config(self):
 		if(self.machine_data.device_type == "cisco_ios" or self.machine_data.device_type == "cisco_xe"):
 			LOGGER.info(f"Generating ntp config for {self.hostname}")
@@ -906,7 +933,7 @@ class Node(BaseModel):
 			with open(os.path.join(t_path,self.hostname+'_ntp.txt'), 'w') as f:
 				for command in self.ntp_config_commands:
 						print(command, file=f)
-			
+
 	def get_identity_interface(self):
 		if self.identity_interface != None:
 			return self.identity_interface
@@ -999,3 +1026,64 @@ class Node(BaseModel):
 					return interface
 		LOGGER.error(f"Failed to find wan interface for {self.hostname}")
 		return None
+	
+	def generate_radius_client_config(self):
+		"""
+		Generates a radius client config for the node
+		"""
+		LOGGER.debug(f"Generating radius client config for {self.hostname}")
+		if self is None:
+			LOGGER.error(f"Node is None in generate_radius_client_config")
+			return
+		topology = self.topology_a_part_of
+		if topology is None:
+			LOGGER.error(f"Topology is None in generate_radius_client_config")
+			return
+		radius_server_1 = topology.get_node('radius-server-1')
+		if radius_server_1 is None:
+			LOGGER.error(f"Radius server 1 is None in generate_radius_client_config")
+			return
+		#radius_ip = radius_server_1.get_interface('ethernet', 'eth3').ipv4_address
+		
+		# TODO: Hardcoded
+		radius_ip = None
+		for acc in topology.access_segments:
+			if acc.name != "main":
+				continue
+			for vlan in acc.vlans:
+				if vlan.name != "management":
+					continue
+				for interfacex in range (radius_server_1.get_interface_count()):
+					interface = radius_server_1.get_interface_no(interfacex)
+					if not interface.ipv4_address:
+						continue
+					if interface.ipv4_address in vlan.ipv4_netid:
+						radius_ip = interface.ipv4_address
+						break
+				if radius_ip is not None:
+					break
+			if radius_ip is None:
+				break
+				
+		######################
+		if self.machine_data.device_type == 'cisco_ios' or self.machine_data.device_type == 'cisco_xe':
+			self.radius_client_config = [
+				'aaa new-model',
+				'ip radius source-interface Loopback0',
+
+				'radius server radius-server-1',
+				f'address ipv4 {radius_ip} auth-port 1812 acct-port 1813',
+				'key R1radiuskey', # TODO: This should not be R!
+				'exit',
+				'aaa group server radius aaa_group',
+				'server name radius-server-1',
+				'exit',
+
+				'aaa authentication login vty_method group aaa_group',
+				'aaa authorization exec default group aaa_group',
+
+				'radius-server attribute 32 include-in-access-req format "Net-Cisco-B@4]-%h"',
+
+				'line vty 0 4',
+				'login auth vty_method',
+			]

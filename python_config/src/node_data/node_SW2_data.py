@@ -16,7 +16,7 @@ def SW2_Structures(topology: Topology):
 		LOGGER.error("Access segment main not found")
 		return
 		
-	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
+	machine_data=get_machine_data("Cisco IOU L2 17.12.1")
 	if(machine_data is None):
 		raise ValueError("Machine data not found")
 		

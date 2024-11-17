@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import paramiko
 from project_globals import GLOBALS
+import ipaddress
 class Container(BaseModel):
 	ctid: int
 	template: str
@@ -164,60 +165,125 @@ def test_create_container(proxmox, container:  Container):
 	if proxmox.machine_data.device_type != "proxmox":
 		LOGGER.warning(f"Node {proxmox.hostname} is not a proxmox node!")
 		return
-
+	if container.node_data is None:
+		LOGGER.error(f"Container {container.ctid} does not have a node_data.")
+		return
+	else:
+		node = container.node_data
+	if node.get_identity_interface() is None:
+		LOGGER.error(f"Node {node.hostname} could not provide an identity interface.")
+		return
+	else:
+		identity_interface = node.get_identity_interface()
+	if identity_interface.ipv4_address is None:
+		LOGGER.error(f"Container {node.hostname} identity interface has no ipv4 address.")
+		return
+	if identity_interface.ipv4_cidr is None:
+		LOGGER.error(f"Container {node.hostname} identity interface has no ipv4 cidr.")
+		return
+	
 	proxmoxapi = ProxmoxAPI(str(proxmox.oob_interface.ipv4_address), user='root@pam', password='toorp', verify_ssl=False)
 
-	interface_eth0 = container.node_data.get_interface("ethernet","eth0")
-	interface_eth1 = container.node_data.get_interface("ethernet","eth1")
-	if(interface_eth0.ipv4_address is None):
-		raise ValueError(f"Interface eth0 on node {container.node_data.hostname} is not configured and is required for test function")
-	if(interface_eth1.ipv4_address is None):
-		raise ValueError(f"Interface eth1 on node {container.node_data.hostname} is not configured and is required for test function")
-
 	for access in proxmox.topology_a_part_of.access_segments:
-		if access.name == "main":
-			for vlan in access.vlans:
-				if vlan.name == "guest-services": # TODO: this should not be hardcoded
-					default_gateway = vlan.fhrp0_ipv4_address
-	net_config=f"name={interface_eth0.name},bridge={interface_eth0.neighbour.name},ip={interface_eth0.ipv4_address}/{interface_eth0.ipv4_cidr}"
-	net_config2=f"name={interface_eth1.name},bridge={interface_eth1.neighbour.name},ip={interface_eth1.ipv4_address}/{interface_eth1.ipv4_cidr},gw={default_gateway}"
+		for vlan in access.vlans:
+			vlan_netid = ipaddress.IPv4Network(f'{vlan.ipv4_netid}/{vlan.ipv4_cidr}')
+			if identity_interface.ipv4_address in vlan_netid:
+				if vlan.default_gateway is None:
+					if vlan.fhrp0_ipv4_address is None:
+						LOGGER.error(f"VLAN {vlan.vlan_id} has neither a fhrp0_ipv4_address nor default gateway.")
+						break
+					else:
+						default_gateway = vlan.fhrp0_ipv4_address
+						break
+				else:
+					default_gateway = vlan.default_gateway
+					break
+				
 	
-	LOGGER.debug([
-		"vmid=",container.ctid,
-		"hostname=",container.node_data.hostname,
-		"ostemplate=",container.template,
-		"rootfs=",container.rootfs,
-		"memory=",container.memory,
-		"cores=",container.cores,
-		"net0=",net_config,
-		"net1=",net_config2,
-		"swap=",512,
-		"storage=",'local',
-		"password=",container.node_data.local_password,
-		"timezone=",'host',
-		"unprivileged=",1 
-	])
+	# Create netconfigs to pass as params
+	net_configs = {}
+	for idx in range (node.get_interface_count()):
+		interface = node.get_interface_no(idx)
+		if interface.ipv4_address is None:
+			continue
+		if interface.ipv4_cidr is None:
+			continue
+		if interface.neighbour is None:
+			LOGGERER.warning(f"Interface {interface.name} on node {node.hostname} does not have a neighbour.")
+			continue
+		if interface.neighbour.name is None:
+			LOGGERER.warning(f"Interface {interface.name} on node {node.hostname} has a neighbour without a name.")
+			continue
+		net_config = f"name={interface.name},bridge={interface.neighbour.name},ip={interface.ipv4_address}/{interface.ipv4_cidr}"
+		if id(interface) == id(identity_interface):
+			net_config += f",gw={default_gateway}"
+		net_configs[f"net{idx}"] = net_config
+	if len(net_configs) == 0:
+		LOGGER.warning(f"No interfaces with IPv4 addresses found on node {node.hostname}.")
+
+	params = {
+		'vmid': container.ctid,
+		'hostname': node.hostname,
+		'ostemplate': container.template,
+		'rootfs': container.rootfs,
+		'memory': container.memory,
+		'cores': container.cores,
+		'swap': 512,
+		'storage': 'local',
+		'password': node.local_password,
+		'timezone': 'host',
+		'unprivileged': 1,
+		'features': 'nesting=1'
+	}
+	params.update(net_configs)
+	LOGGER.debug({**params})
+
 	try:
-		response = proxmoxapi.nodes(proxmox.hostname).lxc.create(
-			vmid=container.ctid,
-			hostname=container.node_data.hostname,
-			ostemplate=container.template,
-			rootfs=container.rootfs,
-			memory=container.memory,
-			cores=container.cores,
-			net0=net_config,
-			net1=net_config2,
-			swap=512,
-			storage='local',
-			password=container.node_data.local_password,
-			timezone='host',
-			unprivileged=1,
-			features='nesting=1'
-		)
+		response = proxmoxapi.nodes(proxmox.hostname).lxc.create(**params)
 	except Exception as e:
-		LOGGER.error(f"Error creating container {container.node_data.hostname}: {e}")
+		LOGGER.error(f"Error creating container {node.hostname}: {e}")
 		return
-	LOGGER.info(f"Container {container.node_data.hostname} creation response: {response}")
+	LOGGER.info(f"Container {node.hostname} creation response: {response}")
+
+def test_container_routes(proxmox, container: Container):
+	if proxmox.machine_data.device_type != "proxmox":
+		LOGGER.warning(f"Node {proxmox.hostname} is not a proxmox node!")
+		return
+	node = container.node_data
+	topology = node.topology_a_part_of
+	for interface in node.interfaces:
+		if interface.ipv4_address is None:
+			continue
+		if interface.ipv4_cidr is None:
+			continue
+		if interface.neighbour is None:
+			LOGGERER.warning(f"Interface {interface.name} on node {container.node_data.hostname} does not have a neighbour.")
+			continue
+		if interface.neighbour.ipv4_address is None:
+			LOGGERER.warning(f"Interface {interface.name} on node {container.node_data.hostname} has a neighbour without a IPv4 address.")
+			continue
+		for acl in topology.access_controls:
+			for vlan in acl.vlans:
+				if interface.ipv4_address not in ipaddress.IPv4Network(f'{vlan.ipv4_netid}/{vlan.ipv4_cidr}'):
+					continue
+				my_vlan = vlan
+				for tar_vlan in acl.vlans:
+					directly_connected = False
+					for interfacex in node.interfaces:
+						if interfacex.ipv4_address not in ipaddress.IPv4Network(f'{vlan.ipv4_netid}/{vlan.ipv4_cidr}'):
+							directly_connected = True
+							break
+					if not directly_connected:
+						commands.append(f'ip route add {tar_vlan.ipv4_netid}/{tar_vlan.ipv4_cidr} via {my_vlan.default_gateway}')
+				for tar_net in acl.allowlist:
+					commands.append(f'ip route add {tar_net} via {interface.ipv4_address}')
+						
+
+		commands = [
+			f"ip route add {interface.ipv4_address}/{interface.ipv4_cidr} via {interface.neighbour.ipv4_address}",
+			f"ip route add default via {interface.neighbour.ipv4_address}"
+		]
+		execute_proxnode_commands(proxmox, container.node_data, commands)
 
 def wait_for_container_running(proxmox, container: Container, retries=30):
 	bootloop = 0
@@ -240,14 +306,14 @@ def wait_for_container_ping_debian(proxmox, container: Container, retries=30):
 	if wait_for_container_running(proxmox, container, retries):
 		loops = 0
 		while loops < retries:
-			commands = ["ping -c 1 -W 2 debian.org"]
+			commands = ["ping -c 1 -W 2 ftp.uk.debian.org"]
 			loop_output,loop_error = execute_proxnode_commands(proxmox, container.node_data, commands)
 			# Check the result of the ping command
 			if not (''.join(loop_output).find("1 received") == -1):
 				return True
 			loops += 1
 
-		LOGGER.error(f"#### {container.node_data.hostname} failed to ping debian.org")
+		LOGGER.error(f"#### {container.node_data.hostname} failed to ping ftp.uk.debian.org")
 		return False
 	else:
 		return False

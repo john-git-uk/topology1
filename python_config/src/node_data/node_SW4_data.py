@@ -16,7 +16,7 @@ def SW4_Structures(topology: Topology):
 		LOGGER.error("Access segment main not found")
 		return
 
-	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
+	machine_data=get_machine_data("Cisco IOU L2 17.12.1")
 	if(machine_data is None):
 		raise ValueError("Machine data not found")
 
@@ -155,7 +155,7 @@ def SW4_Structures(topology: Topology):
 		ospf_passive=False,
 	)
 	node_SW4_i18=Interface(
-		name="5/3",
+		name="3/3",
 		interface_type="ethernet",
 		description="out of band",
 		ipv4_address="192.168.250.54",
@@ -245,7 +245,7 @@ def SW4_relations(topology: Topology):
 	topology.get_node("SW4").get_interface("ethernet","1/1").connect_to(topology.get_node("SW1").get_interface("ethernet","1/0"))
 	topology.get_node("SW4").get_interface("ethernet","1/2").connect_to(topology.get_node("SW5").get_interface("ethernet","0/1"))
 	topology.get_node("SW4").get_interface("ethernet","1/3").connect_to(topology.get_node("R2").get_interface("ethernet","0/0"))
-	topology.get_node("SW4").get_interface("ethernet","2/1").connect_to(topology.get_node("R1").get_interface("gigabit ethernet","3"))
-	topology.get_node("SW4").get_interface("ethernet","5/3").connect_to(topology.get_exit_interface('exit_oob'))
+	topology.get_node("SW4").get_interface("ethernet","2/1").connect_to(topology.get_node("R1").get_interface("ethernet","0/2"))
+	topology.get_node("SW4").get_interface("ethernet","3/3").connect_to(topology.get_exit_interface('exit_oob'))
 	topology.get_node("SW4").get_interface("port-channel","1").connect_to(topology.get_node("SW6").get_interface("port-channel","2"))
 	topology.get_node("SW4").get_interface("port-channel","2").connect_to(topology.get_node("SW3").get_interface("port-channel","2"))

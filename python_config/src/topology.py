@@ -188,3 +188,69 @@ class Topology(BaseModel):
 			yaml.dump(data, file, default_flow_style=False)
 
 		print("YAML file 'testbed.yaml' has been created.")
+	def generate_human_ip_assignment_list(self):
+		iplist = {
+			'192.168.2.0/24' 'Reserved for out of lab operations',
+			'192.168.250.0/24' 'Reserved for out of band management',
+		}
+
+		subnets = []
+		member_int = []
+
+		# Build a list of vlans in topology
+		for acc in topology.access_segments:
+			for vlan in acc.vlans:
+				foundx = False
+				for vlamem in vlans:
+					if id(vlamem) == id(vlan):
+						continue
+				if not foundx:
+					vlans.append(vlan)
+
+		for node in self.nodes:
+			for intx in range (node.get_interface_count()):
+				interface = node.get_interface_by_index(intx)
+				if interface.ipv4_address == None:
+					continue
+				if interface.ipv4_cidr == None:
+					continue
+				# Check vlan list for membership
+				foundy = False
+				for vlan in vlans:
+					if interface.ipv4_address in ipaddress.IPv4Network(vlan.ipv4_address + "/" + str(vlan.ipv4_cidr)):
+						foundy = True
+						break
+					if foundy:
+						member_int[vlan.index].append(interface)
+					else:
+						pass
+
+	def organise_ips_into_subnets_safe(ip_list: List[Tuple[str, str]]) -> List[Dict]:
+		ip_desc_list = []
+		for ip_str, desc in ip_list:
+			try:
+				ip_obj = ipaddress.IPv4Address(ip_str)
+				ip_desc_list.append((ip_obj, desc))
+			except ipaddress.AddressValueError:
+				print(f"Invalid IP address: {ip_str}. Skipping.")
+				continue
+		
+		# Proceed as before
+		ip_desc_list.sort(key=lambda x: int(x[0]))
+		ips = [ip for ip, _ in ip_desc_list]
+		subnets = list(ipaddress.collapse_addresses(ips))
+		subnet_dict = {subnet: [] for subnet in subnets}
+		for ip, desc in ip_desc_list:
+			for subnet in subnets:
+				if ip in subnet:
+					subnet_dict[subnet].append((ip, desc))
+					break
+		sorted_subnets = sorted(subnet_dict.keys(), key=lambda x: int(x.network_address))
+		result = []
+		for subnet in sorted_subnets:
+			ips_in_subnet = subnet_dict[subnet]
+			ips_in_subnet.sort(key=lambda x: int(x[0]))
+			ips_in_subnet_str = [{'ip': str(ip), 'description': desc} for ip, desc in ips_in_subnet]
+			result.append({'subnet': str(subnet), 'ips': ips_in_subnet_str})
+		return result
+				

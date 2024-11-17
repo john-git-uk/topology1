@@ -16,7 +16,7 @@ def R3_Structures(topology: Topology):
 		LOGGER.error("Access segment main not found")
 		return
 
-	machine_data=get_machine_data("vios-adventerprisek9-m.SPA.159-3.M6")
+	machine_data=get_machine_data("Cisco IOU L3 17.12.1")
 	if(machine_data is None):
 		raise ValueError("Machine data not found")
 		
@@ -143,7 +143,7 @@ def R3_relations(topology: Topology):
 	topology.get_node("R3").get_interface("ethernet","0/1.30").connect_to(topology.get_node("SW7").get_interface("ethernet","0/0"))
 	topology.get_node("R3").get_interface("ethernet","0/1.40").connect_to(topology.get_node("SW7").get_interface("ethernet","0/0"))
 	topology.get_node("R3").get_interface("ethernet","0/3").connect_to(topology.get_exit_interface('exit_oob'))
-	topology.get_node("R3").get_interface("tunnel","0").tunnel_destination=topology.get_node("R1").get_interface("gigabit ethernet","2")
+	topology.get_node("R3").get_interface("tunnel","0").tunnel_destination=topology.get_node("R1").get_interface("ethernet","0/1")
 	topology.get_node("R3").get_interface("tunnel","1").tunnel_destination=topology.get_node("R2").get_interface("ethernet","0/1")
 	topology.get_node("R3").get_interface("tunnel","0").connect_to(topology.get_node("R1").get_interface("tunnel","0"))
 	topology.get_node("R3").get_interface("tunnel","1").connect_to(topology.get_node("R2").get_interface("tunnel","0"))

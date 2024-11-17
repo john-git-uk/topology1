@@ -1,3 +1,4 @@
+# This node is no longer in the topology as it is not managed by organisation tapeitup.
 from __future__ import annotations
 from interface import Interface
 from node import Node
@@ -73,8 +74,8 @@ def ISP_Structures(topology: Topology):
 	topology.add_node(node_ISP)
 def ISP_relations(topology: Topology):
 	LOGGER.debug("Loading ISP Relations")
-	topology.get_node("ISP").get_interface("ethernet","0/0").connect_to(topology.get_node("R1").get_interface("gigabit ethernet","2"))
-	topology.get_node("ISP").get_interface("ethernet","0/1").connect_to(topology.get_node("R2").get_interface("ethernet","0/0"))
+	topology.get_node("ISP").get_interface("ethernet","0/0").connect_to(topology.get_node("R1").get_interface("ethernet","0/1"))
+	topology.get_node("ISP").get_interface("ethernet","0/1").connect_to(topology.get_node("R2").get_interface("ethernet","0/1"))
 	topology.get_node("ISP").get_interface("ethernet","0/2").connect_to(topology.get_node("R3").get_interface("ethernet","0/0"))
 	#topology.get_node("ISP").get_interface("e0/3").connect_to(topology.exit_interface_main)
 	topology.get_node("ISP").get_interface("ethernet","1/0").connect_to(topology.exit_interface_main)

@@ -8,7 +8,7 @@ from project_globals import GLOBALS
 LOGGER = logging.getLogger('my_logger')
 def R2_Structures(topology: Topology):
 	LOGGER.debug("Loading R2 Structures")
-	machine_data=get_machine_data("vios-adventerprisek9-m.SPA.159-3.M6")
+	machine_data=get_machine_data("Cisco IOU L3 17.12.1")
 	if(machine_data is None):
 		raise ValueError("Machine data not found")
 		

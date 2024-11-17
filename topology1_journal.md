@@ -1,14 +1,15 @@
 # Topology 1 Journal
-This is a journal of my topology1 project. For more complex and complete information please view the git repository.
-## Unusual Subnets
+This is a journal of my topology1 project. I also have python code implementing these solutions. Please see the gitrepo for the python code.
+### Unusual Subnets
 For this lab I will use 10.111.0.0/16 to represent the ISP owned network.
   
 10.133.0.0/16 and other /16 subnets of the 10.0.0.0/8 block will remain private.
   
-192.168.2.0/24 is used outside of the lab for my real LAN and will not be used in the lab besides the ISP node.
-## Proprietary Software Requirements
-### Cisco IOS
-The Cisco IOS versions I am using are IOL for almost all the devices. These images only have ethernet 10Mbps ports virtualised. I have a cloud router image for R1, so I can practice more advanced topics IOL doesn't support, for example REST config.
+192.168.2.0/24 is used outside of the lab for my real LAN and will not be used in the lab besides the ISP node for internet access.
+
+192.168.250.0/24 is used only for out of band communication. Generally think of a administrator using a laptop to interface with infrastructure devices.
+### Proprietary Software Requirements
+The Cisco simulated routers and switches are intended to run as CML 2.7 IOU devices running IOS xe. They are Dublin Version 17.12.1 IOS XE.
 ## Topology Summary
 This topology has two sites. The topology represents a DIY retailer named TapeItUp. This company uses in-store web catalogues to compliment customer browsing. There is a main and outreach site.
   
@@ -33,6 +34,7 @@ The outreach site has at a minimum:
 The two sties must be able to securely communicate through their broadband ISP. The main site must have two redundant paths to their broadband ISP.
   
 All devices have their hostname configured.
+
 ## Topology Data
 ### Container Pulls
 ~~~
@@ -319,15 +321,15 @@ access-list 3 permit 10.111.10.30
 access-list 3 deny   any
 
 no ip access-list extended NAT
-ip access-list extended NAT
-10 permit ip host 10.111.10.10 any
-20 permit ip host 10.111.10.11 any
-30 permit ip host 10.111.10.20 any
-40 permit ip host 10.111.10.21 any
-50 permit ip host 10.111.10.30 any
-60 permit ip host 10.111.10.31 any
-10000 deny ip any any
-exit
+!ip access-list extended NAT
+!10 permit ip host 10.111.10.10 any
+!20 permit ip host 10.111.10.11 any
+!30 permit ip host 10.111.10.20 any
+!40 permit ip host 10.111.10.21 any
+!50 permit ip host 10.111.10.30 any
+!60 permit ip host 10.111.10.31 any
+!10000 deny ip any any
+!exit
 
 ip routing
 ipv6 unicast
@@ -339,7 +341,7 @@ ip add 10.111.10.11 255.255.255.254
 ipv6 enable
 ipv6 add 2001:db8:0:00ff::ffff/127
 no shutdown
-ip nat inside
+!ip nat inside
 
 !ISP-R2
 interface e0/1
@@ -348,7 +350,7 @@ ip add 10.111.10.21 255.255.255.254
 ipv6 enable
 ipv6 add 2001:db8:0:00ff::fffd/127
 no shutdown
-ip nat inside
+!ip nat inside
 
 !ISP-R3 2001:db8:0:00ff::fffb/127
 interface e0/2
@@ -357,16 +359,16 @@ ip add 10.111.10.31 255.255.255.254
 ipv6 enable
 ipv6 add 2001:db8:0:00ff::fffb/127
 no shutdown
-ip nat inside
+!ip nat inside
 
 !ISP-metal 2001:db8:0:00ff::fff9/127
-interface e0/3
+!interface e0/3
 !ip address 192.168.2.245 255.255.255.0
-ipv6 enable
-no shutdown
-ip nat outside
-ipv6 add 2001:db8:0:00ff::fff9/127
-exit
+!ipv6 enable
+!no shutdown
+!ip nat outside
+!ipv6 add 2001:db8:0:00ff::fff9/127
+!exit
 
 ! ISP-alprouter 2001:db8:0:00ff::fff7/127
 interface e1/0
@@ -382,11 +384,11 @@ ipv6 route 2001:db8:0:0000::/60 e0/0 2001:db8:0:00ff::fffe
 ipv6 route 2001:db8:0:0000::/60 e0/1 2001:db8:0:00ff::fffa 5
 ipv6 route 2001:db8:0:0020::/60 e0/2 2001:db8:0:00ff::fffc
 
-route-map NAT permit 10
-match ip address NAT
-exit
+!route-map NAT permit 10
+!match ip address NAT
+!exit
 
-ip nat inside source route NAT interface e0/3 overload
+!ip nat inside source route NAT interface e0/3 overload
 ~~~
 ### Topology Diagram (Draft)
 It is not good quality. I will look at creating a proper diagram in the future.
@@ -433,6 +435,7 @@ channel-group 2 mode active
 
 #### Testing
 I view my ether-channels with show ether-channel summary. They all report as layer 2 since I haven't used **no switchport** on the port-channels.
+
 ## VLANs
 VLANs are outlined in the Topology Data section. I will not be using VTP in my configuration. Trunk encapsulation is dot1q in modern networks. R3 needs to act as a router on a stick. The sub-interfaces act as default gateways much like SVI's. They will be assigned layer 3 addresses in a different section.
 
@@ -629,6 +632,7 @@ exit
 ~~~
 #### Testing
 **show vlan brief** displays the vlan assignments. **Show interface trunk** is another good command for confirming the trunk config.
+
 ## STP
 For STP I want different ports blocking per VLAN to help reduce unnecessary congestion. I configure Rapid PVST+. I configure SW3 as root for sales and supervisor. I configure SW4 as root for guest and the others.
 
@@ -704,6 +708,7 @@ Et2/0               Desg FWD 100       128.9    P2p
 Et3/0               Desg FWD 100       128.13   P2p 
 Po2                 Root FWD 47        128.66   P2p
 ~~~
+
 ## IPv4
 I configure gateway addresses for R3 sub-interfaces. This is where all the outreach site traffic will be routed between VLANs. I create vlan SVI's on SW3 & SW4. This is where the main site traffic will be routed between VLAN's. HSRP will provide a redundant gateway address between the distribution switch SVI's. I am using /31 for subnets with two devices. This should be supported by all the network devices.
 
@@ -884,6 +889,7 @@ exit
 
 #### Testing
 I can check this config using **show ip int brief** on device.
+
 ## First Hop Redundancy - HSRP
 I configure HSRP for first hop redundancy. Without HSRP, losing a distribution switch would knock out the single gateway that must be assigned on hosts. With HSRP either switch can act as the gateway for traffic between subnets. For HSRP the priority will match the STP root bridges. SW3 interface vlan 10 & interface vlan 40 will be priority. SW4 will be priority for all the other vlan SVI HSRP processes. The id will match the vlan id. The switches have a delay before they try to preempt their master state of 60secs. This is to mitigate excessive outages due to flapping. The timers are set much lower than default resulting in faster convergence at the cost of bandwidth and stability. The 650 hold time with 200 hello means that the switch would likely have to miss 3 consecutive hello frames before taking over.
 
@@ -1088,6 +1094,7 @@ passive-interface Vlan80
 
 exit
 ~~~
+
 ## Cisco DHCP (Non-Redundant)
 I have decided to use SW3(main) and R3(outreach) as the DHCP servers. Note the SW3 selection creates a single point of failure and may stress the hardware. This is the logical choice out of CCNA level topics I believe. A backup should be considered in the future.
   
@@ -1151,6 +1158,7 @@ exit
 interface r vl 10-80
 ip helper-address 10.133.2.13
 ~~~
+
 ## NAT + WAN ACL
 I configure dynamic NAT. I configure port address translation. I configure an access list to permit any host on the LAN to be translated.
   
@@ -1256,6 +1264,7 @@ icmp 10.111.10.10:17019 10.133.10.1:17019 10.111.10.11:17019  10.111.10.11:17019
 icmp 10.111.10.10:17275 10.133.10.1:17275 10.111.10.11:17275  10.111.10.11:17275
 icmp 10.111.10.10:17531 10.133.10.1:17531 10.111.10.11:17531  10.111.10.11:17531
 ~~~
+
 ## VPN - IPSec - PSK with OSPF
 IPSec is a secure VPN technology. It doesn't support multicast unless I combine with GRE. Multicast is not essential for OSPF as I can manually specify the neighbour. I made sure to use the interface Tunnel0 as it simplifies the config. It is essential to have the same policy at either end. Advertising the endpoints WAN port over the VPN using OSPF will cause flapping or errors. I use static routes to ensure the WAN ports preferred route remains outside VPN. The WAN port over VPN routes are still available in the OSPF process, but I see no reason they would be used instead of a static route with default ad.
 #### R1 Config
@@ -1389,6 +1398,7 @@ network 10.133.2.68 0.0.0.1 a 0
 network 10.133.2.70 0.0.0.1 a 0
 exit
 ~~~
+
 ## Vlan Access Control (incomplete)
 I use access control to enhance security by preventing unauthorised traffic traveling between VLANs. 
   
@@ -1536,6 +1546,7 @@ permit tcp any host 10.133.60.251 eq www
 permit udp 10.133.0.0 0.0.255.255 host 10.133.60.250 eq domain
 deny any any
 ~~~
+
 ## Access Layer Security
 I enable port security. For each port I use the default of max 1 mac address and leave the default shutdown violation. This prevents MAC flooding. There are no ip phones to share access ports. I enable DHCP snooping which prevents hosts from acting like a DHCP server. I enable DAI to ensure ARP traffic is correct for static and DHCP address assignments. Additionally I assign unused ports to an unused vlan, disable dtp, assign access and shutdown.
 
@@ -1819,6 +1830,7 @@ interface range ethernet 5/0 - 3
     shutdown
 
 ~~~
+
 ## NTP
 I ensure minimal discrepancy in the time reported by my LAN devices. For this, I configure R1 to sync to an internet ntp server. The rest of the devices I configure to sync to R1 first and 1.1.1.1 if R1 fails.
 First I configure the devices to have the correct timezone.
@@ -1864,6 +1876,7 @@ ntp source vlan 30
 clock timezone GMT 0
 clock summer-time BST recurring last Sun Mar 1:00 last Sun Oct 2:00
 ~~~
+
 ## IPv6 Addressing + HSRP v2
 Version 2 is the HSRP version that supports ipv6.
 #### R1 Config
@@ -2149,6 +2162,7 @@ ipv6 enable
 ipv6 add 2001:db8:0:23::17/120
 exit
 ~~~
+
 ## IPv6 Static routes
 Note IPv6 traffic between the two sites is not encrypted like IPv4 is. This is beyond CCNA. In reality this would be a major security issue.
 #### R1
@@ -2209,6 +2223,7 @@ ipv6 route ::0/0 2001:DB8:0:3::1
 ~~~
 ipv6 route ::0/0 2001:DB8:0:23::1
 ~~~
+
 ## SSH
 All network devices have a hostname and domain name TapeItUp. The password is not secure enough to be used in a non lab enviroment.
 
@@ -2235,6 +2250,7 @@ login local
 exec-timeout 0 0
 exit
 ~~~
+
 ## Ansible Example
 For an initial demo of ansible I create a SSH playbook to change the banner on the device.
 The local user authentication is used.
@@ -2298,8 +2314,9 @@ all:
           ansible_password: otua
           ansible_connection: local
 ~~~
+
 ## LDAP (Examples)
-LDAP enables users to log into Linux systems using a central database. It is not used for Cisco devices.
+LDAP enables users to log into Linux systems using a central database. It is by this topologies Cisco devices.
 ### Debian LDAP Client
 #### Packages:
 ~~~
@@ -2319,7 +2336,7 @@ group:          compat ldap
 shadow:         compat ldap
 ~~~
 #### /etc/ldap.conf
-ldap://127.0.0.1 changes to the ldap server address
+ldap://127.0.0.1 must be changed to the LDAP server address or a DNS entry.
 ~~~
 uri ldap://127.0.0.1
 base dc=tapeitup,dc=private
@@ -2332,7 +2349,9 @@ systemctl restart ssh
 systemctl restart freeradius
 systemctl restart nslcd
 ~~~
+
 ### Debian LDAP Server
+This server is also providing a web interface for managing the LDAP server. It is not necessary and could be disabled to reduce attack surface.
 #### Packages:
 ~~~
 slapd ldapscripts apache2 php libapache2-mod-php phpldapadmin 
@@ -2435,4 +2454,62 @@ $servers->setValue("server","host","192.168.2.231");
 $servers->setValue("server","base",array("dc=tapeitup,dc=private"));
 $servers->setValue("login","bind_id","cn=admin,dc=tapeitup,dc=private");
 ?>
+~~~
+
+#### Testing
+Assuming the DNS server is resolving normally. Using this command on an LDAP client machine will return user information, and confirm the LDAP server is operating as expected.
+~~~
+root@radius-server-1:~# ldapsearch -H ldap://ldap-server-1 -x -b "dc=tapeitup,dc=private" "(cn=dave)"
+# extended LDIF
+#
+# LDAPv3
+# base <dc=tapeitup,dc=private> with scope subtree
+# filter: (cn=dave)
+# requesting: ALL
+#
+
+# dave, People, tapeitup.private
+dn: uid=dave,ou=People,dc=tapeitup,dc=private
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dave
+sn: none
+givenName: dave
+uid: dave
+uidNumber: 1002
+gidNumber: 10002
+homeDirectory: /home/dave
+loginShell: /bin/bash
+mail: dave@tapeitup.private
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 2
+# numEntries: 1
+~~~
+
+Upon successful ldapsearch, the user should be able to login to a LDAP client machine over SSH. The ls command demonstrates the user's home directory has been created.
+~~~
+-john@DEBTOP:~/gns3_gui$ ssh john@192.168.250.230
+The authenticity of host '192.168.250.230 (192.168.250.230)' can't be established.
+ED25519 key fingerprint is SHA256:3SUPSlOBdykczi0H85D/aBKAO33b+35zQmjY5eguyRM.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '192.168.250.230' (ED25519) to the list of known hosts.
+john@192.168.250.230's password: 
+Creating directory '/home/john'.
+Linux radius-server-1 6.8.4-2-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.4-2 (2024-04-10T17:36Z) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+
+john@radius-server-1:~$ ls /home
+john
 ~~~

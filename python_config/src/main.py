@@ -26,6 +26,7 @@ import sys
 import os
 from pathlib import Path
 import libvirt
+import subprocess
 VIR_DOMAIN_STATE_LOOKUP = {
 	libvirt.VIR_DOMAIN_NOSTATE: 'No State',
 	libvirt.VIR_DOMAIN_RUNNING: 'Running',
@@ -151,9 +152,9 @@ def simple_function_prompt(topology:  Topology):
 	functions_display = [
 		"Globals: Validate Data",#1
 		"Globals: Load Data",#2
-		"Configure prox1 containers",#3
+		"Run Worker in main thread",#3
 		"SSH: Validate Interfaces Exist",#4
-		"Unused",#5
+		"Print a subnet tree for the topology",#5
 		"Topology: Generate Multiple Config for Cisco Nodes",#6
 		"Lab Handler: Import Virtual Console Telnet Ports from Lab API",#7
 		"Topology: Copy Config Files to a Linux Node",#8
@@ -166,6 +167,7 @@ def simple_function_prompt(topology:  Topology):
 	input_str = input("Enter the number of the function to run: ")
 	# check input and run the function
 	try:
+	#if True:
 		selected_function_index = int(input_str)
 		if 1 <= selected_function_index <= len(functions_display):
 			if(selected_function_index == 1):
@@ -173,30 +175,17 @@ def simple_function_prompt(topology:  Topology):
 			elif(selected_function_index == 2):
 				GLOBALS.load_data()
 			elif(selected_function_index == 3):
-				from handle_proxmox import Container, test_create_container, test_validate_container_config, start_container
-				test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("ldap-server-1"))
-				test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("radius-server-1"))
-				test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("dns-server-1"))
-				start_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("ldap-server-1"))
-				start_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("radius-server-1"))
-				start_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("dns-server-1"))
-
-				from node_data.node_ldap_server_1 import configure_ldap_server_1, packages_time_ldap_server_1
-				from node_data.node_radius_server_1 import configure_radius_server_1, packages_time_radius_server_1
-				from node_data.node_dns_server_1 import configure_dns_server_1, packages_time_dns_server_1
-
-				packages_time_dns_server_1(topology.get_node("dns-server-1"))
-				configure_dns_server_1(topology.get_node("dns-server-1"))
-				packages_time_ldap_server_1(topology.get_node("ldap-server-1"))
-				configure_ldap_server_1(topology.get_node("ldap-server-1"))
-				packages_time_radius_server_1(topology.get_node("radius-server-1"))
-				configure_radius_server_1(topology.get_node("radius-server-1"))
+				run_worker_main_prompt(topology)
+				#subprocess.Popen([sys.executable, __file__, "worker", "dns-server-1"])
+				#subprocess.Popen([sys.executable, __file__, "worker", "ldap-server-1"])
+				#subprocess.Popen([sys.executable, __file__, "worker", "radius-server-1"])
 			elif(selected_function_index == 4):
 				for node in topology.nodes:
 					LOGGER.debug(f"Validating interfaces for {node.hostname}")
 					node.validate_interfaces_genie()
 			elif(selected_function_index == 5):
-				pass
+				from subnet_printer import subnet_printer
+				subnet_printer(topology)
 			elif(selected_function_index == 6):
 				topology.generate_multi_config()
 			elif(selected_function_index == 7):
@@ -215,9 +204,83 @@ def simple_function_prompt(topology:  Topology):
 				LOGGER.warning("Function selector: Invalid input. Enter a valid number.")
 		else:
 			LOGGER.warning("Function selector: Invalid input. Enter a valid number.")
-	except ValueError:
+	except ValueError as e:
+		LOGGER.warning(f"Function selector: Invalid input. Enter a valid number. {e}")
+def run_worker_main_prompt(topology: Topology):
+	functions_display = [
+		"dns-server-1",#1
+		"ldap-server-1",#2
+		"radius-server-1",#3
+		"klo",#4
+		"klo",#5
+		"klo",#6
+		"klo",#7
+		"klo",#8
+		"klo",#9
+	]
+
+	# Print the list of functions with their names and index
+	for index, function_name in enumerate(functions_display, start=1):
+		print(f"{index}. {function_name}")
+	input_str = input("Enter the number of the function to run: ")
+	selected_function_index = int(input_str)
+	if 1 <= selected_function_index <= len(functions_display):
+		if(selected_function_index == 1):
+			start_worker(topology, 'dns-server-1')
+		elif(selected_function_index == 2):
+			start_worker(topology, 'ldap-server-1')
+		elif(selected_function_index == 3):
+			start_worker(topology, 'radius-server-1')
+		elif(selected_function_index == 4):
+			pass
+		elif(selected_function_index == 5):
+			pass
+		elif(selected_function_index == 6):
+			pass
+		elif(selected_function_index == 7):
+			pass
+		elif(selected_function_index == 8):
+			pass
+		elif(selected_function_index == 9):
+			pass
+		else:
+			LOGGER.warning("Function selector: Invalid input. Enter a valid number.")
+	else:
 		LOGGER.warning("Function selector: Invalid input. Enter a valid number.")
+
+
+
+def start_worker(topology: Topology, type: str):
+	from handle_proxmox import Container, test_create_container, test_validate_container_config, start_container
+	from node_data.node_dns_server_1 import dns_server_1_config
+	from node_data.node_ldap_server_1 import ldap_server_1_config
+	from node_data.node_radius_server_1 import radius_server_1_config
+	if type == 'dns-server-1':
+		node = topology.get_node('dns-server-1')
+		test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("dns-server-1"))
+		dns_server_1_config(node)
+		
+	elif type == 'ldap-server-1':
+		node = topology.get_node("ldap-server-1")
+		test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("ldap-server-1"))
+		ldap_server_1_config(topology.get_node("ldap-server-1"))
+
+	elif type == 'radius-server-1':
+		node = topology.get_node("radius-server-1")
+		test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("radius-server-1"))
+		radius_server_1_config(topology.get_node("radius-server-1"))
+	else:
+		LOGGER.error(f'Unknown worker type: {type}')
+		return
+
+
 def main():
+	first_arg = None
+	second_arg = None
+	if len(sys.argv) > 1:
+		first_arg = sys.argv[1]
+		if len(sys.argv) > 2:
+			second_arg = sys.argv[2]
 	print("Printing DEBUG severity messages to the terminal")
 	# Create logger
 	LOGGER.setLevel(logging.DEBUG)  # Set the minimum logging level
@@ -226,7 +289,10 @@ def main():
 	stream_handler = logging.StreamHandler()  # Logs to terminal (stdout)
 	out_path = Path(GLOBALS.app_path).parent.resolve() / "output/logs"
 	out_path.mkdir(exist_ok=True, parents=True)
-	file_handler = logging.FileHandler(os.path.join(os.path.abspath(out_path),'main.log'))  # Logs to file
+	if(first_arg != 'worker'):
+		file_handler = logging.FileHandler(os.path.join(os.path.abspath(out_path),'main.log'))  # Logs to file
+	else:
+		file_handler = logging.FileHandler(os.path.join(os.path.abspath(out_path),F'worker {str(second_arg)}.log' ))  # Logs to file
 
 	# Create formatters and add it to handlers
 	formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -234,13 +300,20 @@ def main():
 	file_handler.setFormatter(formatter)
 
 	# Add handlers to the logger
-	LOGGER.addHandler(stream_handler)
+	if(first_arg != 'worker'):
+		LOGGER.addHandler(stream_handler)
 	LOGGER.addHandler(file_handler)
 
 	GLOBALS.load_data()
 	topology = load_topology()
 	LOGGER.info("Topology Data loaded")
-	while True:
-		time.sleep(1)
-		simple_function_prompt(topology)
+
+	if(first_arg != 'worker'):
+		while True:
+			time.sleep(1)
+			simple_function_prompt(topology)
+	else:
+		start_worker(topology, second_arg)
+		LOGGER.info("Worker completed. Terminating...")
+		sys.exit(0)
 main()

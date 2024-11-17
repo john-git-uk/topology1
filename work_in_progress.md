@@ -215,8 +215,10 @@ This file remains the same as in the image.
 ~~~
 ssh root@192.168.250.101
 ~~~
+
 ## IPv6 ACL(incomplete)
 I have yet to configure the IPv6 ACL so it has practically no security.
+
 ## Cisco Certificate Authority
 I use R1 as a certificate authority for the domain. A certificate authority signs certificates so other nodes on the network know the nodes they communicate with are genuine.
 
@@ -276,32 +278,61 @@ TB0=
 -----END CERTIFICATE-----" > /usr/local/share/ca-certificates/CA.crt
 update-ca-certificates --fresh
 ~~~
+
 ## Cisco Certificate Authority Upgrade
+I create the pki CA server on R1. I create a https certificate for secure signing. I need to sign the https certificate before I can use it. However the Cisco router does not fulfil CSR using the terminal. I enable http signing and use an access list THIS DOESNT WORK to block traffic that does not originate from R1. Then, once the https certificate is signed, I disable the http server.
+I show the CA certificate, then set a trustpoint on R2 and authenticate it by pasting the certificate into the terminal.
 #### R1 Config
 ~~~
-crypto key generate rsa modulus 2048 label HTTPS_Server_Key
-ip http secure-server
-crypto pki trustpoint HTTPS_Server_Cert
- enrollment selfsigned
- subject-name CN=CA-HTTPS,O=tapeitup.private
- rsakeypair HTTPS_Server_Key
-exit
-crypto pki enroll HTTPS_Server_Cert
-ip http secure-trustpoint HTTPS_Server_Cert
-
 aaa new-model
-
-crypto pki serv CA
-  issuer-name CN=CA,O=tapeitup.private
+! Create the CA server
+crypto pki server R1-CA
+  database url nvram:
+  issuer-name CN=R1,O=tapeitup.private
   grant auto
   no shut
 
-access-list 93 permit 10.133.0.0 0.0.255.255
-ip http access-class 93
+ip http access-class 10
+access-list 10 permit 127.0.0.1
+access-list 20 permit 10.133.2.1
+ip http server
+
+crypto key generate rsa modulus 2048 label HTTPS_Server_Key
+no crypto pki trustpoint HTTPS_Server_Cert
+crypto pki trustpoint HTTPS_Server_Cert
+ enrollment url http://10.133.2.1
+ subject-name CN=R1-HTTPS,O=tapeitup.private
+ rsakeypair HTTPS_Server_Key
+ revocation-check none
+exit
+crypto pki enroll HTTPS_Server_Cert
+ip http secure-server
+ip http client source-interface loopback 0
+no ip http server
+ip http secure-trustpoint HTTPS_Server_Cert
 ~~~
 ~~~
 crypto pki export HTTPS_Server_Cert pem terminal
 ~~~
+#### R2 Config
+~~~
+crypto pki trustpoint R1-CA
+ enrollment terminal
+ revocation-check none
+exit
+crypto pki authenticate R1-CA
+
+crypto key generate rsa modulus 2048 label R2.tapeitup.private
+crypto pki trustpoint R2
+  enrollment url https://10.133.2.1
+  rsakeypair R2.tapeitup.private
+  subject-name CN=R2,O=tapeitup.private
+  revocation-check none
+exit
+crypto pki authenticate R2
+crypto pki enroll R2
+~~~
+
 ## Radius (PAM)
 Cisco ports need to be set to standard. The default will remain local users. 
 This freeradius configuration stores plain text passwords, which is not secure. I could make a more robust aaa server in the future.
@@ -412,6 +443,30 @@ UsePAM yes
 ~~~
 sudo systemctl restart sshd
 ~~~
+### Testing (R!)
+#### Command to initiate SSH Connection
+~~~
+ssh-keygen -f '$HOME/.ssh/known_hosts' -R '192.168.250.1' ; ssh -oKexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256 -oCiphers=aes256-gcm@openssh.com,aes256-ctr,chacha20-poly1305@openssh.com -oMACs=hmac-sha2-512-etm@openssh.com john@192.168.250.1
+~~~
+
+#### Test Output
+~~~
+john@DEBTOP:~/gns3_gui$ ssh-keygen -f '/home/john/.ssh/known_hosts' -R '192.168.250.1' ; ssh -oKexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256 -oCiphers=aes256-gcm@openssh.com,aes256-ctr,chacha20-poly1305@openssh.com -oMACs=hmac-sha2-512-etm@openssh.com john@192.168.250.1
+# Host 192.168.250.1 found: line 45
+/home/john/.ssh/known_hosts updated.
+Original contents retained as /home/john/.ssh/known_hosts.old
+The authenticity of host '192.168.250.1 (192.168.250.1)' can't be established.
+RSA key fingerprint is SHA256:IQPt3XchrB8778Cy59HLhheC8AMRcijnvlR40GnvkEo.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '192.168.250.1' (RSA) to the list of known hosts.
+(john@192.168.250.1) Password: 
+Radius john
+R1#show version | include Version
+Cisco IOS Software [Dublin], Linux Software (X86_64BI_LINUX-ADVENTERPRISEK9-M), Version 17.12.1, RELEASE SOFTWARE (fc5)
+R1#
+~~~
+
 ## LDAP RADIUS Query
 ~~~
 apt-get install freeradius-ldap
@@ -457,10 +512,13 @@ authenticate {
 
 
 **service freeradius restart**
+
 ## proxmox
 user:root
 pass:toorp
+
 ## EAP-TLS
+
 ## Restconf/Netconf (incomplete)
 #### Bug
 Unfortunately due to a bug in this IOS version the clock has to be changed to generate self signed certificates.

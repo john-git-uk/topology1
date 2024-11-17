@@ -21,27 +21,27 @@ def prox1_structures(topology: Topology):
 	prox1_interface_oob_hitch = Interface (
 		name= "oob_hitch",
 		interface_type="bridge",
-		ipv4_address= "192.168.2.239",
+		ipv4_address= "192.168.250.239",
 		ipv4_cidr= 24,
 	)
 	prox1_interface_vmbr30 = Interface (
 		name= "vmbr30",
 		interface_type="bridge",
-		ipv4_address= "10.133.30.245",
-		ipv4_cidr= 24,
+		ipv4_address= "10.133.30.125",
+		ipv4_cidr= 25,
 		vlans=[access_segment.get_vlan("management")],
 	)
 	prox1_interface_vmbr60 = Interface (
 		name= "vmbr60",
 		interface_type="bridge",
-		ipv4_address= "10.133.60.245",
+		ipv4_address= "10.133.60.248",
 		ipv4_cidr= 24,
 		vlans=[access_segment.get_vlan("guest-services")],
 	)
 	prox1_interface_vmbr70 = Interface (
 		name= "vmbr70",
 		interface_type="bridge",
-		ipv4_address= "10.133.70.245",
+		ipv4_address= "10.133.70.250",
 		ipv4_cidr= 24,
 		vlans=[access_segment.get_vlan("internal-services")],
 	)

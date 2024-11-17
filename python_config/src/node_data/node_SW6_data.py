@@ -16,7 +16,7 @@ def SW6_Structures(topology: Topology):
 		LOGGER.error("Access segment main not found")
 		return
 		
-	machine_data=get_machine_data("viosl2-adventerprisek9-m.ssa.high_iron_20200929")
+	machine_data=get_machine_data("Cisco IOU L2 17.12.1")
 	if(machine_data is None):
 		raise ValueError("Machine data not found")
 		
@@ -65,7 +65,7 @@ def SW6_Structures(topology: Topology):
 		vlans=[access_segment.get_vlan("guest-services")]
 	)
 	node_SW6_i9=Interface(
-		name="5/3",
+		name="3/3",
 		interface_type="ethernet",
 		description="out of band",
 		ipv4_address="192.168.250.56",
@@ -142,6 +142,6 @@ def SW6_relations(topology: Topology):
 	topology.get_node("SW6").get_interface("ethernet","0/0").connect_to(topology.get_node("SW4").get_interface("ethernet","0/3"))
 	topology.get_node("SW6").get_interface("ethernet","1/1").connect_to(topology.get_node("SW4").get_interface("ethernet","2/0"))
 	topology.get_node("SW6").get_interface("ethernet","2/0").connect_to(topology.get_node("prox1").get_interface("ethernet","enp2s0"))
-	topology.get_node("SW6").get_interface("ethernet","5/3").connect_to(topology.get_exit_interface('exit_oob'))
+	topology.get_node("SW6").get_interface("ethernet","3/3").connect_to(topology.get_exit_interface('exit_oob'))
 	topology.get_node("SW6").get_interface("port-channel","1").connect_to(topology.get_node("SW4").get_interface("port-channel","1"))
 	topology.get_node("SW6").get_interface("port-channel","2").connect_to(topology.get_node("SW3").get_interface("port-channel","1"))

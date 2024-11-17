@@ -110,6 +110,29 @@ def structure_machine_data():
 		restconf_support=False,
 		multilayer=True
 	)
+	m_iou_xe=MachineData(
+		name="Cisco IOU L3 17.12.1",
+		device_type="cisco_xe",
+		category="router",
+		ssh_support=True,
+		netconf_support=False,
+		restconf_support=False,
+		ssh_options=[],
+		switch=False,
+		multilayer=False
+	)
+	m_iou_l2_xe=MachineData(
+		name="Cisco IOU L2 17.12.1",
+		device_type="cisco_xe",
+		category="multilayer",
+		ssh_support=True,
+		netconf_support=False,
+		restconf_support=False,
+		ssh_options=[],
+		switch=True,
+		multilayer=True
+	)
+
 	machine_data.append(m1)
 	machine_data.append(m2)
 	machine_data.append(m3)
@@ -120,6 +143,8 @@ def structure_machine_data():
 	machine_data.append(m_alpine)
 	machine_data.append(m_ubuntu)
 	machine_data.append(m_proxmox)
+	machine_data.append(m_iou_xe)
+	machine_data.append(m_iou_l2_xe)
 	return machine_data
 MACHINE_DATA = structure_machine_data()
 # Example usage:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 import paramiko
-from handle_debian import *
+from handle_debian import commands_packages_essential, commands_packages_ldap_server, \
+commands_packages_ldap_client, commands_config_ldap_server, commands_config_ldap_client
 import logging
 from convert import get_escaped_string, get_chunky_hex, base64_encode_string
 from interface import Interface
@@ -27,7 +28,7 @@ def ldap_server_1_structures(topology: Topology):
 	ldap_server1_i1 = Interface(
 		name="eth0",
 		interface_type="ethernet",
-		ipv4_address="192.168.2.231",
+		ipv4_address="192.168.250.231",
 		ipv4_cidr=24
 	)
 
@@ -36,6 +37,19 @@ def ldap_server_1_structures(topology: Topology):
 		interface_type="ethernet",
 		ipv4_address="10.133.60.250",
 		ipv4_cidr=24
+	)
+	ldap_server1_i3 = Interface(
+		name="eth2",
+		interface_type="ethernet",
+		ipv4_address="10.133.70.248",
+		ipv4_cidr=24
+	)
+	ldap_server1_i4 = Interface(
+		name="eth3",
+		description="management",
+		interface_type="ethernet",
+		ipv4_address="10.133.30.124",
+		ipv4_cidr=25
 	)
 	ldap_server1 = Node(
 		hostname="ldap-server-1",
@@ -59,6 +73,8 @@ def ldap_server_1_structures(topology: Topology):
 	)
 	ldap_server1.add_interface(ldap_server1_i1)
 	ldap_server1.add_interface(ldap_server1_i2)
+	ldap_server1.add_interface(ldap_server1_i3)
+	ldap_server1.add_interface(ldap_server1_i4)	
 	prox1.topology_a_part_of.add_node(ldap_server1)
 	prox1.add_container(ldap_server1_container)
 	access_segment.nodes.append(ldap_server1)
@@ -77,54 +93,56 @@ def ldap_server_1_relations(topology: Topology):
 
 	ldap_server_1.get_interface("ethernet","eth0").connect_to(prox1.get_interface("bridge","oob_hitch"))
 	ldap_server_1.get_interface("ethernet","eth1").connect_to(prox1.get_interface("bridge","vmbr60"))
-
-def packages_time_ldap_server_1(ldap_server_1):
+	ldap_server_1.get_interface("ethernet","eth2").connect_to(prox1.get_interface("bridge","vmbr70"))
+	ldap_server_1.get_interface("ethernet","eth3").connect_to(prox1.get_interface("bridge","vmbr30"))
+def ldap_server_1_config(node):
 	topology = None
 	prox1 = None
 	container = None
+	topology = node.topology_a_part_of
+	if topology is None:
+		raise ValueError("topology is None")
+	prox1 = topology.get_node("prox1")
+	if prox1 is None:
+		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
+	container = prox1.get_container(node.hostname)
+	if container is None:
+		raise ValueError("container is None")
+
+	if not wait_for_container_running(prox1, container, 30):
+		LOGGER.error(f"Container {node.hostname} did not start in time")
+		return
+	if not wait_for_container_ping_debian(prox1, container, 30):
+		LOGGER.error(f"Container {node.hostname} cannot contact debian.org")
+		return
+
+	output,error = execute_proxnode_commands(prox1, node, commands_packages_essential(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_packages_ldap_client(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_packages_ldap_server(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_config_ldap_server(node))
+	output,error = execute_proxnode_commands(prox1, node, commands_config_ldap_client(node))
+	
+def old_packages_time_ldap_server_1(ldap_server_1):
+	topology = None
+	prox1 = None
 	topology = ldap_server_1.topology_a_part_of
 	if topology is None:
 		raise ValueError("topology is None")
 	prox1 = topology.get_node("prox1")
 	if prox1 is None:
 		raise ValueError("prox1 does not exist! Did you try to load in the wrong order?")
-	container = prox1.get_container(ldap_server_1.hostname)
-	if container is None:
-		raise ValueError("container is None")
 
 	if not wait_for_container_running(prox1, container, 30):
 		LOGGER.error(f"Container {ldap_server_1.hostname} did not start in time")
 		return
 	if not wait_for_container_ping_debian(prox1, container, 30):
-		LOGGER.error(f"Container {ldap_server_1.hostname} cannot contact debian.org")
+		LOGGER.error(f"Container {ldap_server_1.hostname} cannot contact website")
 		return
 	
-	commands = []
-	commands += [
-		'apt-get update',
-		'env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends locales',
-		"sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen",
-		'locale-gen en_GB.UTF-8',
-		'update-locale LANG=en_GB.UTF-8 LC_ALL=en_GB.UTF-8',
-		"echo 'LANG=\"en_GB.UTF-8\"' > /etc/default/locale",
-		"echo 'LC_ALL=\"en_GB.UTF-8\"' >> /etc/default/locale",
-		f'echo {base64_encode_string(f"echo nslcd nslcd/ldap-uris string ldap://{ldap_server_1.get_interface('ethernet','eth1').ipv4_address}:389/ | debconf-set-selections")} | base64 -d | sh',
-		f'echo {base64_encode_string("echo slapd slapd/internal/generated_adminpw password ldap | debconf-set-selections")} | base64 -d | sh',
-		f'echo {base64_encode_string("echo slapd slapd/internal/adminpw password ldap | debconf-set-selections")} | base64 -d | sh',
-		f'echo {base64_encode_string("echo slapd slapd/password1 password ldap | debconf-set-selections")} | base64 -d | sh',
-		f'echo {base64_encode_string("echo slapd slapd/password2 password ldap | debconf-set-selections")} | base64 -d | sh',
-		f'echo {base64_encode_string(f"echo slapd slapd/domain string {topology.domain_name_a}.{topology.domain_name_b} | debconf-set-selections")} | base64 -d | sh',
-		f'echo {base64_encode_string(f"echo slapd shared/organization string {topology.domain_name_a} | debconf-set-selections")} | base64 -d | sh',
-		f'echo {base64_encode_string("echo slapd slapd/no_configuration boolean false | debconf-set-selections")} | base64 -d | sh',
-		'env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xxd telnet curl openssh-client'
-		+' openssh-server nano vim-tiny iputils-ping build-essential slapd ldap-utils ldapscripts libpam-ldap'
-		+' net-tools iproute2 rsyslog libldap-2.5-0 libldap-common apache2 php libapache2-mod-php'
-		+' libpam-ldapd nslcd nscd phpldapadmin sudo libnss-ldap',
-	]
-	
-	output,error = execute_proxnode_commands(prox1, ldap_server_1, commands)
+	output,error = execute_proxnode_commands(prox1, ldap_server_1, commands_packages_essential(ldap_server_1))
+	output,error = execute_proxnode_commands(prox1, ldap_server_1, commands_packages_ldap_server(ldap_server_1))
 
-def configure_ldap_server_1(ldap_server_1):
+def old_configure_ldap_server_1(ldap_server_1):
 	topology = None
 	prox1 = None
 	container = None
@@ -164,7 +182,7 @@ def configure_ldap_server_1(ldap_server_1):
 	
 	output,error = execute_proxnode_commands(prox1, ldap_server_1, commands)
 
-def ldap_server_1_sshd_content(ldap_server_1):
+def old_ldap_server_1_sshd_content(ldap_server_1):
 	#region return string
 	return f"""
 SyslogFacility AUTH
@@ -181,7 +199,8 @@ Subsystem sftp /usr/lib/openssh/sftp-server
 ListenAddress {ldap_server_1.oob_interface.ipv4_address}
 """
 	#endregion
-def ldap_server_1_ldap_base_content(ldap_server_1):
+
+def old_ldap_server_1_ldap_base_content(ldap_server_1):
 	#region return string
 	topology = ldap_server_1.topology_a_part_of
 	if topology is None:
@@ -240,7 +259,8 @@ mail: dave@tapeitup.private
 userPassword: {{SSHA}}CU6BdjNWkngd4snNvl4k6A6jBHPbNmAw
 """
 	#endregion
-def ldap_server_1_php_webgui_content(ldap_server_1):
+
+def old_ldap_server_1_php_webgui_content(ldap_server_1):
 	#region return string
 	return f"""
 <?php
@@ -262,7 +282,8 @@ $servers->setValue("login","bind_id","cn=admin,dc={ldap_server_1.topology_a_part
 ?>
 """
 	#endregion
-def ldap_server_1_logging_ldif_content(ldap_server_1):
+
+def old_ldap_server_1_logging_ldif_content(ldap_server_1):
 	#region return string
 	return f"""
 dn: cn=config
@@ -276,7 +297,8 @@ add: olcPasswordHash
 olcPasswordHash: {{SSHA}}
 """
 	#endregion
-def ldap_server_1_nslcd_content(ldap_server_1):
+
+def old_ldap_server_1_nslcd_content(ldap_server_1):
 	#region return string
 	return f"""
 uri ldap://127.0.0.1
@@ -285,7 +307,8 @@ binddn cn=admin,dc=tapeitup,dc=private
 bindpw ldap
 """
 	#endregion
-def ldap_server_1_nsswitch_content(ldap_server_1):
+
+def old_ldap_server_1_nsswitch_content(ldap_server_1):
 	#region return string
 	return f"""
 passwd:         compat ldap

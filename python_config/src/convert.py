@@ -70,7 +70,7 @@ def get_escaped_string(string):
 def get_chunky_hex(string):
 	hex_string = string.encode("utf-8").hex()
 	LOGGER.debug(f"hex_string: {hex_string}")
-	chunk_size = 100
+	chunk_size = 7000
 	result = []
 	for i in range(0, len(hex_string), chunk_size):
 		result += [hex_string[i:i+chunk_size]]
