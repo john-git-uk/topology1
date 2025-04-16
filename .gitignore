@@ -1,4 +1,5 @@
 output/
+assets/
 secrets.env
 config.ini
 repo_globals.ini

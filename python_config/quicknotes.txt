@@ -1,0 +1,6 @@
+NEXT
+
+The p12 created by python has encrypted private key and is generally buggy.
+You need to look at it.
+
+The certificate for web gui is not trusted for some reason.

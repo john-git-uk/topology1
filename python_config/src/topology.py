@@ -4,6 +4,10 @@ from pydantic import BaseModel
 from typing import Optional, List, Literal
 from access_control import Access_Control
 from project_globals import GLOBALS
+from handle_cisco import cisco_ssh_stub, cisco_dhcp_config, cisco_interfaces_config, cisco_fhrp_config, \
+	cisco_ntp_config, cisco_ospf_static_base_config, cisco_radius_client_config,cisco_stp_vlan_config,\
+		cisco_wan_config, cisco_validate_layer_1_genie, cisco_export_config_files, cisco_additional_config,\
+			cisco_pki_config
 import ipaddress
 LOGGER = logging.getLogger('my_logger')
 class Topology(BaseModel):
@@ -28,6 +32,7 @@ class Topology(BaseModel):
 	dns_private: List[Interface]=[]
 	dns_upstream: List[ipaddress]=[]
 	certificate_authorities: List[Interface]=[]
+	certificate_authorities_pem: List[str]=[] # This could benefit from sanitization in the future
 	nodes: List[Node]=[]
 	access_segments: List[AccessSegment]=[]
 	access_controls: List[Access_Control]=[]
@@ -58,7 +63,7 @@ class Topology(BaseModel):
 			LOGGER.debug(f"Here are the nodes in the list: {self.nodes}")
 			for node in self.nodes:
 				LOGGER.debug(f"Considering generating interfaces config for node: {node.hostname}")
-				node.generate_interfaces_config()
+				node.cisco_interfaces_config()
 				#LOGGER.debug(f"Considering apply config for node using netmiko: {node.hostname}")
 				#if(node.machine_data.device_type != "cisco_ios" and node.machine_data.device_type != "cisco_xe"):
 				#	continue
@@ -106,35 +111,44 @@ class Topology(BaseModel):
 		except Exception as e:
 			LOGGER.error("Error generating stp vlan config for all nodes: %s", e)
 			raise
+
 	def generate_nodes_fhrp_config(self):
 		try:
 			LOGGER.info("Generating fhrp config for all nodes")
 			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
 			for node in self.nodes:
 				if(node.machine_data.device_type == "cisco_ios" or node.machine_data.device_type == "cisco_xe"):
-					node.generate_fhrp_config()
+					node.cisco_fhrp_config()
 		except Exception as e:
 			LOGGER.error("Error generating fhrp config for all nodes: %s", e)
 			raise
 	
 	def generate_multi_config(self):
-		try:
+		#try:
+		if True:
 			LOGGER.info("Generating multi config for all nodes")
 			LOGGER.debug("Here are the nodes in the list: %s", self.nodes)
 			for node in self.nodes:
-				if(node.machine_data.device_type != "cisco_ios" or node.machine_data.device_type != "cisco_xe"):
+				if(node.machine_data.device_type != "cisco_ios" and node.machine_data.device_type != "cisco_xe"):
 					continue
-				node.generate_ssh_stub()
-				node.generate_interfaces_config()
+				cisco_ssh_stub(node)
+				cisco_interfaces_config(node)
 				cisco_stp_vlan_config(node)
-				node.generate_fhrp_config()
-				node.generate_ospf_static_base_config()
-				node.generate_dhcp_config()
-				node.generate_wan_config()
-				node.generate_ntp_config()
-		except Exception as e:
-			LOGGER.error("Error generating multi config for all nodes: %s", e)
-			raise
+				cisco_fhrp_config(node)
+				cisco_ospf_static_base_config(node)
+				cisco_dhcp_config(node)
+				cisco_wan_config(node)
+				cisco_ntp_config(node)
+				cisco_pki_config(node)
+				# TODO: What is this?
+				from node_data.node_r1_data import r1_additional_config
+				if node.additional_config:
+					node.additional_config(node)
+				cisco_additional_config(node)
+				cisco_export_config_files(node)
+		#except Exception as e:
+		#	LOGGER.error("Error generating multi config for all nodes: %s", e)
+		#	raise
 	
 	def make_genie_yaml(self):
 		''' Function to generate a genie yaml file using topology data. Ginie needs this yaml file to connect to devices. '''

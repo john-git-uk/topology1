@@ -64,6 +64,8 @@ class Globals:
 		self.radius_server_1_username = None
 		self.radius_server_1_password = None
 		self.radius_password = None
+		self.ca_server_1_username = None
+		self.ca_server_1_password = None
 		
 		self.vpn_passwords = None
 
@@ -78,6 +80,7 @@ class Globals:
 			self.app_path = Path(os.path.abspath("../topology1/python_config/src"))
 		
 		self.testbed_path = self.app_path.parent / 'output'/ 'testbed.yaml'
+
 	def write(self):
 		config = configparser.ConfigParser()
 		config['General'] = {
@@ -92,28 +95,28 @@ class Globals:
 			'Lab_Password': self.lab_password,
 		}
 		config['Network_Nodes'] = {
-			'R1_Username': self.r1_username,
-			'R1_Password': self.r1_password,
-			'R1_CA_Password': self.r1_ca_password,
+			'r1_Username': self.r1_username,
+			'r1_Password': self.r1_password,
+			'r1_CA_Password': self.r1_ca_password,
 			'NTP_Password': self.ntp_password,
-			'R2_Username': self.r2_username,
-			'R2_Password': self.r2_password,
-			'R3_Username': self.r3_username,
-			'R3_Password': self.r3_password,
-			'SW1_Username': self.sw1_username,
-			'SW1_Password': self.sw1_password,
-			'SW2_Username': self.sw2_username,
-			'SW2_Password': self.sw2_password,
-			'SW3_Username': self.sw3_username,
-			'SW3_Password': self.sw3_password,
-			'SW4_Username': self.sw4_username,
-			'SW4_Password': self.sw4_password,
-			'SW5_Username': self.sw5_username,
-			'SW5_Password': self.sw5_password,
-			'SW6_Username': self.sw6_username,
-			'SW6_Password': self.sw6_password,
-			'SW7_Username': self.sw7_username,
-			'SW7_Password': self.sw7_password,
+			'r2_Username': self.r2_username,
+			'r2_Password': self.r2_password,
+			'r3_Username': self.r3_username,
+			'r3_Password': self.r3_password,
+			'sw1_Username': self.sw1_username,
+			'sw1_Password': self.sw1_password,
+			'sw2_Username': self.sw2_username,
+			'sw2_Password': self.sw2_password,
+			'sw3_Username': self.sw3_username,
+			'sw3_Password': self.sw3_password,
+			'sw4_Username': self.sw4_username,
+			'sw4_Password': self.sw4_password,
+			'sw5_Username': self.sw5_username,
+			'sw5_Password': self.sw5_password,
+			'sw6_Username': self.sw6_username,
+			'sw6_Password': self.sw6_password,
+			'sw7_Username': self.sw7_username,
+			'sw7_Password': self.sw7_password,
 		}
 		config['Servers'] = {
 			'Prox1_Username': self.prox1_username,
@@ -127,9 +130,12 @@ class Globals:
 			'Radius_Server_1_Username': self.radius_server_1_username,
 			'Radius_Server_1_Password': self.radius_server_1_password,
 			'Radius_Password': self.radius_password,
+			'CA_Server_1_Username': self.ca_server_1_username,
+			'CA_Server_1_Password': self.ca_server_1_password,
 		}
 		with open(f'{self.app_path.parent.parent}/config.ini', 'w') as configfile:
 			config.write(configfile)
+
 	def validate_data(self):
 
 
@@ -158,28 +164,28 @@ class Globals:
 		self.hypervisor_ssh_password = self.hidden_secret_prompt("*Hypervisor Password*",self.hypervisor_ssh_password)
 		self.lab_username = self.secret_prompt("*Lab Username*",self.lab_username)
 		self.lab_password = self.hidden_secret_prompt("*Lab Password*", self.lab_password)
-		self.r1_username = self.secret_prompt("*R1 Username*",self.r1_username)
-		self.r1_password = self.hidden_secret_prompt("*R1 Password*",self.r1_password)
-		self.r1_ca_password = self.hidden_secret_prompt("*R1 Certificate Authority Password*",self.r1_ca_password)
+		self.r1_username = self.secret_prompt("*r1 Username*",self.r1_username)
+		self.r1_password = self.hidden_secret_prompt("*r1 Password*",self.r1_password)
+		self.r1_ca_password = self.hidden_secret_prompt("*r1 Certificate Authority Password*",self.r1_ca_password)
 		self.ntp_password = self.hidden_secret_prompt("*NTP Pasword*", self.ntp_password)
-		self.r2_username = self.secret_prompt("*R2 Username*",self.r2_username)
-		self.r2_password = self.hidden_secret_prompt("*R2 Password*",self.r2_password)
-		self.r3_username = self.secret_prompt("*R3 Username*",self.r3_username)
-		self.r3_password = self.hidden_secret_prompt("*R3 Password*",self.r3_password)
-		self.sw1_username = self.secret_prompt("*SW1 Username*",self.sw1_username)
-		self.sw1_password = self.hidden_secret_prompt("*SW1 Password*",self.sw1_password)
-		self.sw2_username = self.secret_prompt("*SW2 Username*",self.sw2_username)
-		self.sw2_password = self.hidden_secret_prompt("*SW2 Password*",self.sw2_password)
-		self.sw3_username = self.secret_prompt("*SW3 Username*",self.sw3_username)
-		self.sw3_password = self.hidden_secret_prompt("*SW3 Password*",self.sw3_password)
-		self.sw4_username = self.secret_prompt("*SW4 Username*",self.sw4_username)
-		self.sw4_password = self.hidden_secret_prompt("*SW4 Password*",self.sw4_password)
-		self.sw5_username = self.secret_prompt("*SW5 Username*",self.sw5_username)
-		self.sw5_password = self.hidden_secret_prompt("*SW5 Password*",self.sw5_password)
-		self.sw6_username = self.secret_prompt("*SW6 Username*",self.sw6_username)
-		self.sw6_password = self.hidden_secret_prompt("*SW6 Password*",self.sw6_password)
-		self.sw7_username = self.secret_prompt("*SW7 Username*",self.sw7_username)
-		self.sw7_password = self.hidden_secret_prompt("*SW7 Password*",self.sw7_password)
+		self.r2_username = self.secret_prompt("*r2 Username*",self.r2_username)
+		self.r2_password = self.hidden_secret_prompt("*r2 Password*",self.r2_password)
+		self.r3_username = self.secret_prompt("*r3 Username*",self.r3_username)
+		self.r3_password = self.hidden_secret_prompt("*r3 Password*",self.r3_password)
+		self.sw1_username = self.secret_prompt("*sw1 Username*",self.sw1_username)
+		self.sw1_password = self.hidden_secret_prompt("*sw1 Password*",self.sw1_password)
+		self.sw2_username = self.secret_prompt("*sw2 Username*",self.sw2_username)
+		self.sw2_password = self.hidden_secret_prompt("*sw2 Password*",self.sw2_password)
+		self.sw3_username = self.secret_prompt("*sw3 Username*",self.sw3_username)
+		self.sw3_password = self.hidden_secret_prompt("*sw3 Password*",self.sw3_password)
+		self.sw4_username = self.secret_prompt("*sw4 Username*",self.sw4_username)
+		self.sw4_password = self.hidden_secret_prompt("*sw4 Password*",self.sw4_password)
+		self.sw5_username = self.secret_prompt("*sw5 Username*",self.sw5_username)
+		self.sw5_password = self.hidden_secret_prompt("*sw5 Password*",self.sw5_password)
+		self.sw6_username = self.secret_prompt("*sw6 Username*",self.sw6_username)
+		self.sw6_password = self.hidden_secret_prompt("*sw6 Password*",self.sw6_password)
+		self.sw7_username = self.secret_prompt("*sw7 Username*",self.sw7_username)
+		self.sw7_password = self.hidden_secret_prompt("*sw7 Password*",self.sw7_password)
 		self.prox1_username = self.secret_prompt("*Prox1 Username*",self.prox1_username)
 		self.prox1_password = self.hidden_secret_prompt("*Prox1 Password*",self.prox1_password)
 		self.dns_server_1_username = self.secret_prompt("*DNS Server 1 Username*",self.dns_server_1_username)
@@ -191,6 +197,8 @@ class Globals:
 		self.radius_server_1_username = self.secret_prompt("*Radius Server 1 Username*",self.radius_server_1_username)
 		self.radius_server_1_password = self.hidden_secret_prompt("*Radius Server 1 Password*",self.radius_server_1_password)
 		self.radius_password = self.hidden_secret_prompt("*Radius Password*",self.radius_password)
+		self.ca_server_1_username = self.secret_prompt("*CA Server 1 Username*",self.ca_server_1_username)
+		self.ca_server_1_password = self.hidden_secret_prompt("*CA Server 1 Password*",self.ca_server_1_password)
 
 	def secret_prompt(self, name, value):
 		while True:
@@ -204,6 +212,7 @@ class Globals:
 					value = input(f"Enter a valid {name}: ")
 					if value != "" and value is not None:
 						return value
+
 	def hidden_secret_prompt(self, name, value):
 		while True:
 			if value == "" or value is None:
@@ -223,6 +232,7 @@ class Globals:
 							return value1
 						else:
 							print("Entries did not match. Try again.")
+
 	def ip_prompt(self, name, value):
 		while True:
 			try:
@@ -238,6 +248,7 @@ class Globals:
 				else:
 					LOGGER.info(f"Erasing IPv4 address for {name} and trying again.")
 					value = None
+
 	def load_data(self):
 		config = configparser.ConfigParser()
 		config.read(f'{self.app_path.parent.parent}/config.ini')
@@ -461,7 +472,17 @@ class Globals:
 		except KeyError as e:
 			LOGGER.warning(f"Missing key radius_password: {e}")
 			missing_data = True
-		
+		try:
+			self.ca_server_1_username = config['Servers']['ca_server_1_username']
+		except KeyError as e:
+			LOGGER.warning(f"Missing key ca_server_1_username: {e}")
+			missing_data = True
+		try:
+			self.ca_server_1_password = config['Servers']['ca_server_1_password']
+		except KeyError as e:
+			LOGGER.warning(f"Missing key ca_server_1_password: {e}")
+			missing_data = True
+
 		if(missing_data):
 			LOGGER.warning("Missing data.")
 			validate = input("Would you like to validate the data? (y/n): ")
@@ -471,4 +492,5 @@ class Globals:
 				LOGGER.error("Data validation rejected. Exiting.")
 				exit()
 		self.write()
+
 GLOBALS = Globals()

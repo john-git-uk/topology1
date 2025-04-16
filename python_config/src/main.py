@@ -3,20 +3,21 @@ from __future__ import annotations
 from topology import Topology
 from handle_vmm import test_interact_vmm
 #from node_data.node_ISP_data import ISP_Structures, ISP_relations
-from node_data.node_R1_data import R1_Structures, R1_relations
-from node_data.node_R2_data import R2_Structures, R2_relations
-from node_data.node_R3_data import R3_Structures, R3_relations
-from node_data.node_SW1_data import SW1_Structures, SW1_relations
-from node_data.node_SW2_data import SW2_Structures, SW2_relations
-from node_data.node_SW3_data import SW3_Structures, SW3_relations
-from node_data.node_SW4_data import SW4_Structures, SW4_relations
-from node_data.node_SW5_data import SW5_Structures, SW5_relations
-from node_data.node_SW6_data import SW6_Structures, SW6_relations
-from node_data.node_SW7_data import SW7_Structures, SW7_relations
+from node_data.node_r1_data import r1_Structures, r1_relations
+from node_data.node_r2_data import r2_Structures, r2_relations
+from node_data.node_r3_data import r3_Structures, r3_relations
+from node_data.node_sw1_data import sw1_Structures, sw1_relations
+from node_data.node_sw2_data import sw2_Structures, sw2_relations
+from node_data.node_sw3_data import sw3_Structures, sw3_relations
+from node_data.node_sw4_data import sw4_Structures, sw4_relations
+from node_data.node_sw5_data import sw5_Structures, sw5_relations
+from node_data.node_sw6_data import sw6_Structures, sw6_relations
+from node_data.node_sw7_data import sw7_Structures, sw7_relations
 from node_data.node_prox1_data import prox1_structures, prox1_relations
 from node_data.node_ldap_server_1 import ldap_server_1_structures, ldap_server_1_relations
 from node_data.node_radius_server_1 import radius_server_1_structures, radius_server_1_relations
 from node_data.node_dns_server_1 import dns_server_1_structures, dns_server_1_relations
+from node_data.node_ca_server_1 import ca_server_1_structures, ca_server_1_relations
 from project_globals import GLOBALS
 from paramiko import SSHClient
 from paramiko import Transport#, RSAKey
@@ -43,15 +44,15 @@ sys.setrecursionlimit(30111)  # Set a lower recursion limit
 
 def test_connect_with_custom_ssh(topology: Topology):
 	try:
-		LOGGER.info("Connecting to R3")
+		LOGGER.info("Connecting to r3")
 
 		# Manually create the transport with custom Kex and MAC algorithms
-		transport = Transport((str(topology.get_node("R3").oob_interface.ipv4_address), 22))
+		transport = Transport((str(topology.get_node("r3").oob_interface.ipv4_address), 22))
 		transport.get_security_options().kex = ['diffie-hellman-group-exchange-sha1']
 		transport.get_security_options().ciphers = ['aes128-ctr', 'aes192-ctr', 'aes256-ctr']
 
 		# Set up the connection using transport
-		transport.connect(username=topology.get_node("R3").local_user, password=topology.get_node("R3").local_password)
+		transport.connect(username=topology.get_node("r3").local_user, password=topology.get_node("r3").local_password)
 
 		ssh = SSHClient()
 		ssh._transport = transport
@@ -63,6 +64,7 @@ def test_connect_with_custom_ssh(topology: Topology):
 		ssh.close()
 	except Exception as e:
 		LOGGER.error("An error occurred: %s", str(e))
+
 def load_topology():
 	from topology_data import main_structures, main_relations
 	from node import Node
@@ -81,26 +83,26 @@ def load_topology():
 	LOGGER.debug("Topology main loaded")
 	#ISP_Structures(topology)
 	#LOGGER.debug("ISP Structures loaded")
-	R1_Structures(topology)
-	LOGGER.debug("R1 Structures loaded")
-	R2_Structures(topology)
-	LOGGER.debug("R2 Structures loaded")
-	R3_Structures(topology)
-	LOGGER.debug("R3 Structures loaded")
-	SW1_Structures(topology)
-	LOGGER.debug("SW1 Structures loaded")
-	SW2_Structures(topology)
-	LOGGER.debug("SW2 Structures loaded")
-	SW3_Structures(topology)
-	LOGGER.debug("SW3 Structures loaded")
-	SW4_Structures(topology)
-	LOGGER.debug("SW4 Structures loaded")
-	SW5_Structures(topology)
-	LOGGER.debug("SW5 Structures loaded")
-	SW6_Structures(topology)
-	LOGGER.debug("SW6 Structures loaded")
-	SW7_Structures(topology)
-	LOGGER.debug("SW7 Structures loaded")
+	r1_Structures(topology)
+	LOGGER.debug("r1 Structures loaded")
+	r2_Structures(topology)
+	LOGGER.debug("r2 Structures loaded")
+	r3_Structures(topology)
+	LOGGER.debug("r3 Structures loaded")
+	sw1_Structures(topology)
+	LOGGER.debug("sw1 Structures loaded")
+	sw2_Structures(topology)
+	LOGGER.debug("sw2 Structures loaded")
+	sw3_Structures(topology)
+	LOGGER.debug("sw3 Structures loaded")
+	sw4_Structures(topology)
+	LOGGER.debug("sw4 Structures loaded")
+	sw5_Structures(topology)
+	LOGGER.debug("sw5 Structures loaded")
+	sw6_Structures(topology)
+	LOGGER.debug("sw6 Structures loaded")
+	sw7_Structures(topology)
+	LOGGER.debug("sw7 Structures loaded")
 	prox1_structures(topology)
 	LOGGER.debug("Prox1 Structures loaded")
 	ldap_server_1_structures(topology)
@@ -109,31 +111,33 @@ def load_topology():
 	LOGGER.debug("Radius Server 1 Structures loaded")
 	dns_server_1_structures(topology)
 	LOGGER.debug("DNS Server 1 Structures loaded")
+	ca_server_1_structures(topology)
+	LOGGER.debug("CA Server 1 Structures loaded")
 
 	main_relations(topology)
 	LOGGER.debug("Main Relations loaded")
 	#ISP_relations(topology)
 	#LOGGER.debug("ISP Relations loaded")
-	R1_relations(topology)
-	LOGGER.debug("R1 Relations loaded")
-	R2_relations(topology)
-	LOGGER.debug("R2 Relations loaded")
-	R3_relations(topology)
-	LOGGER.debug("R3 Relations loaded")
-	SW1_relations(topology)
-	LOGGER.debug("SW1 Relations loaded")
-	SW2_relations(topology)
-	LOGGER.debug("SW2 Relations loaded")
-	SW3_relations(topology)
-	LOGGER.debug("SW3 Relations loaded")
-	SW4_relations(topology)
-	LOGGER.debug("SW4 Relations loaded")
-	SW5_relations(topology)
-	LOGGER.debug("SW5 Relations loaded")
-	SW6_relations(topology)
-	LOGGER.debug("SW6 Relations loaded")
-	SW7_relations(topology)
-	LOGGER.debug("SW7 Relations loaded")
+	r1_relations(topology)
+	LOGGER.debug("r1 Relations loaded")
+	r2_relations(topology)
+	LOGGER.debug("r2 Relations loaded")
+	r3_relations(topology)
+	LOGGER.debug("r3 Relations loaded")
+	sw1_relations(topology)
+	LOGGER.debug("sw1 Relations loaded")
+	sw2_relations(topology)
+	LOGGER.debug("sw2 Relations loaded")
+	sw3_relations(topology)
+	LOGGER.debug("sw3 Relations loaded")
+	sw4_relations(topology)
+	LOGGER.debug("sw4 Relations loaded")
+	sw5_relations(topology)
+	LOGGER.debug("sw5 Relations loaded")
+	sw6_relations(topology)
+	LOGGER.debug("sw6 Relations loaded")
+	sw7_relations(topology)
+	LOGGER.debug("sw7 Relations loaded")
 	prox1_relations(topology)
 	LOGGER.debug("Prox1 Relations loaded")
 	ldap_server_1_relations(topology)
@@ -142,9 +146,11 @@ def load_topology():
 	LOGGER.debug("Radius Server 1 Relations loaded")
 	dns_server_1_relations(topology)
 	LOGGER.debug("DNS Server 1 Relations loaded")
-
+	ca_server_1_relations(topology)
+	LOGGER.debug("CA Server 1 Relations loaded")
 
 	return topology
+
 def simple_function_prompt(topology:  Topology):
 	#create list of functions to run
 
@@ -166,8 +172,8 @@ def simple_function_prompt(topology:  Topology):
 		print(f"{index}. {function_name}")
 	input_str = input("Enter the number of the function to run: ")
 	# check input and run the function
-	try:
-	#if True:
+	#try:
+	if True:
 		selected_function_index = int(input_str)
 		if 1 <= selected_function_index <= len(functions_display):
 			if(selected_function_index == 1):
@@ -182,7 +188,7 @@ def simple_function_prompt(topology:  Topology):
 			elif(selected_function_index == 4):
 				for node in topology.nodes:
 					LOGGER.debug(f"Validating interfaces for {node.hostname}")
-					node.validate_interfaces_genie()
+					node.cisco_validate_layer_1_genie()
 			elif(selected_function_index == 5):
 				from subnet_printer import subnet_printer
 				subnet_printer(topology)
@@ -204,14 +210,15 @@ def simple_function_prompt(topology:  Topology):
 				LOGGER.warning("Function selector: Invalid input. Enter a valid number.")
 		else:
 			LOGGER.warning("Function selector: Invalid input. Enter a valid number.")
-	except ValueError as e:
-		LOGGER.warning(f"Function selector: Invalid input. Enter a valid number. {e}")
+	#except ValueError as e:
+	#	LOGGER.warning(f"Function selector: Invalid input. Enter a valid number. {e}")
+
 def run_worker_main_prompt(topology: Topology):
 	functions_display = [
 		"dns-server-1",#1
 		"ldap-server-1",#2
 		"radius-server-1",#3
-		"klo",#4
+		"test: CA CONFIG",#4
 		"klo",#5
 		"klo",#6
 		"klo",#7
@@ -232,7 +239,7 @@ def run_worker_main_prompt(topology: Topology):
 		elif(selected_function_index == 3):
 			start_worker(topology, 'radius-server-1')
 		elif(selected_function_index == 4):
-			pass
+			start_worker(topology, 'ca-server-1')
 		elif(selected_function_index == 5):
 			pass
 		elif(selected_function_index == 6):
@@ -248,13 +255,12 @@ def run_worker_main_prompt(topology: Topology):
 	else:
 		LOGGER.warning("Function selector: Invalid input. Enter a valid number.")
 
-
-
 def start_worker(topology: Topology, type: str):
 	from handle_proxmox import Container, test_create_container, test_validate_container_config, start_container
 	from node_data.node_dns_server_1 import dns_server_1_config
 	from node_data.node_ldap_server_1 import ldap_server_1_config
 	from node_data.node_radius_server_1 import radius_server_1_config
+	from node_data.node_ca_server_1 import ca_server_1_config
 	if type == 'dns-server-1':
 		node = topology.get_node('dns-server-1')
 		test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("dns-server-1"))
@@ -269,12 +275,36 @@ def start_worker(topology: Topology, type: str):
 		node = topology.get_node("radius-server-1")
 		test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("radius-server-1"))
 		radius_server_1_config(topology.get_node("radius-server-1"))
+	
+	elif type == 'ca-server-1':
+		node = topology.get_node("ca-server-1")
+		test_create_container(topology.get_node("prox1"),topology.get_node("prox1").get_container("ca-server-1"))
+		ca_server_1_config(topology.get_node("ca-server-1"))
 	else:
 		LOGGER.error(f'Unknown worker type: {type}')
 		return
 
+def pre_main_testing():
+	from convert import base64_encode_string
+	log_file = Path.joinpath(GLOBALS.app_path.parent,'output','testing.log')
+	commands = []
+
+	commands.append(f'echo {base64_encode_string('"double quotes"')}{base64_encode_string("'single quotes'")} | base64 -d > {log_file}')
+	commands.append(f'cat {log_file}')
+	for command in commands:
+		print(command)
+		try:
+			result = subprocess.check_output(command, shell = True, executable = "/bin/bash", stderr = subprocess.STDOUT)
+
+		except subprocess.CalledProcessError as cpe:
+			result = cpe.output
+
+		finally:
+			for line in result.splitlines():
+				print(line.decode())
 
 def main():
+	pre_main_testing()
 	first_arg = None
 	second_arg = None
 	if len(sys.argv) > 1:

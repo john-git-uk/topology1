@@ -1,7 +1,8 @@
 from __future__ import annotations
 import paramiko
-from handle_debian import commands_packages_essential, commands_packages_ldap_client, \
- commands_packages_pi_hole, commands_config_pi_hole, commands_config_ldap_client
+from handle_debian.handle_debian import commands_packages_essential
+from handle_debian.ldap import commands_packages_ldap_client, commands_config_ldap_client
+from handle_debian.dns import commands_packages_pi_hole, commands_config_pi_hole
 import logging
 from convert import get_escaped_string, get_chunky_hex, base64_encode_string
 from interface import Interface

@@ -70,22 +70,38 @@ def get_escaped_string(string):
 def get_chunky_hex(string):
 	hex_string = string.encode("utf-8").hex()
 	LOGGER.debug(f"hex_string: {hex_string}")
+
 	chunk_size = 7000
 	result = []
 	for i in range(0, len(hex_string), chunk_size):
 		result += [hex_string[i:i+chunk_size]]
-	LOGGER.debug(f"result: {result}")
+
+	LOGGER.debug(f"get_chunky_hex result: {result}")
+	return result
+
+def get_chunky_base64(string):
+	# Encode the string to Base64
+	base64_string = base64.b64encode(string.encode("utf-8")).decode("utf-8")
+	LOGGER.debug(f"base64_string: {base64_string}")
+	
+	# Chunk the Base64 string into smaller parts
+	chunk_size = 7000  # Choose an appropriate size based on limitations
+	result = []
+	for i in range(0, len(base64_string), chunk_size):
+		result.append(base64_string[i:i + chunk_size])
+	
+	LOGGER.debug(f"get_chunky_base64 result: {result}")
 	return result
 
 def base64_encode_string(stringg):
-    return base64.b64encode(stringg.encode()).decode()
+	return base64.b64encode(stringg.encode()).decode()
 
 def input_yes_no(prompt):
-    while True:
-        response = input(prompt).lower()
-        if response in ['y', 'yes']:
-            return True
-        elif response in ['n', 'no']:
-            return False
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")
+	while True:
+		response = input(prompt).lower()
+		if response in ['y', 'yes']:
+			return True
+		elif response in ['n', 'no']:
+			return False
+		else:
+			print("Invalid input. Please enter 'y' or 'n'.")

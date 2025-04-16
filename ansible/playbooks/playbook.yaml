@@ -1,6 +1,6 @@
 ---
 - name: name
-  hosts: R3
+  hosts: r3
   gather_facts: no
   tasks:
   - name: Print connection details

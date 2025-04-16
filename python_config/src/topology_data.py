@@ -33,7 +33,7 @@ def main_structures(topology: Topology):
 	exit_r1=Interface(
 		name="exit_r1",
 		interface_type="ethernet",
-		description="Connected to R1",
+		description="Connected to r1",
 		ipv4_address="10.111.10.11",
 		ipv4_cidr=31,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::ffff"),
@@ -42,7 +42,7 @@ def main_structures(topology: Topology):
 	exit_r2=Interface(
 		name="exit_r2",
 		interface_type="ethernet",
-		description="Connected to R2",
+		description="Connected to r2",
 		ipv4_address="10.111.10.21",
 		ipv4_cidr=31,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fffd"),
@@ -51,7 +51,7 @@ def main_structures(topology: Topology):
 	exit_r3=Interface(
 		name="exit_r3",
 		interface_type="ethernet",
-		description="Connected to R3",
+		description="Connected to r3",
 		ipv4_address="10.111.10.31",
 		ipv4_cidr=31,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fffb"),
@@ -288,35 +288,35 @@ def main_relations(topology: Topology):
 		LOGGER.error("No outreach access segment found")
 		return
 	topology.dns_private.append((topology.get_node("dns-server-1")).get_interface("ethernet","eth1"))
-	main.get_vlan("sales").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","10")
-	main.get_vlan("sales").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
-	outreach.get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.10")
-	outreach.get_vlan("sales").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.10")
+	main.get_vlan("sales").fhrp0_priority=topology.get_node("sw3").get_interface("vlan","10")
+	main.get_vlan("sales").dhcp_interface=topology.get_node("sw3").get_interface("loopback","0")
+	outreach.get_vlan("sales").dhcp_interface=topology.get_node("r3").get_interface("ethernet","0/1.10")
+	outreach.get_vlan("sales").default_gateway=topology.get_node("r3").get_interface("ethernet","0/1.10")
 
-	main.get_vlan("guest").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","20")
-	main.get_vlan("guest").dhcp_interface=topology.get_node("SW3").get_interface("loopback","0")
-	outreach.get_vlan("guest").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.20")
-	outreach.get_vlan("guest").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.20")
+	main.get_vlan("guest").fhrp0_priority=topology.get_node("sw4").get_interface("vlan","20")
+	main.get_vlan("guest").dhcp_interface=topology.get_node("sw3").get_interface("loopback","0")
+	outreach.get_vlan("guest").dhcp_interface=topology.get_node("r3").get_interface("ethernet","0/1.20")
+	outreach.get_vlan("guest").default_gateway=topology.get_node("r3").get_interface("ethernet","0/1.20")
 
-	main.get_vlan("management").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","30")
-	outreach.get_vlan("management").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.30")
+	main.get_vlan("management").fhrp0_priority=topology.get_node("sw4").get_interface("vlan","30")
+	outreach.get_vlan("management").default_gateway=topology.get_node("r3").get_interface("ethernet","0/1.30")
 
-	main.get_vlan("supervisor").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","40")
-	outreach.get_vlan("supervisor").default_gateway=topology.get_node("R3").get_interface("ethernet","0/1.40")
+	main.get_vlan("supervisor").fhrp0_priority=topology.get_node("sw3").get_interface("vlan","40")
+	outreach.get_vlan("supervisor").default_gateway=topology.get_node("r3").get_interface("ethernet","0/1.40")
 	
-	main.get_vlan("guest-services").fhrp0_priority=topology.get_node("SW3").get_interface("vlan","60")
-	main.get_vlan("internal-services").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","70")
-	main.get_vlan("accounting").fhrp0_priority=topology.get_node("SW4").get_interface("vlan","80")
+	main.get_vlan("guest-services").fhrp0_priority=topology.get_node("sw3").get_interface("vlan","60")
+	main.get_vlan("internal-services").fhrp0_priority=topology.get_node("sw4").get_interface("vlan","70")
+	main.get_vlan("accounting").fhrp0_priority=topology.get_node("sw4").get_interface("vlan","80")
 
-	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.10")
-	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.20")
-	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("R3").get_interface("ethernet","0/1.40")
+	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("r3").get_interface("ethernet","0/1.10")
+	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("r3").get_interface("ethernet","0/1.20")
+	topology.get_access_segment("outreach").get_vlan("sales").dhcp_interface=topology.get_node("r3").get_interface("ethernet","0/1.40")
 	
-	topology.ntp_master=topology.get_node("R1").get_interface("loopback", "0")
+	topology.ntp_master=topology.get_node("r1").get_interface("loopback", "0")
 	topology.ntp_public=ipaddress.ip_address("176.58.109.199")
 
-	topology.get_exit_interface('exit_r1').connect_to(topology.get_node("R1").get_interface('ethernet','0/1'))
-	topology.get_exit_interface('exit_r2').connect_to(topology.get_node("R2").get_interface('ethernet','0/1'))
-	topology.get_exit_interface('exit_r3').connect_to(topology.get_node("R3").get_interface('ethernet','0/0'))
+	topology.get_exit_interface('exit_r1').connect_to(topology.get_node("r1").get_interface('ethernet','0/1'))
+	topology.get_exit_interface('exit_r2').connect_to(topology.get_node("r2").get_interface('ethernet','0/1'))
+	topology.get_exit_interface('exit_r3').connect_to(topology.get_node("r3").get_interface('ethernet','0/0'))
 
-	topology.certificate_authorities.append(topology.get_node("R1").get_interface("loopback", "0"))
+	topology.certificate_authorities.append(topology.get_node("r1").get_interface("loopback", "0"))

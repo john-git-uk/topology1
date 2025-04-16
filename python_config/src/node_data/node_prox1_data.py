@@ -1,6 +1,6 @@
 from __future__ import annotations
 import paramiko
-from handle_debian import *
+from handle_debian.handle_debian import *
 import logging
 from convert import get_escaped_string, get_chunky_hex, base64_encode_string
 from interface import Interface
@@ -62,19 +62,19 @@ def prox1_structures(topology: Topology):
 	prox1_interface_enp2s0_30 = Interface (
 		name= "enp2s0.30",
 		interface_type="ethernet",
-		description="Connected to SW3",
+		description="Connected to sw3",
 		vlans=[access_segment.get_vlan("management")],
 	)
 	prox1_interface_enp2s0_60 = Interface (
 		name= "enp2s0.60",
 		interface_type="ethernet",
-		description="Connected to SW3",
+		description="Connected to sw3",
 		vlans=[access_segment.get_vlan("guest-services")],
 	)
 	prox1_interface_enp2s0_70 = Interface (
 		name= "enp2s0.70",
 		interface_type="ethernet",
-		description="Connected to SW3",
+		description="Connected to sw3",
 		vlans=[access_segment.get_vlan("internal-services")],
 	)
 	prox1=Node(
@@ -113,7 +113,7 @@ def prox1_relations(topology: Topology):
 	dns_server_1 = prox1.get_container("dns-server-1")
 	
 	topology.get_node("prox1").get_interface("ethernet","enp1s0").connect_to(topology.get_exit_interface('exit_oob'))
-	topology.get_node("prox1").get_interface("ethernet","enp2s0").connect_to(topology.get_node("SW6").get_interface("ethernet","2/0"))
+	topology.get_node("prox1").get_interface("ethernet","enp2s0").connect_to(topology.get_node("sw6").get_interface("ethernet","2/0"))
 	topology.get_node("prox1").get_interface("bridge","oob_hitch").connect_to(prox1.get_interface("ethernet","enp1s0"))
 	topology.get_node("prox1").get_interface("bridge","vmbr30").connect_to(prox1.get_interface("ethernet","enp2s0.30"))
 	topology.get_node("prox1").get_interface("bridge","vmbr60").connect_to(prox1.get_interface("ethernet","enp2s0.60"))

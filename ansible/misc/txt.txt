@@ -63,7 +63,7 @@
         "disable-kernel-core": true
       }
     },
-    "hostname": "R1",
+    "hostname": "r1",
     "username": [
       {
         "name": "auto",

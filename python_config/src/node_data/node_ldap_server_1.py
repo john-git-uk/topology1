@@ -1,12 +1,14 @@
 from __future__ import annotations
 import paramiko
-from handle_debian import commands_packages_essential, commands_packages_ldap_server, \
-commands_packages_ldap_client, commands_config_ldap_server, commands_config_ldap_client
+from handle_debian.handle_debian import commands_packages_essential
+from handle_debian.ldap import commands_packages_ldap_server, commands_packages_ldap_client,\
+	commands_config_ldap_server, commands_config_ldap_client
 import logging
 from convert import get_escaped_string, get_chunky_hex, base64_encode_string
 from interface import Interface
 from node import Node
-from handle_proxmox import Container, execute_proxnode_commands, start_container, wait_for_container_ping_debian, wait_for_container_running
+from handle_proxmox import Container, execute_proxnode_commands, start_container,\
+	wait_for_container_ping_debian, wait_for_container_running
 import time
 import base64
 from project_globals import GLOBALS

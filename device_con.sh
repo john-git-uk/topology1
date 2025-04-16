@@ -11,48 +11,48 @@ sleep 0.2
 
 ## Switches Telnet
 #######################################################
-#SW1 89
+#sw1 89
 terminator --new-tab -e "telnet 192.168.2.247 30089" &
 sleep 0.2
 
-#SW2 90
+#sw2 90
 terminator --new-tab -e "telnet 192.168.2.247 30090" &
 sleep 0.2
 
-#SW3 95
+#sw3 95
 terminator --new-tab -e "telnet 192.168.2.247 30095" &
 sleep 0.2
 
-#SW4 96
+#sw4 96
 terminator --new-tab -e "telnet 192.168.2.247 30096" &
 sleep 0.2
 
-#SW5 97
+#sw5 97
 terminator --new-tab -e "telnet 192.168.2.247 30097" &
 sleep 0.2
 
-#SW6 98
+#sw6 98
 terminator --new-tab -e "telnet 192.168.2.247 30098" &
 sleep 0.2
 
-#SW7 100
+#sw7 100
 terminator --new-tab -e "telnet 192.168.2.247 30100" &
 sleep 0.2
 
-#Old R1 91
+#Old r1 91
 #terminator --new-tab -e "telnet 192.168.2.247 30091" &
 #sleep 0.2
 ## Routers Telnet
 #######################################################
-#R1 165
+#r1 165
 terminator --new-tab -e "telnet 192.168.2.247 30165" &
 sleep 0.2
 
-#R2 94
+#r2 94
 terminator --new-tab -e "telnet 192.168.2.247 30094" &
 sleep 0.2
 
-#R3 99
+#r3 99
 terminator --new-tab -e "telnet 192.168.2.247 30099" &
 sleep 0.2
 

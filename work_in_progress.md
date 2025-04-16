@@ -2,16 +2,16 @@
 I create out of band interfaces on my network devices and servers that provide services such as SSH only to authorised technicians. I will use 192.168.250.0/24 to address the nodes. The access switch image I am using supports layer 3 and im unsure about the presence of a layer 3 management port on real switches. I decided to **no switchport** the interfaces while keeping **no ip routing**.
 #### IPv4 Assignments
 ~~~
-192.168.250.1 - R1
-192.168.250.2 - R2
-192.168.250.3 - R3
-192.168.250.51 - SW1
-192.168.250.52 - SW2
-192.168.250.53 - SW3
-192.168.250.54 - SW4
-192.168.250.55 - SW5
-192.168.250.56 - SW6
-192.168.250.57 - SW7
+192.168.250.1 - r1
+192.168.250.2 - r2
+192.168.250.3 - r3
+192.168.250.51 - sw1
+192.168.250.52 - sw2
+192.168.250.53 - sw3
+192.168.250.54 - sw4
+192.168.250.55 - sw5
+192.168.250.56 - sw6
+192.168.250.57 - sw7
 192.168.250.101 - radius_server
 192.168.250.102 - ldap_server
 192.168.250.253 - ISP Simulation Node
@@ -28,7 +28,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### R1 Config
+#### r1 Config
 ~~~
 int g4
  ip add 192.168.250.1 255.255.255.0
@@ -43,7 +43,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### R2 Config
+#### r2 Config
 ~~~
 int e0/3
  ip add 192.168.250.2 255.255.255.0
@@ -58,7 +58,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### R3 Config
+#### r3 Config
 ~~~
 int e0/3
  ip add 192.168.250.3 255.255.255.0
@@ -73,7 +73,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### SW1 Config
+#### sw1 Config
 ~~~
 int e3/3
  no switchport
@@ -89,7 +89,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### SW2 Config
+#### sw2 Config
 ~~~
 int e3/3
  no switchport
@@ -105,7 +105,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### SW3 Config
+#### sw3 Config
 ~~~
 int e5/3
  no switchport
@@ -121,7 +121,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### SW4 Config
+#### sw4 Config
 ~~~
 int e5/3
  no switchport
@@ -137,7 +137,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### SW5 Config
+#### sw5 Config
 ~~~
 int e3/3
  no switchport
@@ -153,7 +153,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### SW6 Config
+#### sw6 Config
 ~~~
 int e5/3
  no switchport
@@ -169,7 +169,7 @@ line vty 0 4
  access-class ssh out
 exit
 ~~~
-#### SW7 Config
+#### sw7 Config
 ~~~
 int e3/3
  no switchport
@@ -220,9 +220,9 @@ ssh root@192.168.250.101
 I have yet to configure the IPv6 ACL so it has practically no security.
 
 ## Cisco Certificate Authority
-I use R1 as a certificate authority for the domain. A certificate authority signs certificates so other nodes on the network know the nodes they communicate with are genuine.
+I use r1 as a certificate authority for the domain. A certificate authority signs certificates so other nodes on the network know the nodes they communicate with are genuine.
 
-#### R1 Config
+#### r1 Config
 ~~~
 ip http server
 aaa new-model
@@ -238,13 +238,13 @@ crypto pki serv CA
 
 pass:sevenwsad
 
-#### R2 Config
+#### r2 Config
 ~~~
-crypto key generate rsa modulus 2048 label R2.tapeitup.private
+crypto key generate rsa modulus 2048 label r2.tapeitup.private
 crypto pki trustpoint trustedCA
   enrollment url http://10.133.2.1
-  rsakeypair R2.tapeitup.private
-  subject-name CN=R2,O=tapeitup.private
+  rsakeypair r2.tapeitup.private
+  subject-name CN=r2,O=tapeitup.private
   revocation-check none
 exit
 crypto pki authenticate trustedCA
@@ -252,13 +252,13 @@ crypto pki enroll trustedCA
 ~~~
 
 #### Debian Config
-Print the certificate on R1 using **show crypto pki certificate pem CA**
+Print the certificate on r1 using **show crypto pki certificate pem CA**
 
 ~~~
 rm -f /usr/local/share/ca-certificates/CA.crt
 echo "-----BEGIN CERTIFICATE-----
 MIIDLjCCAhagAwIBAgIBATANBgkqhkiG9w0BAQsFADAoMRkwFwYDVQQKExB0YXBl
-aXR1cC5wcml2YXRlMQswCQYDVQQDEwJDQTAeFw0yNDExMDQwMjA2NTJaFw0yNzEx
+aXr1cC5wcml2YXRlMQswCQYDVQQDEwJDQTAeFw0yNDExMDQwMjA2NTJaFw0yNzEx
 MDQwMjA2NTJaMCgxGTAXBgNVBAoTEHRhcGVpdHVwLnByaXZhdGUxCzAJBgNVBAMT
 AkNBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmqg54goqOr6g1cIV
 cY4KNHx+G7PXkndHymiYFwQ/ZPObGY/Ytat26gF8M5q1jZhEApB+FL58hfAg0/I7
@@ -267,7 +267,7 @@ snN7x6j3sPdj3r7WnHSe9FfapVecgon6X+wjQdKEjfHNVJ05TAxecVptkT8JjOuk
 2P98CX1CiqJC7bjmEXm2X0ebq/ozbEccRt2tKkh/tB+lMNxuwr8zR8Z6oND6/CDK
 hRi++9sa1duxJO0UVUbUD1Gxz98TTithnFpFjq1+VNDiyBr1OLu3Kn+hEGCJR5Ua
 5/eFcQIDAQABo2MwYTAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjAf
-BgNVHSMEGDAWgBQF9qKSWdCam2bMl636cdR2cNKErTAdBgNVHQ4EFgQUBfaiklnQ
+BgNVHSMEGDAWgBQF9qKSWdCam2bMl636cdr2cNKErTAdBgNVHQ4EFgQUBfaiklnQ
 mptmzJet+nHUdnDShK0wDQYJKoZIhvcNAQELBQADggEBAHVMMljCZDpxd5i8DUdy
 NhHGov7AuvKBoelPkZGyz7Rrs7P4R76WVt4bmg2DWZ/EsTV7HC95XmXUJG1VjjkO
 o/iN0EZPoD6qynsLzSasSyzwBTNoSO50wIQlabwCq3Ik1texPccRFwgCHqWGJBGx
@@ -279,65 +279,12 @@ TB0=
 update-ca-certificates --fresh
 ~~~
 
-## Cisco Certificate Authority Upgrade
-I create the pki CA server on R1. I create a https certificate for secure signing. I need to sign the https certificate before I can use it. However the Cisco router does not fulfil CSR using the terminal. I enable http signing and use an access list THIS DOESNT WORK to block traffic that does not originate from R1. Then, once the https certificate is signed, I disable the http server.
-I show the CA certificate, then set a trustpoint on R2 and authenticate it by pasting the certificate into the terminal.
-#### R1 Config
-~~~
-aaa new-model
-! Create the CA server
-crypto pki server R1-CA
-  database url nvram:
-  issuer-name CN=R1,O=tapeitup.private
-  grant auto
-  no shut
-
-ip http access-class 10
-access-list 10 permit 127.0.0.1
-access-list 20 permit 10.133.2.1
-ip http server
-
-crypto key generate rsa modulus 2048 label HTTPS_Server_Key
-no crypto pki trustpoint HTTPS_Server_Cert
-crypto pki trustpoint HTTPS_Server_Cert
- enrollment url http://10.133.2.1
- subject-name CN=R1-HTTPS,O=tapeitup.private
- rsakeypair HTTPS_Server_Key
- revocation-check none
-exit
-crypto pki enroll HTTPS_Server_Cert
-ip http secure-server
-ip http client source-interface loopback 0
-no ip http server
-ip http secure-trustpoint HTTPS_Server_Cert
-~~~
-~~~
-crypto pki export HTTPS_Server_Cert pem terminal
-~~~
-#### R2 Config
-~~~
-crypto pki trustpoint R1-CA
- enrollment terminal
- revocation-check none
-exit
-crypto pki authenticate R1-CA
-
-crypto key generate rsa modulus 2048 label R2.tapeitup.private
-crypto pki trustpoint R2
-  enrollment url https://10.133.2.1
-  rsakeypair R2.tapeitup.private
-  subject-name CN=R2,O=tapeitup.private
-  revocation-check none
-exit
-crypto pki authenticate R2
-crypto pki enroll R2
-~~~
-
 ## Radius (PAM)
-Cisco ports need to be set to standard. The default will remain local users. 
-This freeradius configuration stores plain text passwords, which is not secure. I could make a more robust aaa server in the future.
-NAS-Identifier(Attribute 32) is used to identify the device to the radius server. This means I can lock groups like sales users out of the network devices but not pcs. Apparently a unique secret is not used for identification.
-Unfortunately I haven't found a way to change the NAS-Identifier using libpam-radius-auth on Ubuntu via configuration files. I am going to filter using IP address for this machine.
+Cisco ports need to be set to RADIUS standard. The default will remain local users. 
+This freeradius configuration stores plain text passwords which wouldnt be done outside a lab.
+NAS-Identifier(Attribute 32) is used to identify the device to the RADIUS server. This means I can remove access for groups such as sales users out of the network devices but maintain their access to workstations. I have unique keys for each device to prevent impersonation.
+  
+To properly secure the RADIUS systems it would be better to use RadSec. Otherwise the user can impersonate other devices NAS-Identifier.
 ### Cisco IOS Client
 ~~~
 aaa new-model
@@ -345,14 +292,14 @@ ip radius source-interface Loopback0
 
 radius server aaa-server-1
  address ipv4 10.133.60.251 auth-port 1812 acct-port 1813
- key R1radiuskey
+ key r1radiuskey
  exit
 aaa group server radius aaa_group
  server name aaa-server-1
  exit
 
-aaa authentication login vty_method group aaa_group
-aaa authorization exec default group aaa_group
+aaa authentication login vty_method group local aaa_group
+aaa authorization exec default local group aaa_group
 
 radius-server attribute 32 include-in-access-req format "Net-Cisco-B@4]-%h"
 
@@ -420,15 +367,15 @@ DEFAULT Group != "network_admin", NAS-IP-Address == "10.133.70.251",
 ~~~
 #### clients.conf
 ~~~
-client R1.tapeitup.private {
+client r1.tapeitup.private {
 	ipaddr = 10.133.2.1
-  	secret = radiuskey
-	shortname = R1
+  	secret = r1radiuskey
+	shortname = r1
 }
-client SW3.tapeitup.private {
+client sw3.tapeitup.private {
 	ipaddr = 10.133.2.53
-  	secret = radiuskey
-	shortname = SW3
+  	secret = sw3radiuskey
+	shortname = sw3
 }
 ~~~
 ### Ubuntu Bionic Client
@@ -462,9 +409,9 @@ Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 Warning: Permanently added '192.168.250.1' (RSA) to the list of known hosts.
 (john@192.168.250.1) Password: 
 Radius john
-R1#show version | include Version
+r1#show version | include Version
 Cisco IOS Software [Dublin], Linux Software (X86_64BI_LINUX-ADVENTERPRISEK9-M), Version 17.12.1, RELEASE SOFTWARE (fc5)
-R1#
+r1#
 ~~~
 
 ## LDAP RADIUS Query
@@ -524,7 +471,7 @@ pass:toorp
 Unfortunately due to a bug in this IOS version the clock has to be changed to generate self signed certificates.
 https://www.cisco.com/c/en/us/support/docs/field-notices/704/fn70489.html
 
-Im only running one device capable of restconf, R1.
+Im only running one device capable of restconf, r1.
 
 ~~~
 do clock set 11:11:11 11 jan 2000

@@ -41,19 +41,19 @@ all:
           ansible_network_os: ios
           interfaces:
             e0/0:
-              description: "Connected to R1"
+              description: "Connected to r1"
               ipv4:
                 address: "10.111.10.11"
                 cidr: 31
               ipv6_address: "2001:db8:0:00ff::ffff/127"
             e0/1:
-              description: "Connected to R2"
+              description: "Connected to r2"
               ipv4:
                 address: "10.111.10.21"
                 cidr: 31
               ipv6_address: "2001:db8:0:00ff::fffd/127"
             e0/2:
-              description: "Connected to R3"
+              description: "Connected to r3"
               ipv4:
                 address: "10.111.10.31"
                 cidr: 31
@@ -75,10 +75,10 @@ all:
               - { dest: "2001:db8:0:0000::/60", interface: "e0/0", next_hop: "2001:db8:0:00ff::fffe" }
               - { dest: "2001:db8:0:0000::/60", interface: "e0/1", next_hop: "2001:db8:0:00ff::fffa", metric: 5 }
               - { dest: "2001:db8:0:0020::/60", interface: "e0/2", next_hop: "2001:db8:0:00ff::fffc" }
-        R1:
+        r1:
           interfaces:
             g1:
-              description: "Connected to SW3"
+              description: "Connected to sw3"
               ipv4:
                 address: "10.131.2.64"
                 cidr: 31
@@ -90,7 +90,7 @@ all:
                 cidr: 31
               ipv6_address: "2001:db8:0:00ff::ffff/127"
             g3:
-              description: "Connected to SW4"
+              description: "Connected to sw4"
               ipv4:
                 address: "10.131.2.72"
                 cidr: 31
@@ -101,10 +101,10 @@ all:
                 address: "10.131.2.1"
                 cidr: 32
               ipv6_address: ""
-        R2:
+        r2:
           interfaces:
             e0/0:
-              description: "Connected to SW4"
+              description: "Connected to sw4"
               ipv4:
                 address: "10.131.2.66"
                 cidr: 31
@@ -116,7 +116,7 @@ all:
                 cidr: 31
               ipv6_address: ""
             e0/2:
-              description: "Connected to SW3"
+              description: "Connected to sw3"
               ipv4:
                 address: "10.131.2.74"
                 cidr: 31
@@ -127,7 +127,7 @@ all:
                 address: "10.131.2.2"
                 cidr: 32
               ipv6_address: ""
-        R3:
+        r3:
           type: router
           ansible_host: 192.168.250.3
           ansible_user: auto
@@ -141,13 +141,13 @@ all:
             -o PubkeyAcceptedKeyTypes=+ssh-rsa
           interfaces:
             e0/0:
-              description: "Connected to SW4"
+              description: "Connected to sw4"
               ipv4:
                 address: "10.111.10.30"
                 cidr: 31
               ipv6_address: ""
             e0/1:
-              description: "Connected to SW7 via Subinterfaces"
+              description: "Connected to sw7 via Subinterfaces"
               ipv4:
                 address: ""
                 cidr: 31
@@ -178,7 +178,7 @@ all:
                 address: "10.131.2.3"
                 cidr: 32
               ipv6_address: ""
-        SW1:
+        sw1:
           default-gateway: 10.131.30.126
           interfaces:
             e0/0:
@@ -255,7 +255,7 @@ all:
               ipv4:
                 address: "192.168.250.51"
                 cidr: 24
-        SW2:
+        sw2:
           interfaces:
             e0/0:
               layer: 2
@@ -323,7 +323,7 @@ all:
               ipv4:
                 address: "192.168.250.52"
                 cidr: 24
-        SW3:
+        sw3:
           interfaces:
             e0/3:
               layer: 2
@@ -400,7 +400,7 @@ all:
               ipv4:
                 address: 10.131.2.13 255.255.255.255
                 cidr: 32
-        SW4:
+        sw4:
           interfaces:
             e1/0:
               layer: 2
@@ -477,7 +477,7 @@ all:
               ipv4:
                 address: 10.131.2.14 255.255.255.255
                 cidr: 32
-        SW5:
+        sw5:
           interfaces:
             e0/0:
               layer: 2
@@ -530,7 +530,7 @@ all:
               ipv4:
                 address: "192.168.250.55"
                 cidr: 24
-        SW6:
+        sw6:
           interfaces:
             e0/2:
               layer: 2
@@ -570,7 +570,7 @@ all:
               ipv4:
                 address: "192.168.250.56"
                 cidr: 24
-        SW7:
+        sw7:
           interfaces:
             e0/0:
               layer: 2
@@ -656,7 +656,7 @@ all:
         net_id: "10.131.10.0"
         cidr: 25
         dhcp:
-          node: "SW3"
+          node: "sw3"
           interface: "lo0"
           excluded:
             start: "10.131.10.120"
@@ -664,12 +664,12 @@ all:
         fhrp_1:
           ipv4:
             address: "10.131.10.126"
-            priority: "SW3"
+            priority: "sw3"
       site_outreach:
         net_id: "10.131.10.128"
         cidr: 25
         dhcp:
-          node: "SW3"
+          node: "sw3"
           interface: "lo0"
           excluded:
             start: "10.131.10.250"
@@ -686,12 +686,12 @@ all:
         fhrp:
           ipv4:
             address: "10.131.21.254"
-            priority: "SW4"
+            priority: "sw4"
       site_outreach:
         net_id: "10.131.22.0"
         cidr: 24
         dhcp:
-          node: "SW3"
+          node: "sw3"
           interface: "lo0"
           excluded:
             start: "10.131.22.245"
@@ -701,13 +701,13 @@ all:
       fhrp:
         ipv4:
           address: "10.131.30.126"
-          priority: "SW4"
+          priority: "sw4"
     - number: 40
       name: "supervisor"
       fhrp:
         ipv4:
           address: "10.131.40.126"
-          priority: "SW3"
+          priority: "sw3"
     - number: 50
       name: "voice"
     - number: 60
@@ -715,19 +715,19 @@ all:
       fhrp:
         ipv4:
           address: "10.131.60.254"
-          priority: "SW4"
+          priority: "sw4"
     - number: 70
       name: "internal-services"
       fhrp:
         ipv4:
           address: "10.131.70.254"
-          priority: "SW4"
+          priority: "sw4"
     - number: 80
       name: "accounting"
       fhrp:
         ipv4:
           address: "10.131.80.254"
-          priority: "SW4"
+          priority: "sw4"
     - number: 250
       name: "out of bounds"
     - number: 933

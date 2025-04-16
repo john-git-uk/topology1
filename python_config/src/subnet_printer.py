@@ -70,7 +70,6 @@ class Printer_Subnet:
 		for host in self.hosts:
 			output.append((level+1, f'{host[0]}/{host[1]}', str(host[2])))
 
-
 def print_subnet_hierachy(subnet_list: List[Tuple[ipaddress.IPv4Network, str]], host_list: List[Tuple[ipaddress.IPv4Address, int, str]]):
 	"""
 	Organize a list of IPv4Network objects with descriptions into a hierarchical structure.
@@ -131,11 +130,11 @@ def test_subnet_printer():
 	test_hosts = [
 		[ipaddress.IPv4Address('10.133.20.1'),23,'guest1'],
 		[ipaddress.IPv4Address('10.133.20.2'),23,'guest2'],
-		[ipaddress.IPv4Address('10.133.20.252'),23,'vlan-20.SW3'],
-		[ipaddress.IPv4Address('10.133.20.253'),23,'vlan-20.SW4'],
+		[ipaddress.IPv4Address('10.133.20.252'),23,'vlan-20.sw3'],
+		[ipaddress.IPv4Address('10.133.20.253'),23,'vlan-20.sw4'],
 		[ipaddress.IPv4Address('10.133.20.254'),23,'Guest Vlan HSRP'],
-		[ipaddress.IPv4Address('10.133.21.252'),25,'vlan-10.SW3'],
-		[ipaddress.IPv4Address('10.133.21.253'),25,'vlan-10.SW4'],
+		[ipaddress.IPv4Address('10.133.21.252'),25,'vlan-10.sw3'],
+		[ipaddress.IPv4Address('10.133.21.253'),25,'vlan-10.sw4'],
 		[ipaddress.IPv4Address('10.133.21.254'),25,'sales Vlan HSRP'],
 		[ipaddress.IPv4Address('10.133.10.1'),25,'sales1'],
 		[ipaddress.IPv4Address('10.133.10.2'),25,'sales2'],
@@ -150,6 +149,28 @@ def test_subnet_printer():
 def subnet_printer(topology: Topology):
 	test_nets = []
 	test_hosts = []
+
+	test_nets.append([ipaddress.IPv4Network('192.168.1.0/24'),'reserved for real LAN'])
+	test_nets.append([ipaddress.IPv4Network('192.168.2.0/24'),'reserved for real LAN'])
+	test_nets.append([ipaddress.IPv4Network('192.168.250.0/24'),'OOB Network'])
+	test_nets.append([ipaddress.IPv4Network('10.111.0.0/16'),'WAN Simulation'])
+	test_nets.append([ipaddress.IPv4Network('172.17.0.0/16'),'reserved for Docker'])
+
+	test_hosts.append([ipaddress.IPv4Address('192.168.1.1'),24,'first hop dhcp + gateway'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.1.241'),24,'gateway outside'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.241'),24,'gateway inside'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.245'),24,'lab reserved'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.246'),24,'alpine router'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.247'),24,'old lab'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.248'),24,'gns3 lab'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.250'),24,'debian machine'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.253'),24,'real autonomous wap'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.2.254'),24,'lab reserved gateway'])
+
+	test_nets.append([ipaddress.IPv4Network('192.168.22.0/24'),'reserved for real connections for wireless hardware'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.22.222'),24,'debian machine usb interface for wireless'])
+	test_hosts.append([ipaddress.IPv4Address('192.168.22.254'),24,'DHCP server expected, reserved for simulated networks'])
+
 
 	for acc in topology.access_segments:
 		for vlan in acc.vlans:

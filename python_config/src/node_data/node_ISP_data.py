@@ -17,7 +17,7 @@ def ISP_Structures(topology: Topology):
 	node_ISP_i1=Interface(
 		name="0/0",
 		interface_type="ethernet",
-		description="Connected to R1",
+		description="Connected to r1",
 		ipv4_address="10.111.10.11",
 		ipv4_cidr=31,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::ffff"),
@@ -26,7 +26,7 @@ def ISP_Structures(topology: Topology):
 	node_ISP_i2=Interface(
 		name="0/1",
 		interface_type="ethernet",
-		description="Connected to R2",
+		description="Connected to r2",
 		ipv4_address="10.111.10.21",
 		ipv4_cidr=31,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fffd"),
@@ -35,7 +35,7 @@ def ISP_Structures(topology: Topology):
 	node_ISP_i3=Interface(
 		name="0/2",
 		interface_type="ethernet",
-		description="Connected to R3",
+		description="Connected to r3",
 		ipv4_address="10.111.10.31",
 		ipv4_cidr=31,
 		ipv6_address=ipaddress.IPv6Address("2001:db8:0:00ff::fffb"),
@@ -74,8 +74,8 @@ def ISP_Structures(topology: Topology):
 	topology.add_node(node_ISP)
 def ISP_relations(topology: Topology):
 	LOGGER.debug("Loading ISP Relations")
-	topology.get_node("ISP").get_interface("ethernet","0/0").connect_to(topology.get_node("R1").get_interface("ethernet","0/1"))
-	topology.get_node("ISP").get_interface("ethernet","0/1").connect_to(topology.get_node("R2").get_interface("ethernet","0/1"))
-	topology.get_node("ISP").get_interface("ethernet","0/2").connect_to(topology.get_node("R3").get_interface("ethernet","0/0"))
+	topology.get_node("ISP").get_interface("ethernet","0/0").connect_to(topology.get_node("r1").get_interface("ethernet","0/1"))
+	topology.get_node("ISP").get_interface("ethernet","0/1").connect_to(topology.get_node("r2").get_interface("ethernet","0/1"))
+	topology.get_node("ISP").get_interface("ethernet","0/2").connect_to(topology.get_node("r3").get_interface("ethernet","0/0"))
 	#topology.get_node("ISP").get_interface("e0/3").connect_to(topology.exit_interface_main)
 	topology.get_node("ISP").get_interface("ethernet","1/0").connect_to(topology.exit_interface_main)

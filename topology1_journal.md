@@ -51,27 +51,27 @@ echo "Europe/London" > /etc/timezone
 These /32 host addresses are assigned by lab ISP
 | Link | Inside Global |  | ISP Interface |
 | :---: | :--: | :--: | :--: |
-|R3-ISP| 10.111.10.30 | - | 10.111.10.31|
-|R1-ISP| 10.111.10.10 |-|   10.111.10.11|
-|R2-ISP| 10.111.10.20 |-|   10.111.10.21|
+|r3-ISP| 10.111.10.30 | - | 10.111.10.31|
+|r1-ISP| 10.111.10.10 |-|   10.111.10.11|
+|r2-ISP| 10.111.10.20 |-|   10.111.10.21|
 ### Loopbacks IPv4 10.133.2.0/26
 ~~~
-R1 10.133.2.1
-R2 10.133.2.2
-R3 10.133.2.3
-SW3 10.133.2.13
-SW4 10.133.2.14
+r1 10.133.2.1
+r2 10.133.2.2
+r3 10.133.2.3
+sw3 10.133.2.13
+sw4 10.133.2.14
 ~~~
 ### IPv4 Links in subnet 10.133.2.64/26
 #### (.64 to .127) subnetted /31
 |  |  |  | |
 | :---: | :--: | :--: | :--: |
-|R1-SW3     | 10.133.2.64     |-|   10.133.2.65 |
-|R2-SW4     | 10.133.2.66     |-|   10.133.2.67 |
-|R1-R3 VPN  | 10.133.2.68     |-|   10.133.2.69 |
-|R2-R3 VPN  | 10.133.2.70     |-|   10.133.2.71 |
-|R1-SW4     | 10.133.2.72     |-|   10.133.2.73 |
-|R2-SW3     | 10.133.2.74     |-|   10.133.2.75 |
+|r1-sw3     | 10.133.2.64     |-|   10.133.2.65 |
+|r2-sw4     | 10.133.2.66     |-|   10.133.2.67 |
+|r1-r3 VPN  | 10.133.2.68     |-|   10.133.2.69 |
+|r2-r3 VPN  | 10.133.2.70     |-|   10.133.2.71 |
+|r1-sw4     | 10.133.2.72     |-|   10.133.2.73 |
+|r2-sw3     | 10.133.2.74     |-|   10.133.2.75 |
 ### Vlans & IPv4
 Native VLAN = 933
 
@@ -79,8 +79,8 @@ Native VLAN = 933
 126 usable addresses
 ~~~
 main: 10.133.10.0/25
-SW3SVI: 10.133.10.124
-SW4SVI: 10.133.10.125
+sw3SVI: 10.133.10.124
+sw4SVI: 10.133.10.125
 HSRP-gate: 10.133.10.126
 outreach: 10.133.10.128/25
 gateway: 10.133.10.254
@@ -89,8 +89,8 @@ gateway: 10.133.10.254
 510 usable addresses & 254 usable addresses
 ~~~
 main: 10.133.20.0/23
-SW3SVI: 10.133.21.252
-SW4SVI: 10.133.21.253
+sw3SVI: 10.133.21.252
+sw4SVI: 10.133.21.253
 HSRP-gate: 10.133.21.254
 outreach: 10.133.22.0/24
 gateway: 10.133.22.254
@@ -100,15 +100,15 @@ gateway: 10.133.22.254
 ~~~
 main: 10.133.30.0/25
 management_server: 10.133.30.123
-SW1SVI: 10.133.30.1
-SW2SVI: 10.133.30.2
-SW3SVI: 10.133.30.3
-SW4SVI: 10.133.30.4
-SW5SVI: 10.133.30.5
-SW6SVI: 10.133.30.6
+sw1SVI: 10.133.30.1
+sw2SVI: 10.133.30.2
+sw3SVI: 10.133.30.3
+sw4SVI: 10.133.30.4
+sw5SVI: 10.133.30.5
+sw6SVI: 10.133.30.6
 Site1_HSRP-gate: 10.133.30.126
 outreach: 10.133.30.128/25
-SW7SVI: 10.133.30.137
+sw7SVI: 10.133.30.137
 Site2_Gateway: 10.133.30.254
 ~~~
 
@@ -116,8 +116,8 @@ Site2_Gateway: 10.133.30.254
 126 usable addresses
 ~~~
 main: 10.133.40.0/25
-SW3SVI: 10.133.40.124
-SW4SVI: 10.133.40.125
+sw3SVI: 10.133.40.124
+sw4SVI: 10.133.40.125
 HSRP-gate: 10.133.40.126
 outreach: 10.133.40.128/25
 gateway: 10.133.40.254
@@ -128,8 +128,8 @@ gateway: 10.133.40.254
 main: 10.133.60.0/24
 dns_server: 10.133.60.250
 web_server: 10.133.60.251
-SW3SVI: 10.133.60.252
-SW4SVI: 10.133.60.253
+sw3SVI: 10.133.60.252
+sw4SVI: 10.133.60.253
 HSRP-gate: 10.133.60.254
 ~~~
 #### vlan 70 internal-services 10.133.70.0/24
@@ -139,16 +139,16 @@ main: 10.133.70.0/24
 prox1 10.133.70.231
 ldap_server 10.133.70.250
 aaa_server 10.133.70.251
-SW3SVI: 10.133.70.252
-SW4SVI: 10.133.70.253
+sw3SVI: 10.133.70.252
+sw4SVI: 10.133.70.253
 HSRP-gate: 10.133.70.254
 ~~~
 #### vlan 80 accounting 10.133.80.0/24
 254 usable addresses
 ~~~
 main: 10.133.80.0/24
-SW3SVI: 10.133.80.252
-SW4SVI: 10.133.80.253
+sw3SVI: 10.133.80.252
+sw4SVI: 10.133.80.253
 HSRP-gate: 10.133.80.254
 ~~~
 ### IPv4 DHCP pools
@@ -177,24 +177,24 @@ When creating the IPv6 assignments I ensure the static addresses and DHCP addres
 2001:db8:0:00ff::/64 is subnetted as follows:
 #### Native Vlan is 933
 ~~~
-R1-ISP: 2001:db8:0:00ff::fffe/127
-R2-ISP: 2001:db8:0:00ff::fffc/127
-ISP-R1: 2001:db8:0:00ff::ffff/127
-ISP-R2: 2001:db8:0:00ff::fffd/127
-ISP-R3 2001:db8:0:00ff::fffb/127
-R3-ISP 2001:db8:0:00ff::fffa/127
+r1-ISP: 2001:db8:0:00ff::fffe/127
+r2-ISP: 2001:db8:0:00ff::fffc/127
+ISP-r1: 2001:db8:0:00ff::ffff/127
+ISP-r2: 2001:db8:0:00ff::fffd/127
+ISP-r3 2001:db8:0:00ff::fffb/127
+r3-ISP 2001:db8:0:00ff::fffa/127
 ISP-metal 2001:db8:0:00ff::fff9/127
 metal-ISP 2001:db8:0:00ff::fff8/127
 ISP-alprouter 2001:db8:0:00ff::fff7/127
 alprouter-ISP 2001:db8:0:00ff::fff6/127
-R1-SW3 2001:db8:0:00ff::fff5/127
-SW3-R1 2001:db8:0:00ff::fff4/127
-R2-SW4 2001:db8:0:00ff::fff3/127
-SW4-R2 2001:db8:0:00ff::fff2/127
-R1-SW4 2001:db8:0:00ff::fff1/127
-SW4-R1 2001:db8:0:00ff::fff0/127
-R2-SW3 2001:db8:0:00ff::ffef/127
-SW3-R2 2001:db8:0:00ff::ffee/127
+r1-sw3 2001:db8:0:00ff::fff5/127
+sw3-r1 2001:db8:0:00ff::fff4/127
+r2-sw4 2001:db8:0:00ff::fff3/127
+sw4-r2 2001:db8:0:00ff::fff2/127
+r1-sw4 2001:db8:0:00ff::fff1/127
+sw4-r1 2001:db8:0:00ff::fff0/127
+r2-sw3 2001:db8:0:00ff::ffef/127
+sw3-r2 2001:db8:0:00ff::ffee/127
 ~~~
 
 2001:db8:0:0000::/60 is subnetted as follows:
@@ -203,8 +203,8 @@ SW3-R2 2001:db8:0:00ff::ffee/127
 2001:db8:0:0001::/64
 excluded-address 2001:db8:0:0001:: 2001:db8:0:0001::ffff
 excluded-address 2001:db8:0:0001:0200:00ff:fe00:0000 2001:db8:0:0001:fdff:ffff:ffff:ffff
-SW3SVI: 2001:db8:0:0001::3/64
-SW4SVI: 2001:db8:0:0001::4/64
+sw3SVI: 2001:db8:0:0001::3/64
+sw4SVI: 2001:db8:0:0001::4/64
 HSRP-gate: 2001:db8:0:0001::1/64
 ~~~
 #### Site 1 - Vlan 20 - guest
@@ -212,31 +212,31 @@ HSRP-gate: 2001:db8:0:0001::1/64
 2001:db8:0:0002::/64
 excluded-address 2001:db8:0:0002:: 2001:db8:0:0002::ffff
 excluded-address 2001:db8:0:0002:0200:00ff:fe00:0000 2001:db8:0:0002:fdff:ffff:feff:ffff
-SW3SVI: 2001:db8:0:0002::3/64
-SW4SVI: 2001:db8:0:0002::4/64
+sw3SVI: 2001:db8:0:0002::3/64
+sw4SVI: 2001:db8:0:0002::4/64
 HSRP-gate: 2001:db8:0:0002::1/64
 ~~~
 #### Site 1 - Vlan 30 - management
 2001:db8:0:0003::/64 is subnetted as follows
 ~~~
-SW1SVI: 2001:db8:0:0003::11/120
-SW2SVI: 2001:db8:0:0003::12/120
-SW3SVI: 2001:db8:0:0003::13/120
-SW4SVI: 2001:db8:0:0003::14/120
-SW5SVI: 2001:db8:0:0003::15/120
-SW6SVI: 2001:db8:0:0003::16/120
+sw1SVI: 2001:db8:0:0003::11/120
+sw2SVI: 2001:db8:0:0003::12/120
+sw3SVI: 2001:db8:0:0003::13/120
+sw4SVI: 2001:db8:0:0003::14/120
+sw5SVI: 2001:db8:0:0003::15/120
+sw6SVI: 2001:db8:0:0003::16/120
 management_server: 2001:db8:0:0003::a/120
 HSRP-gate: 2001:db8:0:0003::1/120
 R!: 2001:db8:0:0003::ff1/128
-R2: 2001:db8:0:0003::ff2/128
+r2: 2001:db8:0:0003::ff2/128
 ~~~
 #### Site 1 - Vlan 40 - supervisor
 ~~~
 2001:db8:0:0004::/64
 excluded-address 2001:db8:0:0004:: 2001:db8:0:0004::ffff
 excluded-address 2001:db8:0:0004:0200:00ff:fe00:0000 2001:db8:0:0004:fdff:ffff:feff:ffff
-SW3SVI: 2001:db8:0:0004::3/64
-SW4SVI: 2001:db8:0:0004::4/64
+sw3SVI: 2001:db8:0:0004::3/64
+sw4SVI: 2001:db8:0:0004::4/64
 HSRP-gate: 2001:db8:0:0004::1/64
 ~~~
 #### Site 1 - Vlan 50 - voice
@@ -244,8 +244,8 @@ HSRP-gate: 2001:db8:0:0004::1/64
 2001:db8:0:0005::/64
 excluded-address 2001:db8:0:0005:: 2001:db8:0:0005::ffff
 excluded-address 2001:db8:0:0005:0200:00ff:fe00:0000 2001:db8:0:0005:fdff:ffff:feff:ffff
-SW3SVI: 2001:db8:0:0005::3/64
-SW4SVI: 2001:db8:0:0005::4/64
+sw3SVI: 2001:db8:0:0005::3/64
+sw4SVI: 2001:db8:0:0005::4/64
 HSRP-gate: 2001:db8:0:0005::1/64
 ~~~
 #### Site 1 - Vlan 60 - guest services
@@ -253,8 +253,8 @@ HSRP-gate: 2001:db8:0:0005::1/64
 2001:db8:0:0006::/64
 excluded-address 2001:db8:0:0006:: 2001:db8:0:0006::ffff
 excluded-address 2001:db8:0:0006:0200:00ff:fe00:0000 2001:db8:0:0006:fdff:ffff:feff:ffff
-SW3SVI: 2001:db8:0:0006::3/64
-SW4SVI: 2001:db8:0:0006::4/64
+sw3SVI: 2001:db8:0:0006::3/64
+sw4SVI: 2001:db8:0:0006::4/64
 dns_server: 2001:db8:0:0006::2/64
 web_server: 2001:db8:0:0006::5/64
 HSRP-gate: 2001:db8:0:0006::1/64
@@ -264,8 +264,8 @@ HSRP-gate: 2001:db8:0:0006::1/64
 2001:db8:0:0007::/64
 excluded-address 2001:db8:0:0007:: 2001:db8:0:0007::ffff
 excluded-address 2001:db8:0:0007:0200:00ff:fe00:0000 2001:db8:0:0007:fdff:ffff:feff:ffff
-SW3SVI: 2001:db8:0:0007::3/64
-SW4SVI: 2001:db8:0:0007::4/64
+sw3SVI: 2001:db8:0:0007::3/64
+sw4SVI: 2001:db8:0:0007::4/64
 ldap_server 2001:db8:0:0007::5/64
 aaa_server 2001:db8:0:0007::2/64
 HSRP-gate: 2001:db8:0:0007::1/64
@@ -275,8 +275,8 @@ HSRP-gate: 2001:db8:0:0007::1/64
 2001:db8:0:0008::/64
 excluded-address 2001:db8:0:0008:: 2001:db8:0:0008::ffff
 excluded-address 2001:db8:0:0008:0200:00ff:fe00:0000 2001:db8:0:0008:fdff:ffff:feff:ffff
-SW3SVI: 2001:db8:0:0008::3/64
-SW4SVI: 2001:db8:0:0008::4/64
+sw3SVI: 2001:db8:0:0008::3/64
+sw4SVI: 2001:db8:0:0008::4/64
 HSRP-gate: 2001:db8:0:0008::1/64
 ~~~
 2001:db8:0:0020::/60 is subnetted as follows:
@@ -297,9 +297,9 @@ Gateway: 2001:db8:0:0022::1/64
 #### Site 2 - Vlan 30
 2001:db8:0:0023::/64 is subnetted as follows
 ~~~
-SW7SVI: 2001:db8:0:0023::17/120
+sw7SVI: 2001:db8:0:0023::17/120
 Gateway: 2001:db8:0:0023::1/120
-R3: 2001:db8:0:0023::ff3/128
+r3: 2001:db8:0:0023::ff3/128
 ~~~
 #### Site 2 - Vlan 40
 ~~~
@@ -334,7 +334,7 @@ no ip access-list extended NAT
 ip routing
 ipv6 unicast
 
-!ISP-R1 
+!ISP-r1 
 interface e0/0
 ip access-group 1 in
 ip add 10.111.10.11 255.255.255.254
@@ -343,7 +343,7 @@ ipv6 add 2001:db8:0:00ff::ffff/127
 no shutdown
 !ip nat inside
 
-!ISP-R2
+!ISP-r2
 interface e0/1
 ip access-group 2 in
 ip add 10.111.10.21 255.255.255.254
@@ -352,7 +352,7 @@ ipv6 add 2001:db8:0:00ff::fffd/127
 no shutdown
 !ip nat inside
 
-!ISP-R3 2001:db8:0:00ff::fffb/127
+!ISP-r3 2001:db8:0:00ff::fffb/127
 interface e0/2
 ip access-group 3 in
 ip add 10.111.10.31 255.255.255.254
@@ -395,39 +395,39 @@ It is not good quality. I will look at creating a proper diagram in the future.
 <img src="topology1.png" alt="This is an example image" width="90%">
 
 ## Ether-channel
-There are three ether-channels in the topology. SW6 connecting to the two distribution layer switches is layer 2. I initially planned the two distribution switches interconnecting as layer 3, but I realised that could cause extra traffic. If the root bridge SVI and HSRP master did not match it would cause layer 2 traffic to switch avoiding port-channel 2. Really this would only occur due to misconfiguration or hardware failures outside of preemption windows for HSRP. Regardless I configured it as a layer 2 link.
+There are three ether-channels in the topology. sw6 connecting to the two distribution layer switches is layer 2. I initially planned the two distribution switches interconnecting as layer 3, but I realised that could cause extra traffic. If the root bridge SVI and HSRP master did not match it would cause layer 2 traffic to switch avoiding port-channel 2. Really this would only occur due to misconfiguration or hardware failures outside of preemption windows for HSRP. Regardless I configured it as a layer 2 link.
 
-I configure SW6-SW3 as LACP. Active & passive are the LACP keywords. active-active is a little slower to negotiate than active-passive.
-#### SW6 Config
+I configure sw6-sw3 as LACP. Active & passive are the LACP keywords. active-active is a little slower to negotiate than active-passive.
+#### sw6 Config
 ~~~
 interface r e0/1, e1/2
 channel-group 1 mode active
 ~~~
-#### SW3 Config 
+#### sw3 Config 
 ~~~
 interface r e1/0, e1/1
 channel-group 1 mode active
 ~~~
   
-I configure SW6-SW4 as PAGP
-#### SW6 Config
+I configure sw6-sw4 as PAGP
+#### sw6 Config
 ~~~
 interface r e1/1,e0/0
 channel-group 2 mode desirable
 ~~~
-#### SW4 Config
+#### sw4 Config
 ~~~
 interface r e2/0,e0/3
 channel-group 1 mode desirable
 ~~~
   
-I configure SW3-SW4 as LACP
-#### SW3 Config
+I configure sw3-sw4 as LACP
+#### sw3 Config
 ~~~
 interface r e0/0-2
 channel-group 2 mode active
 ~~~
-#### SW4 Config
+#### sw4 Config
 ~~~
 interface r e0/0-2
 channel-group 2 mode active
@@ -437,7 +437,7 @@ channel-group 2 mode active
 I view my ether-channels with show ether-channel summary. They all report as layer 2 since I haven't used **no switchport** on the port-channels.
 
 ## VLANs
-VLANs are outlined in the Topology Data section. I will not be using VTP in my configuration. Trunk encapsulation is dot1q in modern networks. R3 needs to act as a router on a stick. The sub-interfaces act as default gateways much like SVI's. They will be assigned layer 3 addresses in a different section.
+VLANs are outlined in the Topology Data section. I will not be using VTP in my configuration. Trunk encapsulation is dot1q in modern networks. r3 needs to act as a router on a stick. The sub-interfaces act as default gateways much like SVI's. They will be assigned layer 3 addresses in a different section.
 
 #### Switch 1-7 Config
 ~~~
@@ -462,7 +462,7 @@ name native
 exit
 ~~~
 
-#### SW1 Config
+#### sw1 Config
 ~~~
 interface r e0/1,e0/0,e1/1,e1/2,e1/3
 switchport access vlan 10
@@ -481,7 +481,7 @@ switchport nonegotiate
 exit
 ~~~
 
-#### SW2 Config
+#### sw2 Config
 ~~~
 interface r e1/2,e0/1,e1/0
 switchport access vlan 10
@@ -509,7 +509,7 @@ exit
 ~~~
   
 The two distribution layer switches will need SVI's at layer 3. They will act as the layer 3 gateways. Layer 3 configuration is in a different section.
-#### SW3 Config
+#### sw3 Config
 ~~~
 interface e0/3
 switchport trunk allowed vlan 10,20,30,40
@@ -529,7 +529,7 @@ switchport nonegotiate
 exit
 ~~~
 
-#### SW4 Config
+#### sw4 Config
 ~~~
 interface e1/2
 switchport trunk allowed vlan 10,20,30,40
@@ -549,7 +549,7 @@ switchport nonegotiate
 exit
 ~~~
 
-#### SW5 Config
+#### sw5 Config
 ~~~
 interface r e0/3,e0/2
 switchport access vlan 10
@@ -572,7 +572,7 @@ switchport nonegotiate
 exit
 ~~~
 
-#### SW6 Config
+#### sw6 Config
 ~~~
 interface e0/2
 switchport access vlan 30
@@ -595,7 +595,7 @@ switchport nonegotiate
 exit
 ~~~
 
-#### SW7 Config
+#### sw7 Config
 ~~~
 interface r e0/1,e0/2,e0/3
 switchport access vlan 10
@@ -616,7 +616,7 @@ switchport trunk native vlan 933
 switchport mode trunk
 switchport nonegotiate
 ~~~
-#### R3 Config
+#### r3 Config
 ~~~
 interface e0/1
 no shutdown
@@ -634,9 +634,9 @@ exit
 **show vlan brief** displays the vlan assignments. **Show interface trunk** is another good command for confirming the trunk config.
 
 ## STP
-For STP I want different ports blocking per VLAN to help reduce unnecessary congestion. I configure Rapid PVST+. I configure SW3 as root for sales and supervisor. I configure SW4 as root for guest and the others.
+For STP I want different ports blocking per VLAN to help reduce unnecessary congestion. I configure Rapid PVST+. I configure sw3 as root for sales and supervisor. I configure sw4 as root for guest and the others.
 
-#### SW3 Config
+#### sw3 Config
 ~~~
 spanning-tree mode rapid-pvst
 spanning-tree vlan 10 priority 0
@@ -648,7 +648,7 @@ spanning-tree vlan 60 priority 4096
 spanning-tree vlan 70 priority 4096
 spanning-tree vlan 80 priority 4096
 ~~~
-#### SW4 Config
+#### sw4 Config
 ~~~
 spanning-tree mode rapid-pvst
 spanning-tree vlan 10 priority 4096
@@ -660,7 +660,7 @@ spanning-tree vlan 60 priority 0
 spanning-tree vlan 70 priority 0
 spanning-tree vlan 80 priority 0
 ~~~
-#### SW1,SW2,SW5,SW6 Config
+#### sw1,sw2,sw5,sw6 Config
 ~~~~
 spanning-tree mode rapid-pvst
 ~~~~
@@ -710,9 +710,9 @@ Po2                 Root FWD 47        128.66   P2p
 ~~~
 
 ## IPv4
-I configure gateway addresses for R3 sub-interfaces. This is where all the outreach site traffic will be routed between VLANs. I create vlan SVI's on SW3 & SW4. This is where the main site traffic will be routed between VLAN's. HSRP will provide a redundant gateway address between the distribution switch SVI's. I am using /31 for subnets with two devices. This should be supported by all the network devices.
+I configure gateway addresses for r3 sub-interfaces. This is where all the outreach site traffic will be routed between VLANs. I create vlan SVI's on sw3 & sw4. This is where the main site traffic will be routed between VLAN's. HSRP will provide a redundant gateway address between the distribution switch SVI's. I am using /31 for subnets with two devices. This should be supported by all the network devices.
 
-#### R1 Config
+#### r1 Config
 ~~~
 interface g1
 ip add 10.133.2.64 255.255.255.254
@@ -728,7 +728,7 @@ ip add 10.133.2.1 255.255.255.255
 no shutdown
 exit
 ~~~
-#### R2 Config
+#### r2 Config
 ~~~
 interface e0/0
 ip add 10.133.2.66 255.255.255.254
@@ -744,7 +744,7 @@ ip add 10.133.2.2 255.255.255.255
 no shutdown
 exit
 ~~~
-#### R3 Config
+#### r3 Config
 ~~~
 interface e0/1
 no shutdown
@@ -765,7 +765,7 @@ no shutdown
 exit
 ~~~
 
-#### SW1 Config
+#### sw1 Config
 ~~~
 no ip routing
 ip default-gateway 10.133.30.126
@@ -774,7 +774,7 @@ ip add 10.133.30.1 255.255.255.128
 no shutdown
 exit
 ~~~
-#### SW2 Config
+#### sw2 Config
 ~~~
 no ip routing
 ip default-gateway 10.133.30.126
@@ -783,7 +783,7 @@ ip add 10.133.30.2 255.255.255.128
 no shutdown
 exit
 ~~~
-#### SW3 Config
+#### sw3 Config
 ~~~
 ip routing
 interface vlan 10
@@ -820,7 +820,7 @@ no shutdown
 exit
 ~~~
 
-#### SW4 Config
+#### sw4 Config
 ~~~
 ip routing
 interface vlan 10
@@ -857,7 +857,7 @@ no shutdown
 exit
 ~~~
 
-#### SW5 Config
+#### sw5 Config
 ~~~
 no ip routing
 ip default-gateway 10.133.30.126
@@ -867,7 +867,7 @@ no shutdown
 exit
 ~~~
 
-#### SW6 Config
+#### sw6 Config
 ~~~
 no ip routing
 ip default-gateway 10.133.30.126
@@ -877,7 +877,7 @@ no shutdown
 exit
 ~~~
 
-#### SW7 Config
+#### sw7 Config
 ~~~
 no ip routing
 ip default-gateway 10.133.30.254
@@ -891,9 +891,9 @@ exit
 I can check this config using **show ip int brief** on device.
 
 ## First Hop Redundancy - HSRP
-I configure HSRP for first hop redundancy. Without HSRP, losing a distribution switch would knock out the single gateway that must be assigned on hosts. With HSRP either switch can act as the gateway for traffic between subnets. For HSRP the priority will match the STP root bridges. SW3 interface vlan 10 & interface vlan 40 will be priority. SW4 will be priority for all the other vlan SVI HSRP processes. The id will match the vlan id. The switches have a delay before they try to preempt their master state of 60secs. This is to mitigate excessive outages due to flapping. The timers are set much lower than default resulting in faster convergence at the cost of bandwidth and stability. The 650 hold time with 200 hello means that the switch would likely have to miss 3 consecutive hello frames before taking over.
+I configure HSRP for first hop redundancy. Without HSRP, losing a distribution switch would knock out the single gateway that must be assigned on hosts. With HSRP either switch can act as the gateway for traffic between subnets. For HSRP the priority will match the STP root bridges. sw3 interface vlan 10 & interface vlan 40 will be priority. sw4 will be priority for all the other vlan SVI HSRP processes. The id will match the vlan id. The switches have a delay before they try to preempt their master state of 60secs. This is to mitigate excessive outages due to flapping. The timers are set much lower than default resulting in faster convergence at the cost of bandwidth and stability. The 650 hold time with 200 hello means that the switch would likely have to miss 3 consecutive hello frames before taking over.
 
-#### SW3 Config
+#### sw3 Config
 ~~~
 interface vlan 10
 standby ip 10.133.10.126
@@ -933,7 +933,7 @@ standby 0 timers msec 200 msec 650
 exit
 ~~~
 
-#### SW4 Config
+#### sw4 Config
 ~~~
 interface vlan 10
 standby ip 10.133.10.126
@@ -976,7 +976,7 @@ exit
 #### Testing
 Using **show standby** I can get the info I need to verify HSRP is operating as intended.
   
-Example SW3 excerpt:
+Example sw3 excerpt:
 ~~~
 Preemption enabled, delay reload 60 secs
   Active router is local
@@ -985,8 +985,8 @@ Preemption enabled, delay reload 60 secs
 
 ## OSPF
 I enable OSPF on the layer 3 devices. I disable OSPF advertisements on the WAN interfaces. In a later section I intend to use OSPF over vpn connections to the outreach site. 
-I set the SVI's as passive besides Vlan 30 management. Both R1 and R2 are advertising the default route but the route cost will depend on who is the HSRP gateway for VLAN 30. I set the reference cost to 100k to avoid gigabit links having the same bandwidth as 100 megabit links. All of the network is single area. The ISP doesn't participate in OSPF. Default gateways direct traffic that doesn't belong in the LAN on either site to the ISP.
-#### R1 Config
+I set the SVI's as passive besides Vlan 30 management. Both r1 and r2 are advertising the default route but the route cost will depend on who is the HSRP gateway for VLAN 30. I set the reference cost to 100k to avoid gigabit links having the same bandwidth as 100 megabit links. All of the network is single area. The ISP doesn't participate in OSPF. Default gateways direct traffic that doesn't belong in the LAN on either site to the ISP.
+#### r1 Config
 ~~~
 ip route 0.0.0.0 0.0.0.0 10.111.10.11
 ip route 0.0.0.0 0.0.0.0 10.111.10.21 8
@@ -1002,7 +1002,7 @@ network 10.133.2.72 0.0.0.1 a 0
 
 exit
 ~~~
-#### R2 Config 
+#### r2 Config 
 ~~~
 ip route 0.0.0.0 0.0.0.0 10.111.10.11 8
 ip route 0.0.0.0 0.0.0.0 10.111.10.21
@@ -1018,7 +1018,7 @@ network 10.133.2.74 0.0.0.1 a 0
 
 exit
 ~~~
-#### R3 Config
+#### r3 Config
 ~~~
 ip route 0.0.0.0 0.0.0.0 10.111.10.31
 router ospf 1
@@ -1041,7 +1041,7 @@ network 10.133.40.128 0.0.0.127 a 0
 exit
 ~~~
 
-#### SW3 Config
+#### sw3 Config
 ~~~
 ip routing
 router ospf 1
@@ -1068,7 +1068,7 @@ passive-interface Vlan80
 exit
 ~~~
 
-#### SW4 Config
+#### sw4 Config
 ~~~
 ip routing
 router ospf 1
@@ -1096,12 +1096,12 @@ exit
 ~~~
 
 ## Cisco DHCP (Non-Redundant)
-I have decided to use SW3(main) and R3(outreach) as the DHCP servers. Note the SW3 selection creates a single point of failure and may stress the hardware. This is the logical choice out of CCNA level topics I believe. A backup should be considered in the future.
+I have decided to use sw3(main) and r3(outreach) as the DHCP servers. Note the sw3 selection creates a single point of failure and may stress the hardware. This is the logical choice out of CCNA level topics I believe. A backup should be considered in the future.
   
-SW4 SVI will be configured with a helper address so SW4 forwards DHCP traffic to the server on SW3. If SW3 goes down then clients in the main site will be unable to use DHCP.
+sw4 SVI will be configured with a helper address so sw4 forwards DHCP traffic to the server on sw3. If sw3 goes down then clients in the main site will be unable to use DHCP.
   
 As specified in topology data section each vlan has an excluded address range for static IP assignment.
-#### R3 Config
+#### r3 Config
 ~~~
 ip dhcp excluded-address 10.133.10.250 10.133.10.255
 ip dhcp excluded-address 10.133.22.245 10.133.22.255
@@ -1122,7 +1122,7 @@ default-router 10.133.40.254
 domain-name tapeitup.private
 dns-server 10.133.60.250 1.1.1.1
 ~~~
-#### SW3 Config
+#### sw3 Config
 ~~~
 ip dhcp excluded-address 10.133.10.120 10.133.10.126
 ip dhcp excluded-address 10.133.21.245 10.133.21.255
@@ -1153,7 +1153,7 @@ domain-name tapeitup.private
 dns-server 10.133.60.250 1.1.1.1
 exit
 ~~~
-#### SW4 Config
+#### sw4 Config
 ~~~
 interface r vl 10-80
 ip helper-address 10.133.2.13
@@ -1164,7 +1164,7 @@ I configure dynamic NAT. I configure port address translation. I configure an ac
   
 Initially I left NAT as "permit any". However after debugging the VPN I discovered that it will not work if the NAT ACL includes ANY summarisation of the crypto map list matching traffic. My assumption was that the more specific ACL entry would take precedence, but that is clearly false.
 
-#### R1 Config
+#### r1 Config
 ~~~
 ip access-list extended NAT
 10 permit ip 10.133.0.0 0.0.255.255 192.168.2.0 0.0.0.255
@@ -1190,7 +1190,7 @@ ip access-group WAN_FILTER out
 exit
 ~~~
 
-#### R2 Config
+#### r2 Config
 ~~~
 ip access-list extended NAT
 10 permit ip 10.133.0.0 0.0.255.255 192.168.2.0 0.0.0.255
@@ -1216,7 +1216,7 @@ ip access-group WAN_FILTER out
 exit
 ~~~
 
-#### R3 Config
+#### r3 Config
 ~~~
 ip access-list extended NAT
 10 permit ip 10.133.0.0 0.0.255.255 192.168.2.0 0.0.0.255
@@ -1266,8 +1266,8 @@ icmp 10.111.10.10:17531 10.133.10.1:17531 10.111.10.11:17531  10.111.10.11:17531
 ~~~
 
 ## VPN - IPSec - PSK with OSPF
-IPSec is a secure VPN technology. It doesn't support multicast unless I combine with GRE. Multicast is not essential for OSPF as I can manually specify the neighbour. I made sure to use the interface Tunnel0 as it simplifies the config. It is essential to have the same policy at either end. Advertising the endpoints WAN port over the VPN using OSPF will cause flapping or errors. I use static routes to ensure the WAN ports preferred route remains outside VPN. The WAN port over VPN routes are still available in the OSPF process, but I see no reason they would be used instead of a static route with default ad.
-#### R1 Config
+IPSec is a secure VPN technology. It doesn't support multicast unless I combine with GRE. Multicast is not essential for OSPF as I can manually specify the neighbour. I made sure to use the interface Tunnel0 as it simplifies the config. It is essential to have the same policy at either end. Advertising the endpoints WAN port over the VPN using OSPF will cause flapping or errors. I use static routes to ensure the WAN ports preferred route remains outside VPN. The WAN port over VPN routes are still available in the OSPF process, but I see no reason they would be used instead of a static route with default ad. esp-gcm 256 is a modern cipher that is less resource intensive than some other ciphers.
+#### r1 Config
 ~~~
 crypto isakmp policy 10
 en aes 256
@@ -1278,7 +1278,7 @@ exit
 
 crypto isakmp key vpnsecretkey13 address 10.111.10.30
 
-crypto ipsec transform-set ESP-AES256-SHA esp-aes 256 esp-sha-hmac 
+crypto ipsec transform-set TunnelCipher esp-gcm 256 
 mode tunnel
 exit
 
@@ -1288,7 +1288,7 @@ permit ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
 exit
 
 crypto ipsec profile VPNPROFILE
-set transform-set ESP-AES256-SHA
+set transform-set TunnelCipher
 
 interface Tunnel0
 ip address 10.133.2.68 255.255.255.254
@@ -1307,7 +1307,7 @@ router ospf 1
 network 10.133.2.68 0.0.0.1 a 0
 exit
 ~~~
-#### R2 Config
+#### r2 Config
 ~~~
 crypto isakmp policy 10
 en aes 256
@@ -1318,7 +1318,7 @@ exit
 
 crypto isakmp key vpnsecretkey23 address 10.111.10.30
 
-crypto ipsec transform-set ESP-AES256-SHA esp-aes 256 esp-sha-hmac 
+crypto ipsec transform-set TunnelCipher esp-gcm 256 
 mode tunnel
 exit
 
@@ -1328,7 +1328,7 @@ permit ip 10.133.0.0 0.0.255.255 10.133.0.0 0.0.255.255
 exit
 
 crypto ipsec profile VPNPROFILE
-set transform-set ESP-AES256-SHA
+set transform-set TunnelCipher
 
 interface Tunnel0
 ip address 10.133.2.70 255.255.255.254
@@ -1347,7 +1347,7 @@ router ospf 1
 network 10.133.2.70 0.0.0.1 a 0
 exit
 ~~~
-#### R3 Config
+#### r3 Config
 ~~~
 crypto isakmp policy 10
 en aes 256
@@ -1359,12 +1359,12 @@ exit
 crypto isakmp key vpnsecretkey13 address 10.111.10.10
 crypto isakmp key vpnsecretkey23 address 10.111.10.20
 
-crypto ipsec transform-set ESP-AES256-SHA esp-aes 256 esp-sha-hmac 
+crypto ipsec transform-set TunnelCipher esp-gcm 256 
 mode tunnel
 exit
 
 crypto ipsec profile VPNPROFILE
-set transform-set ESP-AES256-SHA
+set transform-set TunnelCipher
 
 ip access-list extended vpn_traff
 deny ip any 192.168.2.0 0.0.0.255
@@ -1550,7 +1550,7 @@ deny any any
 ## Access Layer Security
 I enable port security. For each port I use the default of max 1 mac address and leave the default shutdown violation. This prevents MAC flooding. There are no ip phones to share access ports. I enable DHCP snooping which prevents hosts from acting like a DHCP server. I enable DAI to ensure ARP traffic is correct for static and DHCP address assignments. Additionally I assign unused ports to an unused vlan, disable dtp, assign access and shutdown.
 
-#### SW1 Config
+#### sw1 Config
 ~~~
 ip dhcp snooping vlan 10,20,40,80
 no ip dhcp snoop info opt
@@ -1597,7 +1597,7 @@ interface range ethernet 3/0 - 3
 exit
 ~~~
 
-#### SW2 Config
+#### sw2 Config
 ~~~
 ip dhcp snooping vlan 10,20,40,80
 no ip dhcp snoop info opt
@@ -1654,7 +1654,7 @@ interface range ethernet 3/0 - 3
     shutdown
 ~~~
 
-#### SW5 Config
+#### sw5 Config
 ~~~
 ip dhcp snooping vlan 10,20,40,80
 no ip dhcp snoop info opt
@@ -1713,7 +1713,7 @@ interface range ethernet 3/0 - 3
 
 ~~~
 
-#### SW6 Config
+#### sw6 Config
 ~~~
 interface e0/2
 switchport port-s
@@ -1735,7 +1735,7 @@ interface range ethernet 3/0 - 3
     shutdown
 ~~~
 
-#### SW7 Config
+#### sw7 Config
 ~~~
 ip dhcp snooping vlan 10,20,40,80
 no ip dhcp snoop info opt
@@ -1782,7 +1782,7 @@ interface range ethernet 3/0 - 3
     shutdown
 ~~~
 
-#### SW3 Config
+#### sw3 Config
 ~~~
 interface range ethernet 1/3
     switchport mode access
@@ -1806,7 +1806,7 @@ interface range ethernet 5/0 - 3
     shutdown
 
 ~~~
-#### SW4 Config
+#### sw4 Config
 ~~~
 interface range ethernet 2/2 - 3
     switchport mode access
@@ -1832,10 +1832,10 @@ interface range ethernet 5/0 - 3
 ~~~
 
 ## NTP
-I ensure minimal discrepancy in the time reported by my LAN devices. For this, I configure R1 to sync to an internet ntp server. The rest of the devices I configure to sync to R1 first and 1.1.1.1 if R1 fails.
+I ensure minimal discrepancy in the time reported by my LAN devices. For this, I configure r1 to sync to an internet ntp server. The rest of the devices I configure to sync to r1 first and 1.1.1.1 if r1 fails.
 First I configure the devices to have the correct timezone.
 
-#### R1 Config
+#### r1 Config
 ~~~
 clock timezone GMT 0
 clock summer-time BST recurring last Sun Mar 1:00 last Sun Oct 2:00
@@ -1848,7 +1848,7 @@ ntp update-calendar
 ntp source l0
 ~~~
 
-#### R2+R3 Config
+#### r2+r3 Config
 ~~~
 clock timezone GMT 0
 clock summer-time BST recurring last Sun Mar 1:00 last Sun Oct 2:00
@@ -1879,7 +1879,7 @@ clock summer-time BST recurring last Sun Mar 1:00 last Sun Oct 2:00
 
 ## IPv6 Addressing + HSRP v2
 Version 2 is the HSRP version that supports ipv6.
-#### R1 Config
+#### r1 Config
 ~~~
 ipv6 unicast-routing
 
@@ -1907,7 +1907,7 @@ ipv6 add 2001:db8:0:ff::fff1/127
 no shutdown
 exit
 ~~~
-#### R2 Config
+#### r2 Config
 ~~~
 ipv6 unicast-routing
 
@@ -1930,7 +1930,7 @@ ipv6 add 2001:db8:0:00ff::ffef/127
 no shutdown
 exit
 ~~~
-#### R3 Config
+#### r3 Config
 ~~~
 ipv6 unicast-routing
 
@@ -1960,7 +1960,7 @@ ipv6 add 2001:db8:0:24::1/64
 exit
 ~~~
 
-#### SW1 Config
+#### sw1 Config
 ~~~
 ipv6 unicast-routing
 interface vlan 30
@@ -1968,7 +1968,7 @@ ipv6 enable
 ipv6 add 2001:db8:0:0003::11/120
 exit
 ~~~
-#### SW2 Config
+#### sw2 Config
 ~~~
 ipv6 unicast-routing
 interface vlan 30
@@ -1977,7 +1977,7 @@ ipv6 add 2001:db8:0:0003::12/120
 exit
 ~~~
 
-#### SW3 Config
+#### sw3 Config
 ~~~
 ipv6 unicast-routing
 
@@ -2057,7 +2057,7 @@ no shutdown
 exit
 ~~~
 
-#### SW4 Config
+#### sw4 Config
 ~~~
 ipv6 unicast-routing
 interface vlan 30
@@ -2136,7 +2136,7 @@ no shutdown
 exit
 ~~~
 
-#### SW5 Config
+#### sw5 Config
 ~~~
 ipv6 unicast-routing
 interface vlan 30
@@ -2145,7 +2145,7 @@ ipv6 add 2001:db8:0:0003::15/120
 exit
 ~~~
 
-#### SW6 Config
+#### sw6 Config
 ~~~
 ipv6 unicast-routing
 interface vlan 30
@@ -2154,7 +2154,7 @@ ipv6 add 2001:db8:0:0003::16/120
 exit
 ~~~
 
-#### SW7 Config
+#### sw7 Config
 ~~~
 ipv6 unicast-routing
 interface vlan 30
@@ -2165,7 +2165,7 @@ exit
 
 ## IPv6 Static routes
 Note IPv6 traffic between the two sites is not encrypted like IPv4 is. This is beyond CCNA. In reality this would be a major security issue.
-#### R1
+#### r1
 ~~~
 ipv6 route 0::/0 g2 2001:db8:0:ff::ffff
 ipv6 route 2001:db8::/60 g1 2001:db8:0:ff::fff4
@@ -2173,7 +2173,7 @@ ipv6 route 2001:db8::/60 g3 2001:db8:0:ff::fff0 9
 
 ipv6 route 2001:db8:0:03::ff2/128 g1 2001:db8:0:ff::fff4
 ~~~
-#### R2
+#### r2
 ~~~
 ipv6 route 0::/0 e0/1 2001:db8:0:ff::fffd
 ipv6 route 2001:db8::/60 e0/0 2001:db8:0:ff::fff2
@@ -2181,19 +2181,19 @@ ipv6 route 2001:db8::/60 e0/2 2001:db8:0:ff::ffee 9
 
 ipv6 route 2001:db8:0:03::ff1/128 e0/0 2001:db8:0:ff::fff2
 ~~~
-#### R3
+#### r3
 ~~~
 ipv6 route 0::/0 e0/0 2001:db8:0:00ff::fffb
 ~~~
-#### SW1
+#### sw1
 ~~~
 ipv6 route ::0/0 2001:DB8:0:3::1
 ~~~
-#### SW2
+#### sw2
 ~~~
 ipv6 route ::0/0 2001:DB8:0:3::1
 ~~~
-#### SW3
+#### sw3
 ~~~
 ipv6 route 0::/0 e4/0 2001:db8:0:ff::fff5
 ipv6 route 0::/0 e1/2 2001:db8:0:ff::ffef 9
@@ -2202,7 +2202,7 @@ ipv6 route 2001:db8:0:03::ff2/128 2001:db8:0:3::14
 ipv6 route 2001:db8:0:ff::fffc/127 2001:db8:0:3::14
 ipv6 route 2001:db8:0:ff::fff2/127 2001:db8:0:3::14
 ~~~
-#### SW4
+#### sw4
 ~~~
 ipv6 route 0::/0 e1/3 2001:db8:0:00ff::fff3
 ipv6 route 0::/0 e2/1 2001:db8:0:ff::fff1 9
@@ -2211,15 +2211,15 @@ ipv6 route 2001:db8:0:03::ff2/128 e1/3 2001:db8:0:ff::fff3
 ipv6 route 2001:db8:0:ff::fffe/127 2001:db8:0:3::13
 ipv6 route 2001:db8:0:ff::fff4/127 2001:db8:0:3::13
 ~~~
-#### SW5
+#### sw5
 ~~~
 ipv6 route ::0/0 2001:DB8:0:3::1
 ~~~
-#### SW6
+#### sw6
 ~~~
 ipv6 route ::0/0 2001:DB8:0:3::1
 ~~~
-#### SW7
+#### sw7
 ~~~
 ipv6 route ::0/0 2001:DB8:0:23::1
 ~~~
@@ -2254,7 +2254,7 @@ exit
 ## Ansible Example
 For an initial demo of ansible I create a SSH playbook to change the banner on the device.
 The local user authentication is used.
-When I run the playbook with ansible it sucessfully changes the banner on R2.
+When I run the playbook with ansible it sucessfully changes the banner on r2.
 #### Playbook testssh.yaml
 ~~~
 ---
@@ -2513,3 +2513,69 @@ permitted by applicable law.
 john@radius-server-1:~$ ls /home
 john
 ~~~
+
+## Cisco Certificate Authority (unencrypted) + https
+I create the pki CA server on r1. I create a https certificate for secure signing. Modern browsers use the subject alt name, rather than the subject name, to verify the certificates identity. I ensure the subject alt name is set to the DNS name of the https server, I did not see a way to include an IP address along with the DNS name in the Cisco router. This means DNS will have to be up for the certificate to be valid, or the client will need to have its own resolution configured.
+I need to sign the https certificate before I can use it. However the Cisco router does not fulfil CSR using the terminal. I enable http signing and use an access list THIS DOESNT WORK to block traffic that does not originate from r1. Then, once the https certificate is signed, I disable the http server.
+I show the CA certificate, then set a trustpoint on r2 and authenticate it by pasting the certificate into the terminal.
+  
+Using the csr router is too limited to be practical as it does not support modern protocols.
+#### r1 Config (CA)
+~~~
+aaa new-model
+crypto pki server r1-ca
+  hash sha256
+  do mkdir flash:/ca
+  database url flash:/ca/
+  database level complete
+  issuer-name CN=r1-ca,O=tapeitup.private
+  grant auto
+  lifetime ca-certificate 7300
+  lifetime certificate 3650
+  no shut
+
+ip http server
+ip http secure-server
+
+crypto pki trustpoint https_cert
+ subject-name CN=10.133.2.1,O=tapeitup.private
+ subject-alt-name r1.tapeitup.private
+ enrollment url http://r1.tapeitup.private
+ hash sha256
+ revocation-check none
+exit
+
+crypto pki enroll https_cert
+ip http client source-interface loopback 0
+ip http secure-trustpoint https_cert
+~~~
+~~~
+crypto pki export r1-ca pem terminal
+~~~
+#### r2 Config (client)
+~~~
+crypto pki trustpoint r1-ca
+ enrollment terminal
+ revocation-check none
+exit
+crypto pki authenticate r1-ca
+
+crypto key generate rsa modulus 2048 label r2.tapeitup.private
+no crypto pki trustpoint r2
+crypto pki trustpoint r2
+  enrollment url https://r1.tapeitup.private
+  ! enrollment url http://r1.tapeitup.private
+  rsakeypair r2.tapeitup.private
+  subject-name CN=r2,O=tapeitup.private
+  subject-alt-name r2.tapeitup.private
+  revocation-check none
+exit
+crypto pki authenticate r2
+crypto pki enroll r2
+~~~
+### Debian Client Config
+#### paste the key in /etc/ssl/certs/r1-ca.pem
+#### run **update-ca-certificates** as root
+#### security.enterprise_roots.enabled must be flagged in about:config on firefox based browsers
+#### otherwise import the pem into the browser
+

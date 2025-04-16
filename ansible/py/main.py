@@ -36,12 +36,12 @@ groups = inventory_data.get('all', {}).get('children', {})
 #    for host, vars in data.get('hosts', {}).items():
 #        print(f"  Host: {host}, Vars: {vars}")
 
-# Print R3 loopback
+# Print r3 loopback
 try:
-    r3_interfaces = inventory_data['all']['children']['nodes']['hosts']['R3']['interfaces']
+    r3_interfaces = inventory_data['all']['children']['nodes']['hosts']['r3']['interfaces']
     loopback = r3_interfaces.get('l0')
     if loopback:
-        print("Loopback interface on R3:")
+        print("Loopback interface on r3:")
         print(f"  Description: {loopback.get('description', 'N/A')}")
         ipv4_info = loopback.get('ipv4', {})
         print(f"  IPv4 Address: {ipv4_info.get('address', 'N/A')}")
@@ -49,7 +49,7 @@ try:
         ipv6_address = loopback.get('ipv6_address', 'N/A')
         print(f"  IPv6 Address: {ipv6_address}")
     else:
-        print("No loopback interface (l0) found on R3.")
+        print("No loopback interface (l0) found on r3.")
 except KeyError as e:
     print(f"Error: Missing key in inventory data - {e}")
 	ipaddress.IPv4Network(f'0.0.0.0/{cidr}', strict=False)

@@ -1,7 +1,8 @@
 from __future__ import annotations
 import paramiko
-from handle_debian import commands_packages_essential, commands_packages_radius_server, \
- commands_packages_ldap_client, commands_config_radius_server, commands_config_ldap_client
+from handle_debian.handle_debian import commands_packages_essential
+from handle_debian.radius import commands_packages_radius_server, commands_config_radius_server
+from handle_debian.ldap import commands_packages_ldap_client, commands_config_ldap_client
 import logging
 from convert import get_escaped_string
 from interface import Interface
@@ -295,15 +296,15 @@ ipaddr = 127.0.0.1
 secret = beantruck
 shortname = localhost
 }}
-client R1.tapeitup.private {{
-	ipaddr = {topology.get_node("R1").get_interface("loopback","0").ipv4_address}
-	secret = R1radiuskey
-	shortname = R1
+client r1.tapeitup.private {{
+	ipaddr = {topology.get_node("r1").get_interface("loopback","0").ipv4_address}
+	secret = r1radiuskey
+	shortname = r1
 }}
-client SW3.tapeitup.private {{
-	ipaddr = {topology.get_node("SW3").get_interface("loopback", "0").ipv4_address}
-	secret = SW3radiuskey
-	shortname = SW3
+client sw3.tapeitup.private {{
+	ipaddr = {topology.get_node("sw3").get_interface("loopback", "0").ipv4_address}
+	secret = sw3radiuskey
+	shortname = sw3
 }}
 	"""
 	#endregion

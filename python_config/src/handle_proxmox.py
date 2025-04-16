@@ -17,6 +17,8 @@ from typing import Optional, List
 import paramiko
 from project_globals import GLOBALS
 import ipaddress
+from requests.exceptions import ReadTimeout
+
 class Container(BaseModel):
 	ctid: int
 	template: str
@@ -78,7 +80,7 @@ def proxnode_reload_containers_service(proxmox, node, service_name):
 	
 	ssh.close()
 
-def execute_proxnode_commands(proxmox, node, commands):
+def execute_proxnode_commands(proxmox, node, commands, timeout = 120 ):
 	if proxmox.machine_data.device_type != "proxmox":
 		LOGGER.warning(f"Node {node.hostname} is not a proxmox node!")
 		return
@@ -98,11 +100,26 @@ def execute_proxnode_commands(proxmox, node, commands):
 	t_path.mkdir(exist_ok=True, parents=True)
 	with open(os.path.join(t_path,'proxnode_command_log.txt'), 'a') as f:
 		for command in commands:
+			if '"' in command:
+				error_message = f"Command contains invalid double-quote character: {command}. Recommend using base64 encoding BEFORE sending for execution."
+				LOGGER.error(error_message)
+				raise ValueError(error_message)
+
 			print(f'pct exec {my_container.ctid} -- sh -c "{command}"', file=f)
 			LOGGER.debug("#### sending command: "+f'pct exec {my_container.ctid} -- sh -c "{command}"')
 			stdin, stdout, stderr = ssh.exec_command(f'pct exec {my_container.ctid} -- sh -c "{command}"')
+			
+			start_time = time.time()
+
+			while not stdout.channel.exit_status_ready():
+				if time.time() - start_time > timeout:
+					stdout.channel.close()
+					stderr.channel.close()
+					raise TimeoutError("Command timed out")
+					return
 			output += [stdout.read().decode()]
 			error += [stderr.read().decode()]
+
 
 	if (True): # Log terminal output?
 		not_blank = []
